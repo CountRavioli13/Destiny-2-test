@@ -2751,28 +2751,87 @@ async function showVendors() {
   $("vend-char").innerHTML = chars.map((c) => `<option value="${esc(c.id)}"${c.id === vend.charId ? " selected" : ""}>${className(c)}</option>`).join("");
   if (!vend.data) loadVendors(); else renderVendors();
 }
+// Vendors load in two steps: what's for sale (fast), then the exact rolls of the
+// weapons and armor (fetched per vendor, in parallel). The last result is kept in
+// this browser, so reopening Vendors shows it instantly while it refreshes.
+const vendCacheKey = (charId) => `vend-cache-${charId}`;
+function readVendCache(charId) {
+  try {
+    const c = JSON.parse(localStorage.getItem(vendCacheKey(charId)) || "null");
+    if (!c || Date.now() - c.at > 12 * 3600e3) return null;
+    const soonest = Math.min(...c.vendors.map((v) => (v.refresh ? new Date(v.refresh).getTime() : Infinity)));
+    return soonest > Date.now() ? c.vendors : null; // a vendor has restocked since: don't show old stock
+  } catch { return null; }
+}
+function saveVendCache(charId, vendors) {
+  try { localStorage.setItem(vendCacheKey(charId), JSON.stringify({ at: Date.now(), vendors })); } catch {}
+}
+function adoptVendors(vendors) {
+  vend.items = {};
+  vendors.forEach((v, vi) => {
+    v.items.forEach((it, i) => { it.key = `${vi}-m-${i}`; it.vhash = v.hash; vend.items[it.key] = it; });
+    (v.pages || []).forEach((p, pi) => p.items.forEach((it, i) => { it.key = `${vi}-${pi}-${i}`; it.vhash = p.hash; vend.items[it.key] = it; }));
+  });
+  vend.data = vendors;
+}
+const vendDefsFor = (vendors) => Promise.all([
+  loadDefs("vendor", vendors.flatMap((v) => [v.hash, ...(v.pages || []).map((p) => p.hash)])),
+  loadDefs("item", vendors.flatMap((v) => [...v.items, ...(v.pages || []).flatMap((p) => p.items)].flatMap((it) => [it.hash, ...it.costs.map((c) => c.hash)])))
+]);
 async function loadVendors() {
   if (vend.loading || !vend.charId) return;
+  const charId = vend.charId;
   vend.loading = true;
   vend.error = null;
-  $("vend-body").innerHTML = `<div class="vend-grid">${Array(4).fill('<div class="sk" style="height:260px"></div>').join("")}</div>`;
-  try {
-    const r = await api(`/api/vendors?char=${encodeURIComponent(vend.charId)}`);
-    await Promise.all([
-      loadDefs("vendor", r.vendors.flatMap((v) => [v.hash, ...(v.pages || []).map((p) => p.hash)])),
-      loadDefs("item", r.vendors.flatMap((v) => [...v.items, ...(v.pages || []).flatMap((p) => p.items)].flatMap((it) => [it.hash, ...it.costs.map((c) => c.hash)])))
-    ]);
-    vend.items = {};
-    r.vendors.forEach((v, vi) => {
-      v.items.forEach((it, i) => { it.key = `${vi}-m-${i}`; vend.items[it.key] = it; });
-      (v.pages || []).forEach((p, pi) => p.items.forEach((it, i) => { it.key = `${vi}-${pi}-${i}`; vend.items[it.key] = it; }));
-    });
-    vend.data = r.vendors;
-  } catch (err) {
-    vend.error = err.message;
+  const cached = !vend.data && readVendCache(charId);
+  if (cached) {
+    await vendDefsFor(cached).catch(() => {});
+    if (vend.charId === charId) { adoptVendors(cached); renderVendors(); }
+  } else if (!vend.data) {
+    $("vend-body").innerHTML = `<div class="vend-grid">${Array(4).fill('<div class="sk" style="height:260px"></div>').join("")}</div>`;
   }
-  vend.loading = false;
-  renderVendors();
+  try {
+    const r = await api(`/api/vendors?char=${encodeURIComponent(charId)}`);
+    await vendDefsFor(r.vendors);
+    persistDefs(["vendor"]); persistItemDefs();
+    if (vend.charId !== charId) return;
+    // Keep rolls we already have (from the cache) so totals don't flicker while new ones load
+    const old = new Map(Object.values(vend.items || {}).map((it) => [`${it.vhash}:${it.index}:${it.hash}`, it]));
+    const keep = (it, vh) => { const o = old.get(`${vh}:${it.index}:${it.hash}`); if (o) for (const k of ["stats", "sockets", "options", "why"]) if (o[k]) it[k] = o[k]; };
+    r.vendors.forEach((v) => { v.items.forEach((it) => keep(it, v.hash)); (v.pages || []).forEach((p) => p.items.forEach((it) => keep(it, p.hash))); });
+    adoptVendors(r.vendors);
+    vend.loading = false;
+    renderVendors();
+    if (vault.panel === "vendoritem") renderSheet();
+    loadVendorRolls(charId);
+  } catch (err) {
+    if (!vend.data) vend.error = err.message;
+    else toast(`Couldn't refresh vendors: ${err.message}`, true);
+    vend.loading = false;
+    renderVendors();
+  }
+}
+async function loadVendorRolls(charId) {
+  // Only vendors selling weapons or armor have rolls worth fetching
+  const want = [...new Set(Object.values(vend.items).filter((it) => vendorKind(it)).map((it) => it.vhash))];
+  if (!want.length) { saveVendCache(charId, vend.data); return; }
+  vend.rollsLoading = true;
+  const p = vend.rollsPromise = api(`/api/vendors?char=${encodeURIComponent(charId)}&rolls=${want.join(",")}`)
+    .then((r) => {
+      if (vend.charId !== charId) return;
+      for (const it of Object.values(vend.items)) {
+        const roll = r.rolls?.[it.vhash]?.[it.index];
+        if (roll) { delete it.why; Object.assign(it, roll); }
+      }
+      saveVendCache(charId, vend.data);
+    })
+    .catch(() => {})
+    .finally(() => {
+      if (vend.rollsPromise !== p) return;
+      vend.rollsLoading = false;
+      renderVendors();
+      if (vault.panel === "vendoritem") openVendorItem(vault.openId);
+    });
 }
 function refreshIn(iso) {
   if (!iso) return "";
@@ -2802,7 +2861,8 @@ function vendorItemHtml(it) {
 async function openVendorItem(key) {
   const v = vend.items?.[key];
   if (!v) return;
-  openPanel("vendoritem", key);
+  if (vault.panel !== "vendoritem" || vault.openId !== key) openPanel("vendoritem", key);
+  if (vend.rollsLoading && !v.stats && !v.sockets) return; // reopened when the rolls arrive
   const plugs = new Set();
   (v.sockets || []).forEach((s) => s.plug && plugs.add(s.plug));
   Object.values(v.options || {}).forEach((list) => list.forEach((h) => plugs.add(h)));
@@ -2823,6 +2883,7 @@ function vendorSheetHtml(v) {
   const hasRoll = Boolean(v.stats || v.sockets);
   let body;
   if (!kind) body = `<div class="sheet-section"><p class="note">${esc(d.type || "This item")} doesn't have stats or perks.</p></div>`;
+  else if (!hasRoll && vend.rollsLoading) body = `<div class="sheet-section"><h4>Stats</h4>${Array(4).fill('<div class="sk sk-line"></div>').join("")}</div>`;
   else if (!hasRoll) body = `<div class="sheet-section"><p class="note">Bungie didn't send this item's roll. It may be a fixed roll; light.gg has the details.</p>${v.why ? `<p class="sheet-note tech">Details: ${esc(v.why)}</p>` : ""}</div>`;
   else if (!v.loaded) body = statsHtml(it, det) + `<div class="sheet-section"><h4>Perks</h4>${Array(3).fill('<div class="sk sk-line"></div>').join("")}</div>`;
   else body = statsHtml(it, det) + (dd ? socketsHtml(it, det) : "") + (dd?.flavor ? `<div class="sheet-section"><p class="flavor">“${esc(dd.flavor)}”</p></div>` : "");
@@ -3244,9 +3305,9 @@ $("sheet").addEventListener("keydown", (e) => {
 });
 $("v-loadouts").addEventListener("click", () => openPanel("loadouts"));
 $("v-optimizer").addEventListener("click", () => openPanel("optimizer"));
-$("vend-char").addEventListener("change", (e) => { vend.charId = e.target.value; vend.data = null; loadVendors(); });
+$("vend-char").addEventListener("change", (e) => { vend.charId = e.target.value; vend.data = null; vend.loading = false; loadVendors(); });
 $("vend-gear").addEventListener("change", (e) => { vend.gearOnly = e.target.checked; renderVendors(); });
-$("vend-refresh").addEventListener("click", () => { vend.data = null; loadVendors(); });
+$("vend-refresh").addEventListener("click", () => { try { localStorage.removeItem(vendCacheKey(vend.charId)); } catch {} vend.data = null; loadVendors(); });
 $("vend-body").addEventListener("click", (e) => {
   const item = e.target.closest(".vitem[data-vkey]");
   if (item) openVendorItem(item.dataset.vkey);
