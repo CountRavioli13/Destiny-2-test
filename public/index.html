@@ -1016,7 +1016,8 @@ async function loadDefs(type, hashes) {
   const need = [...new Set(hashes.filter((h) => h != null).map(String))].filter((h) => !defs[type][h]);
   if (!need.length) return;
   const chunks = [];
-  for (let i = 0; i < need.length; i += 100) chunks.push(need.slice(i, i + 100));
+  const size = ["item", "plugname", "plug"].includes(type) ? 300 : 100; // the server reads these from one file
+  for (let i = 0; i < need.length; i += size) chunks.push(need.slice(i, i + size));
   let next = 0;
   await Promise.all(Array.from({ length: Math.min(3, chunks.length) }, async () => {
     while (next < chunks.length) {
@@ -1170,7 +1171,48 @@ function showVault() {
   }
   if (!me.signedIn) return vaultPanel("v-out");
   if (vault.inv) { vaultPanel("v-app"); return renderVault(); }
+  if (showCachedVault()) return;
   loadVault();
+}
+
+/* Your last-seen vault is kept in this browser so the page can show it instantly,
+   then refresh from Bungie in the background. */
+const invCacheKey = () => `inv-cache-${me.membershipId || "me"}`;
+function saveInvCache(inv) {
+  try { localStorage.setItem(invCacheKey(), JSON.stringify({ at: Date.now(), inv }, (k, v) => (k === "_wish" ? undefined : v))); } catch {}
+}
+function readInvCache() {
+  try {
+    const c = JSON.parse(localStorage.getItem(invCacheKey()) || "null");
+    return c && c.inv?.items && Date.now() - c.at < 7 * 86400000 ? c : null;
+  } catch { return null; }
+}
+function showCachedVault() {
+  const cached = readInvCache();
+  if (!cached) return false;
+  vault.stale = true;
+  adoptInventory(cached.inv);
+  loadVault(true, true); // fresh copy from Bungie in the background
+  return true;
+}
+
+// Make an inventory (fresh or cached) the one on screen.
+function adoptInventory(inv) {
+  vault.inv = inv;
+  if (!vault.userDataLoaded) { vault.userDataLoaded = true; userData = readUserData(); loadUserData(); }
+  vault.dupes = {};
+  for (const it of inv.items) vault.dupes[it.hash] = (vault.dupes[it.hash] || 0) + 1;
+  vault.perkNames = inv.items.every((it) => it.plugs.every((p) => defs.plugname[p]));
+  for (const k in details) delete details[k];
+  if (!vault.wish) loadWishlist();
+  if (!vault.perkNames) setTimeout(ensurePerkNames, 1500); // perk names power perk: search and the hover card
+  $("v-me").textContent = `${me.name}#${me.code}`;
+  $("v-tip").firstChild.textContent = canHover.matches
+    ? "Drag an item to another column to move it, or onto an equipped slot to equip it. Click any item for perks, stats and options. "
+    : "Tap any item to see its perks and stats, and to move or equip it. ";
+  try { $("v-tip").hidden = localStorage.getItem("tip-dismissed") === "1"; } catch { $("v-tip").hidden = false; }
+  if (!$("view-vault").hidden) vaultPanel("v-app");
+  renderVault();
 }
 
 async function loadVault(quiet = false, silent = false) {
@@ -1179,7 +1221,10 @@ async function loadVault(quiet = false, silent = false) {
   if (!quiet) vaultPanel("v-loading");
   $("v-refresh").disabled = true;
   try {
-    const inv = await api("/api/inventory");
+    // Started while the page was checking your sign-in, if you were signed in last time
+    let inv = vault.prefetch ? await vault.prefetch : null;
+    vault.prefetch = null;
+    if (!inv) inv = await api("/api/inventory");
     await Promise.all([
       loadDefs("item", [...inv.items.map((i) => i.hash), ...inv.items.map((i) => i.ornament).filter(Boolean), ...inv.postmaster.map((x) => x.hash)]),
       loadDefs("record", inv.characters.map((c) => c.titleHash)),
@@ -1194,29 +1239,18 @@ async function loadVault(quiet = false, silent = false) {
         return slot ? { ...it, slot, kind: WEAPONS.includes(slot) ? "weapons" : "armor" } : null;
       })
       .filter(Boolean);
-    vault.inv = inv;
-    if (!vault.userDataLoaded) { vault.userDataLoaded = true; userData = readUserData(); loadUserData(); }
-    vault.dupes = {};
-    for (const it of inv.items) vault.dupes[it.hash] = (vault.dupes[it.hash] || 0) + 1;
-    vault.perkNames = vault.perkNames && inv.items.every((it) => it.plugs.every((p) => defs.plugname[p]));
-    for (const k in details) delete details[k];
-    if (vault.wish) { /* reuse the list we already have; matches are recomputed per item */ } else loadWishlist();
-    setTimeout(ensurePerkNames, 1500); // perk names power perk: search and the hover card
-    $("v-me").textContent = `${me.name}#${me.code}`;
-    $("v-tip").firstChild.textContent = canHover.matches
-      ? "Drag an item to another column to move it, or onto an equipped slot to equip it. Click any item for perks, stats and options. "
-      : "Tap any item to see its perks and stats, and to move or equip it. ";
-    try { $("v-tip").hidden = localStorage.getItem("tip-dismissed") === "1"; } catch { $("v-tip").hidden = false; }
-    vaultPanel("v-app");
-    renderVault();
+    vault.stale = false;
+    adoptInventory(inv);
+    saveInvCache(inv);
     if (quiet && !silent) toast("Your vault is up to date.", false, { title: "Refreshed" });
   } catch (err) {
     if (err.status === 401) { me.signedIn = false; renderAccount(); vaultPanel("v-out"); toast(err.message, true); }
-    else if (quiet) toast(err.message, true);
+    else if (quiet) { if (!silent || vault.stale) toast(err.message, true, { title: "Couldn't refresh" }); }
     else { $("v-error-msg").textContent = err.message; vaultPanel("v-error"); }
   } finally {
     vault.loading = false;
     $("v-refresh").disabled = false;
+    if (vault.inv) renderVault();
   }
 }
 
@@ -1389,6 +1423,7 @@ function renderVault() {
 
   const total = vault.inv.items.length;
   const q = vault.q.trim();
+  if (vault.stale) { $("vcount").textContent = `${total} weapons and armor · updating from Bungie…`; return; }
   const cq = q ? compileQuery(q) : null;
   if (cq && cq.preds.some((f) => f.needsPerks) && !vault.perkNames) {
     $("vcount").textContent = "Loading perk names (first time only)…";
@@ -3150,7 +3185,12 @@ if ("serviceWorker" in navigator) window.addEventListener("load", () => navigato
   }
   if (fromUrl && !location.hash) history.replaceState(null, "", location.href.split("#")[0] + "#lookup");
 
+  let wasSignedIn = false;
+  try { wasSignedIn = localStorage.getItem("gl-signed-in") === "1"; } catch {}
+  if (wasSignedIn && !["#lookup"].includes(location.hash)) vault.prefetch = api("/api/inventory").catch(() => null);
   try { me = await api("/api/me"); } catch { me = { configured: false, signedIn: false }; }
+  try { me.signedIn ? localStorage.setItem("gl-signed-in", "1") : localStorage.removeItem("gl-signed-in"); } catch {}
+  if (!me.signedIn) vault.prefetch = null;
   renderAccount();
   window.addEventListener("hashchange", route);
   route();
