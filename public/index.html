@@ -140,24 +140,22 @@
   }
   .stores.single { grid-template-columns: minmax(0, 1fr); }
   .store-head {
-    position: sticky; top: var(--bar-h, 58px); z-index: 5; padding-block: 8px 10px;
-    background: linear-gradient(var(--bg) 85%, transparent);
+    position: sticky; top: var(--bar-h, 58px); z-index: 6; padding-block: 8px 8px;
+    background: linear-gradient(var(--bg) 88%, transparent);
   }
   .emblem-card {
-    position: relative; display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 12px 0 62px;
+    position: relative; display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 6px 0 54px;
     color: #fff; text-align: left; overflow: hidden; border-radius: 3px;
     background: #262b3a left center / auto 100% no-repeat;
   }
   .emblem-card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 20%, rgba(0,0,0,.35) 100%); }
   .emblem-card > * { position: relative; z-index: 1; min-width: 0; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
-  .emblem-card .einfo { display: grid; gap: 2px; min-width: 0; }
-  .emblem-card .ename { font: 700 1.3rem/1 var(--display); letter-spacing: .02em; }
+  .emblem-card .einfo { display: grid; gap: 2px; min-width: 0; flex: 1 1 auto; }
+  .emblem-card .ename { font: 700 1.3rem/1 var(--display); letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .emblem-card .esub { font-size: 11px; font-style: italic; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .emblem-card .epow { margin-left: auto; font: 700 1.35rem/1 var(--display); color: #f5d36b; font-variant-numeric: tabular-nums; }
   .emblem-card.is-vault { padding-left: 14px; background: linear-gradient(135deg, #2a3142, #191e29); }
   .emblem-card.is-vault svg { width: 34px; height: 34px; color: #fff; flex: none; }
-  .vault-stats { margin-left: auto; display: flex; gap: 14px; font: 500 12px var(--mono); color: #d6dbe4; }
-  .vault-stats b { color: #fff; }
 
   .sec-head {
     grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; margin: 14px 0 4px; padding: 4px 0;
@@ -226,7 +224,7 @@
   .store-tab .emblem-card.is-vault { padding-left: 10px; }
   .store-tab .is-vault svg { width: 24px; height: 24px; }
   .store-tab .ename, .store-tab .epow { font-size: 1.05rem; }
-  .store-tab .esub, .store-tab .vault-stats { display: none; }
+  .store-tab .esub, .store-tab .vault-space { display: none; }
   @media (max-width: 900px) {
     .vtools { width: 100%; }
     #vfilter { flex: 1 1 100%; width: auto; }
@@ -234,7 +232,6 @@
   }
 
   /* Vault toolbar */
-  .vault-top { display: flex; align-items: baseline; gap: 6px 16px; flex-wrap: wrap; margin-bottom: 10px; }
   .vcount { color: var(--faint); font-size: 13px; }
   .vault-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
   .vsearch { flex: 1 1 360px; min-width: 0; position: relative; display: flex; align-items: center; }
@@ -260,7 +257,7 @@
     .vsearch { flex-basis: 100%; }
     .vsearch kbd { display: none; }
     .vault-bar .btn:not(.icon-only), .vault-bar #vsort { flex: 1 1 0; min-width: 0; padding-inline: 8px; }
-    .vault-bar .btn:not(.icon-only) { font-size: 14px; }
+    .vault-bar .btn:not(.icon-only) { font-size: 13px; letter-spacing: .04em; }
     .store-tab .emblem-card { padding-left: 46px; gap: 4px; }
     .store-tab .ename { font-size: .98rem; }
     .store-tab .epow { font-size: .92rem; }
@@ -344,8 +341,10 @@
   .hc-note { color: var(--muted); font-style: italic; }
 
   /* Character actions + farming */
-  .store-acts { display: flex; gap: 6px; margin-top: 6px; }
-  #store-acts-m .store-acts { margin: 0 0 10px; }
+  #store-acts-m .head-sub { margin: 0 0 10px; }
+  .head-sub > .kebab { margin-left: auto; flex: none; width: 30px; height: 26px; display: grid; place-items: center; padding: 0; cursor: pointer;
+    color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 5px; }
+  .head-sub > .kebab svg { width: 4px; height: 14px; }
   .mini-btn { flex: 1; min-width: 0; padding: 6px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font: 700 12px/1 var(--display); letter-spacing: .04em; text-transform: uppercase; cursor: pointer;
     color: var(--fg); background: var(--surface); border: 1px solid var(--line-2); border-radius: 4px; }
   .mini-btn:hover { border-color: var(--accent); }
@@ -487,6 +486,46 @@
   .sheet-hero.tier-5 { box-shadow: inset 0 4px 0 var(--tier-5); }
   .sheet-hero.tier-4 { box-shadow: inset 0 4px 0 var(--tier-4); }
   .sheet-facts .el img { width: 14px; height: 14px; }
+
+  /* Column header extras (DIM-style) */
+  .emblem-card .kebab { position: relative; z-index: 2; flex: none; width: 22px; height: 34px; display: grid; place-items: center; padding: 0; cursor: pointer;
+    color: #fff; background: rgba(0,0,0,.35); border: 0; border-radius: 3px; }
+  .emblem-card .kebab:hover, .emblem-card .kebab[aria-expanded="true"] { background: rgba(0,0,0,.6); }
+  .emblem-card .kebab svg { width: 4px; height: 16px; }
+  .emblem-card .epow { margin-left: 0; flex: none; }
+  .store-head { container-type: inline-size; }
+  @container (max-width: 270px) {
+    .emblem-card { gap: 6px; }
+    .emblem-card .ename { font-size: 1.1rem; }
+    .emblem-card .epow { font-size: 1.1rem; }
+  }
+  .head-sub { position: relative; display: flex; align-items: center; gap: 10px; margin-top: 6px; min-height: 20px; font: 500 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .maxp { display: inline-flex; align-items: center; gap: 4px; font: 700 15px/1 var(--display); color: var(--fg); letter-spacing: .02em; }
+  .maxp svg { width: 13px; height: 13px; color: var(--muted); }
+  .cstats { display: grid; grid-template-columns: repeat(3, auto); justify-content: start; gap: 2px 10px; }
+  @container (min-width: 330px) { .cstats { grid-template-columns: repeat(6, auto); } }
+  .cstats span { display: inline-flex; align-items: center; gap: 3px; }
+  .cstats img { width: 13px; height: 13px; opacity: .8; }
+  .cstats small { font-size: 9px; text-transform: uppercase; color: var(--faint); }
+  .head-sub.cur { flex-wrap: wrap; gap: 4px 14px; }
+  .cur-chip { display: inline-flex; align-items: center; gap: 5px; color: var(--fg); }
+  .cur-chip img { width: 16px; height: 16px; }
+  .vault-space { margin-left: auto; display: grid; justify-items: end; gap: 3px; font: 500 12px var(--mono); color: #d6dbe4; }
+  .vault-space b { color: #fff; }
+  .vault-space i { display: block; width: 90px; height: 3px; background: rgba(255,255,255,.18); border-radius: 2px; overflow: hidden; }
+  .vault-space i em { display: block; height: 100%; background: var(--win); }
+  .vault-space.near i em { background: var(--accent); }
+  .vault-space.full i em { background: var(--loss); }
+  .vault-space.full b { color: var(--loss); }
+  .char-menu { position: absolute; top: calc(100% + 4px); right: 0; z-index: 20; width: 250px; padding: 4px;
+    background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 8px; box-shadow: 0 14px 34px rgba(0,0,0,.55); font-family: var(--body); }
+  .char-menu button { display: grid; gap: 2px; width: 100%; padding: 8px 10px; text-align: left; cursor: pointer; color: var(--fg); background: none; border: 0; border-radius: 5px; }
+  .char-menu button:hover, .char-menu button:focus-visible { background: var(--surface-2); }
+  .char-menu b { font: 700 14px/1.1 var(--display); letter-spacing: .06em; text-transform: uppercase; }
+  .char-menu small { font: 400 12px var(--body); color: var(--muted); }
+  .char-menu button.on b { color: var(--win); }
+  .vault-bar .vcount { margin-left: 2px; white-space: nowrap; }
+  @media (max-width: 900px) { .vault-bar .vcount { order: 99; flex-basis: 100%; margin: 0; } }
 
   /* Postmaster row */
   .cell.pm { display: grid; gap: 6px; align-content: start; }
@@ -848,10 +887,7 @@
     </div>
 
     <div id="v-app" hidden>
-      <div class="vault-top">
-        <span class="eyebrow">Signed in as <span id="v-me"></span></span>
-        <span class="vcount" id="vcount"></span>
-      </div>
+      <span id="v-me" hidden></span>
       <div class="vault-bar">
         <div class="vsearch">
           <svg class="mag" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5"/></svg>
@@ -870,6 +906,7 @@
         </select>
         <button class="btn ghost" type="button" id="v-optimizer">Optimizer</button>
         <button class="btn ghost" type="button" id="v-loadouts">Loadouts</button>
+        <span class="vcount" id="vcount"></span>
         <button class="btn ghost icon-only" type="button" id="v-refresh" title="Refresh from Bungie" aria-label="Refresh from Bungie">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2.5v3h-3"/></svg>
         </button>
@@ -1331,9 +1368,9 @@ async function loadVault(quiet = false, silent = false) {
     vault.prefetch = null;
     if (!inv) inv = await api("/api/inventory?lite=1"); // stats and perks follow in a second, smaller wait
     await Promise.all([
-      loadDefs("item", [...inv.items.map((i) => i.hash), ...inv.items.map((i) => i.ornament).filter(Boolean), ...inv.postmaster.map((x) => x.hash)]),
+      loadDefs("item", [...inv.items.map((i) => i.hash), ...inv.items.map((i) => i.ornament).filter(Boolean), ...inv.postmaster.map((x) => x.hash), ...(inv.currencies || []).map((c) => c.hash)]),
       loadDefs("record", inv.characters.map((c) => c.titleHash)),
-      loadDefs("stat", inv.items.flatMap((i) => Object.keys(i.stats))),
+      loadDefs("stat", [...inv.items.flatMap((i) => Object.keys(i.stats)), ...ARMOR_STAT_ORDER]),
       loadDefs("damage", Object.values(DAMAGE_HASH))
     ]);
     inv.postmaster.forEach((x, i) => { x.key = `pm${i}-${x.hash}`; });
@@ -1447,18 +1484,62 @@ function showHover(tile) {
   card.style.top = Math.max(8, top) + "px";
 }
 
-function headHtml(store) {
+const KEBAB_SVG = `<svg viewBox="0 0 4 16" fill="currentColor" aria-hidden="true"><circle cx="2" cy="2" r="1.6"/><circle cx="2" cy="8" r="1.6"/><circle cx="2" cy="14" r="1.6"/></svg>`;
+const POWER_SVG = `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1 2.5 3.5v4C2.5 11 5 13.8 8 15c3-1.2 5.5-4 5.5-7.5v-4z"/></svg>`;
+
+// Vault fill: the count Bungie gave at load, adjusted for gear moved in or out since
+function vaultFill() {
+  const v = vault.inv.vault;
+  if (!v) return null;
+  const gearNow = vault.inv.items.filter((it) => it.loc === "vault").length;
+  if (v.gearAtLoad == null) v.gearAtLoad = gearNow;
+  return { count: v.count + (gearNow - v.gearAtLoad), capacity: v.capacity };
+}
+
+function headHtml(store, withMenu = false) {
   if (store === "vault") {
-    const inVault = vault.inv.items.filter((it) => it.loc === "vault");
-    const w = inVault.filter((it) => it.kind === "weapons").length;
+    const fill = vaultFill();
+    const pct = fill?.capacity ? Math.min(100, (fill.count / fill.capacity) * 100) : null;
     return `<div class="emblem-card is-vault">${VAULT_SVG}<span class="einfo"><span class="ename">Vault</span></span>
-      <span class="vault-stats"><span><b>${w}</b> weapons</span><span><b>${inVault.length - w}</b> armor</span></span></div>`;
+      ${fill ? `<span class="vault-space${pct >= 95 ? " full" : pct >= 85 ? " near" : ""}" title="Items in your vault">
+        <span><b>${fill.count.toLocaleString()}</b>${fill.capacity ? ` / ${fill.capacity.toLocaleString()}` : ""}</span>
+        ${pct != null ? `<i><em style="width:${pct}%"></em></i>` : ""}</span>` : ""}
+    </div>`;
   }
   const c = charById(store);
   const title = c.titleHash && defs.record[c.titleHash]?.name;
   return `<div class="emblem-card" style="${c.emblem ? `background-image:url('${esc(c.emblem)}')` : ""}">
       <span class="einfo"><span class="ename">${className(c)}</span><span class="esub">${esc(title || RACES[c.raceType] || "")}</span></span>
-      <span class="epow">✦${c.light}</span></div>`;
+      <span class="epow">✦${c.light}</span>
+      ${withMenu ? `<button type="button" class="kebab" data-menu="${esc(c.id)}" aria-label="${className(c)} actions" aria-haspopup="menu" aria-expanded="${vault.menu === c.id}">${KEBAB_SVG}</button>` : ""}
+    </div>`;
+}
+
+// The line under each column header: max Power and armor stats, or currencies for the vault
+function subHtml(store, withKebab = false) {
+  if (store === "vault") {
+    const list = (vault.inv.currencies || []).filter((c) => c.quantity > 0 && defs.item[c.hash]?.name);
+    return `<div class="head-sub cur">${list.map((c) => `
+      <span class="cur-chip" title="${esc(defs.item[c.hash].name)}">${defs.item[c.hash].icon ? `<img src="${esc(defs.item[c.hash].icon)}" alt="">` : ""}${c.quantity.toLocaleString()}</span>`).join("")}</div>`;
+  }
+  const c = charById(store);
+  const plan = maxPowerPlan(c.id);
+  const stats = ARMOR_STAT_ORDER.filter((h) => c.stats?.[h] != null && defs.stat[h]);
+  return `<div class="head-sub">
+    <span class="maxp" title="Max Power: the highest Power this ${className(c)} can equip right now">${POWER_SVG}${plan.power || "–"}</span>
+    <span class="cstats">${stats.map((h) => `<span title="${esc(defs.stat[h].name)}">${defs.stat[h].icon ? `<img src="${esc(defs.stat[h].icon)}" alt="">` : `<small>${esc(defs.stat[h].name.slice(0, 3))}</small>`}${c.stats[h]}</span>`).join("")}</span>
+    ${withKebab ? `<button type="button" class="kebab" data-menu="${esc(c.id)}" aria-label="${className(c)} actions" aria-haspopup="menu" aria-expanded="${vault.menu === c.id}">${KEBAB_SVG}</button>` : ""}
+    ${vault.menu === c.id ? menuHtml(c) : ""}
+  </div>`;
+}
+
+function menuHtml(c) {
+  const plan = maxPowerPlan(c.id);
+  const farming = farm.charId === c.id;
+  return `<div class="char-menu" role="menu">
+    <button type="button" role="menuitem" data-act="max" data-char="${esc(c.id)}"><b>⚡ Max Power</b><small>${plan.power > plan.current ? `Equip ✦${plan.power} gear (+${plan.power - plan.current})` : "Already at your highest Power"}</small></button>
+    <button type="button" role="menuitem" data-act="farm" data-char="${esc(c.id)}"${farming ? ' class="on"' : ""}><b>${farming ? "■ Stop farming" : "Farm"}</b><small>${farming ? `${farm.moved} moved to the vault so far` : "Keep this character's inventory from filling up"}</small></button>
+  </div>`;
 }
 
 function cellHtml(store, slot) {
@@ -1472,14 +1553,6 @@ function cellHtml(store, slot) {
       <div class="eq-slot">${eq ? tileHtml(eq) : `<span class="tile empty" aria-hidden="true"></span>`}</div>
       <div class="inv">${rest.map(tileHtml).join("")}</div>
     </div>`;
-}
-
-function actsHtml(charId) {
-  const farming = farm.charId === charId;
-  return `<div class="store-acts">
-    <button type="button" class="mini-btn" data-act="max" data-char="${esc(charId)}" aria-describedby="act-tip">⚡ Max Power</button>
-    <button type="button" class="mini-btn${farming ? " on" : ""}" data-act="farm" data-char="${esc(charId)}" aria-describedby="act-tip">${farming ? "■ Stop farming" : "Farm"}</button>
-  </div>`;
 }
 
 function renderVault() {
@@ -1496,13 +1569,13 @@ function renderVault() {
     ? stores.map((s) => `<button type="button" class="store-tab" data-store="${esc(s)}" aria-pressed="${s === vault.store}">${headHtml(s)}</button>`).join("")
     : "";
 
-  $("store-acts-m").innerHTML = single && vault.store !== "vault" ? actsHtml(vault.store) : "";
+  $("store-acts-m").innerHTML = single ? subHtml(vault.store, true) : "";
   renderFarmBanner();
   const grid = $("stores");
   grid.classList.toggle("single", single);
   grid.style.setProperty("--chars", chars.length);
 
-  let html = single ? "" : stores.map((s) => `<div class="store-head" data-store="${esc(s)}">${headHtml(s)}${s !== "vault" ? actsHtml(s) : ""}</div>`).join("");
+  let html = single ? "" : stores.map((s) => `<div class="store-head" data-store="${esc(s)}">${headHtml(s, true)}${subHtml(s)}</div>`).join("");
   const pm = vault.inv.postmaster.filter((x) => shown.includes(x.charId));
   if (pm.length && !settings.hidePostmaster) {
     const open = !vault.collapsed.postmaster;
@@ -3179,7 +3252,11 @@ $("vend-body").addEventListener("click", (e) => {
   if (item) openVendorItem(item.dataset.vkey);
 });
 document.addEventListener("click", (e) => {
+  const kebab = e.target.closest(".kebab[data-menu]");
+  if (kebab) { vault.menu = vault.menu === kebab.dataset.menu ? null : kebab.dataset.menu; hideActTip(); renderVault(); return; }
+  if (vault.menu && !e.target.closest(".char-menu")) { vault.menu = null; renderVault(); }
   const act = e.target.closest("[data-act]");
+  if (act && vault.menu) { vault.menu = null; hideActTip(); setTimeout(renderVault, 0); }
   if (act && vault.inv) {
     if (act.dataset.act === "max") maxPower(act.dataset.char);
     if (act.dataset.act === "farm") farm.charId === act.dataset.char ? stopFarming() : startFarming(act.dataset.char);
@@ -3236,6 +3313,7 @@ $("search-help").addEventListener("click", (e) => {
 $("scrim").addEventListener("click", closeSheet);
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
+  if (vault.menu) { vault.menu = null; renderVault(); return; }
   if (!$("compare").hidden) closeCompare();
   else if (!$("sheet").hidden) closeSheet();
 });

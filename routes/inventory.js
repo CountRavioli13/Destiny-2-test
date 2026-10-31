@@ -17,6 +17,15 @@ const POWER_STAT = "1935470627";
 
 const img = (path) => (path ? "https://www.bungie.net" + path : null);
 
+// How many items the vault holds (from Bungie's bucket definition; cached)
+let vaultCapacity = null;
+async function getVaultCapacity() {
+  if (vaultCapacity) return vaultCapacity;
+  const d = await bungie(`/Destiny2/Manifest/DestinyInventoryBucketDefinition/${VAULT_BUCKET}/`).catch(() => null);
+  if (d?.itemCount) vaultCapacity = d.itemCount;
+  return vaultCapacity;
+}
+
 module.exports = handler(async (query, { req, res }) => {
   const s = await requireSession(req, res);
   itemDefs(); // warm up the item file in the background while Bungie answers
@@ -26,7 +35,8 @@ module.exports = handler(async (query, { req, res }) => {
 
   // 102 vault, 200 characters, 201 character inventories, 205 equipped,
   // 300 item details, 304 item stats, 305 item sockets (perks and mods)
-  const components = detailsOnly ? "102,201,205,304,305" : lite ? "102,200,201,205,300" : "102,200,201,205,300,304,305";
+  // 103 currencies (Glimmer, Bright Dust…) for the vault header
+  const components = detailsOnly ? "102,201,205,304,305" : lite ? "102,103,200,201,205,300" : "102,103,200,201,205,300,304,305";
   const p = await bungie(`/Destiny2/${s.mt}/Profile/${s.mid}/?components=${components}`, { token: s.at });
 
   const instances = p.itemComponents?.instances?.data || {};
@@ -96,8 +106,16 @@ module.exports = handler(async (query, { req, res }) => {
       titleHash: c.titleRecordHash ?? null,
       light: c.light,
       emblem: img(c.emblemBackgroundPath),
-      emblemIcon: img(c.emblemPath)
+      emblemIcon: img(c.emblemPath),
+      stats: Object.fromEntries(Object.entries(c.stats || {}).filter(([h]) => h !== POWER_STAT))
     }));
 
-  return { characters, items, postmaster, membershipId: s.mid, partial: lite };
+  const vaultCount = (p.profileInventory?.data?.items || []).filter((it) => it.bucketHash === VAULT_BUCKET).length;
+  const currencies = (p.profileCurrencies?.data?.items || []).map((c) => ({ hash: c.itemHash, quantity: c.quantity || 0 }));
+
+  return {
+    characters, items, postmaster, membershipId: s.mid, partial: lite,
+    vault: { count: vaultCount, capacity: await getVaultCapacity() },
+    currencies
+  };
 });
