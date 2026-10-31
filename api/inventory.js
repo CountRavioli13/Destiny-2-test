@@ -48,6 +48,8 @@ module.exports = handler(async (query, { req, res }) => {
     .map((c) => ({
       id: c.characterId,
       classType: c.classType,
+      raceType: c.raceType,
+      titleHash: c.titleRecordHash ?? null,
       light: c.light,
       emblem: img(c.emblemBackgroundPath),
       emblemIcon: img(c.emblemPath)

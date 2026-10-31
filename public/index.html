@@ -102,82 +102,96 @@
   .feature span { color: var(--muted); font-size: 13px; }
   .fine { color: var(--faint); font-size: 13px; max-width: 62ch; }
 
-  /* ---------- Vault: manager ---------- */
-  .vault-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-  .vault-head h1 { margin: 6px 0 0; font: 800 clamp(2rem, 6vw, 2.8rem)/1 var(--display); text-transform: uppercase; }
-
-  .dests { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
-  .dest {
-    position: relative; display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 72px;
-    padding: 10px 14px 10px 76px; text-align: left; cursor: pointer; color: #fff; overflow: hidden;
-    background: var(--surface) center / cover no-repeat; border: 1px solid var(--line); border-radius: 4px;
-    transition: box-shadow .12s, transform .12s;
-  }
-  .dest::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.5) 55%, rgba(0,0,0,.7) 100%); }
-  .dest > * { position: relative; z-index: 1; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
-  .dest.plain { padding-left: 14px; background: var(--surface); }
-  .dest.plain::after { display: none; }
-  .dest .vault-icon { position: absolute; left: 14px; top: 50%; translate: 0 -50%; width: 44px; height: 44px; color: var(--accent); z-index: 1; }
-  .dest.is-vault { padding-left: 72px; background: linear-gradient(135deg, #1b2230, #11151c); }
-  .dest-name { font: 800 1.3rem/1 var(--display); text-transform: uppercase; letter-spacing: .03em; }
-  .dest-sub { font-size: 12px; opacity: .9; }
-  .dest-sub .light { color: #f5d36b; font-family: var(--display); font-weight: 700; font-size: 15px; }
-  .dest[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
-  .dest.drop-ok { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--win); transform: translateY(-2px); }
-
-  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 20px 0 10px; }
-  .seg { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 3px; }
-  .seg button {
-    padding: 7px 16px; border: 0; background: none; cursor: pointer; border-radius: 3px; color: var(--muted);
-    font: 700 15px/1 var(--display); letter-spacing: .1em; text-transform: uppercase;
-  }
-  .seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--fg); box-shadow: inset 0 -2px 0 var(--accent); }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip {
-    padding: 5px 11px; font-size: 13px; cursor: pointer; color: var(--muted);
-    background: transparent; border: 1px solid var(--line-2); border-radius: 999px;
-  }
-  .chip[aria-pressed="true"] { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); font-weight: 600; }
-  .tools-right { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
-  .field {
-    padding: 8px 12px; font: 400 14px var(--body); color: var(--fg); min-width: 0;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
-  }
+  /* ---------- Vault: store columns (characters + vault) ---------- */
+  body.wide main.wrap { max-width: none; }
+  .vault-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .vault-head h1 { margin: 6px 0 0; font: 800 clamp(1.8rem, 5vw, 2.4rem)/1 var(--display); text-transform: uppercase; }
+  .vtools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .field { padding: 8px 12px; font: 400 14px var(--body); color: var(--fg); min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
   .field::placeholder { color: var(--faint); }
-  #vfilter { width: 200px; }
-  .hint { color: var(--faint); font-size: 13px; margin: 0 0 18px; }
+  #vfilter { width: 240px; }
+  .hint { color: var(--faint); font-size: 13px; margin: 0 0 14px; }
+  .hint b { color: var(--muted); font-weight: 500; }
 
-  .slot-group { margin-bottom: 26px; }
-  .slot-head { display: flex; align-items: baseline; gap: 10px; border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-bottom: 10px; }
-  .slot-head h3 { margin: 0; font: 700 1.15rem/1 var(--display); text-transform: uppercase; letter-spacing: .1em; }
-  .slot-head span { color: var(--faint); font-size: 13px; font-family: var(--mono); }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(66px, 1fr)); gap: 8px; }
+  .stores {
+    --col: 232px;
+    display: grid; grid-template-columns: repeat(var(--chars, 3), var(--col)) minmax(0, 1fr);
+    column-gap: 20px; align-items: start;
+  }
+  .stores.single { grid-template-columns: minmax(0, 1fr); }
+  .store-head {
+    position: sticky; top: var(--bar-h, 58px); z-index: 5; padding-block: 8px 10px;
+    background: linear-gradient(var(--bg) 85%, transparent);
+  }
+  .emblem-card {
+    position: relative; display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 12px 0 62px;
+    color: #fff; text-align: left; overflow: hidden; border-radius: 3px;
+    background: #262b3a left center / auto 100% no-repeat;
+  }
+  .emblem-card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 20%, rgba(0,0,0,.35) 100%); }
+  .emblem-card > * { position: relative; z-index: 1; min-width: 0; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
+  .emblem-card .einfo { display: grid; gap: 2px; min-width: 0; }
+  .emblem-card .ename { font: 700 1.3rem/1 var(--display); letter-spacing: .02em; }
+  .emblem-card .esub { font-size: 11px; font-style: italic; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .emblem-card .epow { margin-left: auto; font: 700 1.35rem/1 var(--display); color: #f5d36b; font-variant-numeric: tabular-nums; }
+  .emblem-card.is-vault { padding-left: 14px; background: linear-gradient(135deg, #2a3142, #191e29); }
+  .emblem-card.is-vault svg { width: 34px; height: 34px; color: #fff; flex: none; }
+  .vault-stats { margin-left: auto; display: flex; gap: 14px; font: 500 12px var(--mono); color: #d6dbe4; }
+  .vault-stats b { color: #fff; }
+
+  .sec-head {
+    grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; margin: 14px 0 4px; padding: 4px 0;
+    background: none; border: 0; cursor: pointer; text-align: left;
+    font: 700 15px/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: var(--fg);
+  }
+  .sec-head .chev { width: 12px; height: 12px; transition: transform .15s; }
+  .sec-head[aria-expanded="false"] .chev { transform: rotate(-90deg); }
+  .sec-head .count { color: var(--faint); font: 500 12px var(--mono); letter-spacing: 0; }
+  .row-label {
+    grid-column: 1 / -1; margin: 10px 0 6px; padding-top: 8px; border-top: 1px solid var(--line);
+    font: 600 11px/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: var(--faint);
+  }
+  .cell { min-height: 60px; padding: 3px; border-radius: 3px; transition: background .1s, box-shadow .1s; min-width: 0; }
+  .cell.char { display: flex; gap: 8px; align-items: flex-start; }
+  .eq-slot { flex: none; padding: 2px; border-radius: 3px; }
+  .inv { display: grid; grid-template-columns: repeat(3, 50px); gap: 4px; }
+  .stores.single .inv { flex: 1; grid-template-columns: repeat(auto-fill, 50px); }
+  .cell.vault { display: grid; grid-template-columns: repeat(auto-fill, 50px); gap: 4px; align-content: start; }
+  .cell.drop-ok, .eq-slot.drop-ok { background: rgba(88,192,138,.14); box-shadow: inset 0 0 0 2px var(--win); }
+
   .tile {
-    position: relative; padding: 0; cursor: pointer; background: #000; text-align: left;
-    border: 2px solid var(--tier, var(--tier-2)); border-radius: 3px; overflow: hidden;
-    transition: transform .1s, box-shadow .1s;
+    position: relative; display: block; width: 50px; height: 50px; padding: 0; cursor: pointer; overflow: hidden;
+    background: #000; border: 1px solid var(--tier, var(--tier-2)); border-radius: 2px;
   }
-  .tile:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,.5); }
-  .tile img { width: 100%; aspect-ratio: 1; object-fit: cover; background: var(--surface-2); }
+  .eq-slot .tile { width: 56px; height: 56px; box-shadow: 0 0 0 2px #fff; border-color: transparent; }
+  .tile.empty { cursor: default; background: var(--surface); border: 1px dashed var(--line-2); box-shadow: none; }
+  .tile img { width: 100%; height: 100%; object-fit: cover; background: var(--surface-2); }
+  .tile:hover:not(.empty) { outline: 2px solid var(--accent); outline-offset: 1px; z-index: 2; }
   .tile .pw {
-    display: flex; align-items: center; justify-content: center; gap: 4px; padding: 2px 0;
-    background: var(--bg-2); font: 600 12px/1.3 var(--mono); font-variant-numeric: tabular-nums; color: var(--fg);
+    position: absolute; left: 0; right: 0; bottom: 0; height: 14px; padding: 0 3px;
+    display: flex; align-items: center; justify-content: flex-end; gap: 3px;
+    background: rgba(0,0,0,.75); font: 600 10px/14px var(--mono); color: #fff; font-variant-numeric: tabular-nums;
   }
-  .tile .pw i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
-  .tile .loc {
-    position: absolute; top: 3px; right: 3px; min-width: 17px; padding: 1px 4px; text-align: center;
-    font: 700 11px/1.3 var(--display); letter-spacing: .04em; color: #fff; background: rgba(0,0,0,.72); border-radius: 2px;
-  }
-  .tile.eq::before {
-    content: ""; position: absolute; top: 0; left: 0; z-index: 1;
-    border-style: solid; border-width: 16px 16px 0 0; border-color: var(--accent) transparent transparent transparent;
-  }
-  .tile .lock { position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; color: #fff; z-index: 2; filter: drop-shadow(0 1px 1px #000); }
-  .tile.eq .lock { left: 16px; }
+  .tile .pw i { width: 6px; height: 6px; border-radius: 50%; margin-right: auto; flex: none; }
+  .tile .lock { position: absolute; top: 2px; right: 2px; width: 11px; height: 11px; color: #fff; filter: drop-shadow(0 1px 1px #000); }
+  .tile.dim { opacity: .15; }
   .tile.busy { opacity: .4; pointer-events: none; }
-  .tile.busy::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(255,255,255,.08) 6px 12px); }
-  .tile.dragging { opacity: .35; }
-  .empty-grid { padding: 40px 16px; text-align: center; color: var(--muted); border: 1px dashed var(--line-2); border-radius: 4px; }
+  .tile.busy::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(255,255,255,.12) 6px 12px); }
+  .tile.dragging { opacity: .3; }
+
+  .store-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 8px; }
+  .store-tab { padding: 0; border: 0; background: none; cursor: pointer; border-radius: 4px; opacity: .55; }
+  .store-tab[aria-pressed="true"] { opacity: 1; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+  .store-tab .emblem-card { height: 44px; padding-left: 48px; gap: 6px; }
+  .store-tab .emblem-card.is-vault { padding-left: 10px; }
+  .store-tab .is-vault svg { width: 24px; height: 24px; }
+  .store-tab .ename, .store-tab .epow { font-size: 1.05rem; }
+  .store-tab .esub, .store-tab .vault-stats { display: none; }
+  @media (max-width: 900px) {
+    .vtools { width: 100%; }
+    #vfilter { flex: 1 1 100%; width: auto; }
+    #vsort { flex: 1; }
+  }
 
   /* Item sheet */
   .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.5); }
@@ -317,12 +331,6 @@
   @media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
   @media (max-width: 640px) {
     .sheet { top: auto; left: 0; width: 100%; max-height: 85vh; border-left: 0; border-top: 1px solid var(--line-2); border-radius: 10px 10px 0 0; padding-top: 16px; }
-    .tools-right { margin-left: 0; width: 100%; }
-    #vfilter { flex: 1; width: auto; }
-    .dests { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .dest { padding-left: 14px; min-height: 64px; }
-    .dest.is-vault { padding-left: 60px; }
-    .dest .vault-icon { width: 34px; height: 34px; }
   }
   @media (max-width: 480px) {
     .brand span { display: none; }
@@ -332,7 +340,6 @@
     .stat { grid-template-columns: 20px 76px minmax(0, 1fr) 36px; gap: 8px; }
     .act { grid-template-columns: 52px minmax(0, 1fr) auto; }
     .act .thumb { width: 52px; height: 34px; }
-    .grid { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 6px; }
   }
   @media (prefers-reduced-motion: reduce) { .sk { animation: none; } .tile, .dest, .tab { transition: none; } }
 </style>
@@ -402,32 +409,23 @@
       <div class="vault-head">
         <div>
           <span class="eyebrow">Signed in as <span id="v-me"></span></span>
-          <h1>Vault &amp; characters</h1>
+          <h1>Inventory</h1>
         </div>
-        <button class="btn ghost" type="button" id="v-refresh">Refresh</button>
-      </div>
-
-      <div class="dests" id="dests" aria-label="Show items in"></div>
-
-      <div class="toolbar">
-        <div class="seg" role="group" aria-label="Item type">
-          <button type="button" data-type="weapons" aria-pressed="true">Weapons</button>
-          <button type="button" data-type="armor" aria-pressed="false">Armor</button>
-        </div>
-        <div class="chips" id="slot-chips" role="group" aria-label="Slot"></div>
-        <div class="tools-right">
-          <label class="sr" for="vfilter">Filter by name</label>
-          <input class="field" id="vfilter" type="search" placeholder="Filter by name" autocomplete="off">
+        <div class="vtools">
+          <label class="sr" for="vfilter">Search items</label>
+          <input class="field" id="vfilter" type="search" placeholder="Search by name or type" autocomplete="off">
           <label class="sr" for="vsort">Sort</label>
           <select class="field" id="vsort">
             <option value="power">Sort: Power</option>
             <option value="rarity">Sort: Rarity</option>
             <option value="name">Sort: Name</option>
           </select>
+          <button class="btn ghost" type="button" id="v-refresh">Refresh</button>
         </div>
       </div>
-      <p class="hint">Drag an item onto a character or the vault to move it, or tap an item to move or equip it. A gold corner means equipped.</p>
-      <div id="vgrid"></div>
+      <p class="hint"><b id="vcount"></b> · Drag an item to another column to move it, or onto an equipped slot to equip it. Tap any item for options.</p>
+      <div class="store-tabs" id="store-tabs" hidden></div>
+      <div class="stores" id="stores"></div>
     </div>
   </section>
 
@@ -602,6 +600,7 @@ function route() {
   const view = location.hash === "#lookup" ? "lookup" : "vault";
   $("view-vault").hidden = view !== "vault";
   $("view-lookup").hidden = view !== "lookup";
+  document.body.classList.toggle("wide", view === "vault");
   $("nav-vault").toggleAttribute("aria-current", view === "vault");
   $("nav-lookup").toggleAttribute("aria-current", view === "lookup");
   if (view === "vault") { $("nav-vault").setAttribute("aria-current", "page"); showVault(); }
@@ -639,7 +638,7 @@ async function loadVault(quiet = false) {
   $("v-refresh").disabled = true;
   try {
     const inv = await api("/api/inventory");
-    await loadDefs("item", inv.items.map((i) => i.hash));
+    await Promise.all([loadDefs("item", inv.items.map((i) => i.hash)), loadDefs("record", inv.characters.map((c) => c.titleHash))]);
     inv.items = inv.items
       .map((it) => {
         const d = defs.item[it.hash];
@@ -665,53 +664,15 @@ async function loadVault(quiet = false) {
 const charById = (id) => vault.inv.characters.find((c) => c.id === id);
 const className = (c) => CLASSES[c?.classType] || "Guardian";
 const placeName = (loc) => (loc === "vault" ? "Vault" : className(charById(loc)));
-const placeBadge = (loc) => (loc === "vault" ? "V" : className(charById(loc))[0]);
+const narrow = window.matchMedia("(max-width: 900px)");
+vault.store = null;                                   // which column to show on phones
+vault.collapsed = { weapons: false, armor: false };
 
-function visibleItems() {
+function matches(it) {
   const q = vault.q.trim().toLowerCase();
-  return vault.inv.items.filter((it) =>
-    it.kind === vault.type &&
-    (vault.slot === "all" || it.slot === vault.slot) &&
-    (vault.loc === "all" || it.loc === vault.loc) &&
-    (!q || (defs.item[it.hash]?.name || "").toLowerCase().includes(q))
-  );
-}
-
-function renderVault() {
-  renderDests();
-  renderSlotChips();
-  renderGrid();
-  document.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.type === vault.type)));
-}
-
-function renderDests() {
-  const ofType = vault.inv.items.filter((it) => it.kind === vault.type);
-  const count = (loc) => ofType.filter((it) => loc === "all" || it.loc === loc).length;
-  const label = vault.type === "weapons" ? "weapons" : "armor";
-  const cards = [
-    `<button type="button" class="dest plain" data-loc="all" aria-pressed="${vault.loc === "all"}">
-       <span class="dest-name">Everything</span><span class="dest-sub">${count("all")} ${label}</span></button>`,
-    ...vault.inv.characters.map((c) => `
-      <button type="button" class="dest" data-loc="${esc(c.id)}" aria-pressed="${vault.loc === c.id}"
-        style="${c.emblem ? `background-image:url('${esc(c.emblem)}')` : ""}">
-        <span class="dest-name">${className(c)}</span>
-        <span class="dest-sub"><span class="light">✦ ${c.light}</span> · ${count(c.id)} ${label}</span>
-      </button>`),
-    `<button type="button" class="dest is-vault" data-loc="vault" aria-pressed="${vault.loc === "vault"}">
-       <svg class="vault-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-         <rect x="6" y="8" width="36" height="32" rx="2"/><circle cx="24" cy="24" r="8"/><path d="M24 16v3M24 29v3M16 24h3M29 24h3"/><path d="M10 40v3M38 40v3"/>
-       </svg>
-       <span class="dest-name">Vault</span><span class="dest-sub">${count("vault")} ${label}</span></button>`
-  ];
-  $("dests").innerHTML = cards.join("");
-}
-
-function renderSlotChips() {
-  const slots = vault.type === "weapons" ? WEAPONS : ARMOR;
-  if (vault.slot !== "all" && !slots.includes(vault.slot)) vault.slot = "all";
-  $("slot-chips").innerHTML = ["all", ...slots].map((s) =>
-    `<button type="button" class="chip" data-slot="${s}" aria-pressed="${vault.slot === s}">${s === "all" ? "All slots" : SLOT_LABELS[s]}</button>`
-  ).join("");
+  if (!q) return true;
+  const d = defs.item[it.hash] || {};
+  return (d.name || "").toLowerCase().includes(q) || (d.type || "").toLowerCase().includes(q);
 }
 
 function sortItems(list) {
@@ -723,41 +684,87 @@ function sortItems(list) {
     rarity: (a, b) => (d(b).tier || 0) - (d(a).tier || 0) || byPower(a, b),
     name: (a, b) => byName(a, b) || byPower(a, b)
   }[vault.sort];
-  // Equipped items always lead their slot.
-  return list.sort((a, b) => (b.equipped - a.equipped) || cmp(a, b));
+  return list.sort(cmp);
 }
 
 const LOCK_SVG = `<svg class="lock" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M3 5V3.6a3 3 0 0 1 6 0V5h.6c.2 0 .4.2.4.4v5.2c0 .2-.2.4-.4.4H2.4a.4.4 0 0 1-.4-.4V5.4c0-.2.2-.4.4-.4H3Zm1.3 0h3.4V3.6a1.7 1.7 0 0 0-3.4 0V5Z"/></svg>`;
+const VAULT_SVG = `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="6" y="8" width="36" height="32" rx="2"/><circle cx="24" cy="24" r="8"/><path d="M24 16v3M24 29v3M16 24h3M29 24h3"/></svg>`;
+const CHEV_SVG = `<svg class="chev" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M1.5 3.5h9L6 9z"/></svg>`;
 
 function tileHtml(it) {
   const d = defs.item[it.hash] || {};
   const tier = d.tier >= 2 && d.tier <= 6 ? d.tier : 2;
   const where = placeName(it.loc) + (it.equipped ? " (equipped)" : "");
   const dmg = it.kind === "weapons" && DAMAGE[it.damage] ? `<i style="background:var(--dmg-${it.damage})"></i>` : "";
-  return `
-    <button type="button" class="tile${it.equipped ? " eq" : ""}${vault.busy.has(it.id) ? " busy" : ""}" data-id="${esc(it.id)}"
-      draggable="true" style="--tier:var(--tier-${tier})" title="${esc(d.name)} · ${esc(where)}"
-      aria-label="${esc(d.name)}, ${it.power ?? ""} power, ${esc(where)}">
-      ${d.icon ? `<img src="${esc(d.icon)}" alt="" loading="lazy" width="66" height="66" draggable="false">` : `<img alt="" draggable="false">`}
+  const cls = ["tile", matches(it) ? "" : "dim", vault.busy.has(it.id) ? "busy" : ""].filter(Boolean).join(" ");
+  return `<button type="button" class="${cls}" data-id="${esc(it.id)}" draggable="true" style="--tier:var(--tier-${tier})"
+      title="${esc(d.name)} · ${esc(d.type)} · ${esc(where)}" aria-label="${esc(d.name)}, ${it.power ?? ""} power, ${esc(where)}">
+      ${d.icon ? `<img src="${esc(d.icon)}" alt="" loading="lazy" width="50" height="50" draggable="false">` : `<img alt="" draggable="false">`}
       ${it.locked ? LOCK_SVG : ""}
-      <span class="loc">${placeBadge(it.loc)}</span>
-      <span class="pw">${dmg}${it.power ?? "–"}</span>
+      <span class="pw">${dmg}${it.power ?? ""}</span>
     </button>`;
 }
 
-function renderGrid() {
-  const items = visibleItems();
-  const slots = (vault.type === "weapons" ? WEAPONS : ARMOR).filter((s) => vault.slot === "all" || s === vault.slot);
-  if (!items.length) {
-    $("vgrid").innerHTML = `<div class="empty-grid">${vault.q ? `Nothing matches “${esc(vault.q)}”.` : `No ${vault.type} here.`}</div>`;
-    return;
+function headHtml(store) {
+  if (store === "vault") {
+    const inVault = vault.inv.items.filter((it) => it.loc === "vault");
+    const w = inVault.filter((it) => it.kind === "weapons").length;
+    return `<div class="emblem-card is-vault">${VAULT_SVG}<span class="einfo"><span class="ename">Vault</span></span>
+      <span class="vault-stats"><span><b>${w}</b> weapons</span><span><b>${inVault.length - w}</b> armor</span></span></div>`;
   }
-  $("vgrid").innerHTML = slots.map((s) => {
-    const list = sortItems(items.filter((it) => it.slot === s));
-    if (!list.length) return "";
-    return `<section class="slot-group"><div class="slot-head"><h3>${SLOT_LABELS[s]}</h3><span>${list.length}</span></div>
-      <div class="grid">${list.map(tileHtml).join("")}</div></section>`;
-  }).join("");
+  const c = charById(store);
+  const title = c.titleHash && defs.record[c.titleHash]?.name;
+  return `<div class="emblem-card" style="${c.emblem ? `background-image:url('${esc(c.emblem)}')` : ""}">
+      <span class="einfo"><span class="ename">${className(c)}</span><span class="esub">${esc(title || RACES[c.raceType] || "")}</span></span>
+      <span class="epow">✦${c.light}</span></div>`;
+}
+
+function cellHtml(store, slot) {
+  const here = vault.inv.items.filter((it) => it.loc === store && it.slot === slot);
+  if (store === "vault") {
+    return `<div class="cell vault" data-store="vault" data-slot="${slot}">${sortItems(here).map(tileHtml).join("")}</div>`;
+  }
+  const eq = here.find((it) => it.equipped);
+  const rest = sortItems(here.filter((it) => !it.equipped));
+  return `<div class="cell char" data-store="${esc(store)}" data-slot="${slot}">
+      <div class="eq-slot">${eq ? tileHtml(eq) : `<span class="tile empty" aria-hidden="true"></span>`}</div>
+      <div class="inv">${rest.map(tileHtml).join("")}</div>
+    </div>`;
+}
+
+function renderVault() {
+  const chars = vault.inv.characters;
+  const stores = [...chars.map((c) => c.id), "vault"];
+  if (!stores.includes(vault.store)) vault.store = stores[0];
+  const single = narrow.matches;
+  const shown = single ? [vault.store] : stores;
+
+  $("store-tabs").hidden = !single;
+  $("store-tabs").innerHTML = single
+    ? stores.map((s) => `<button type="button" class="store-tab" data-store="${esc(s)}" aria-pressed="${s === vault.store}">${headHtml(s)}</button>`).join("")
+    : "";
+
+  const grid = $("stores");
+  grid.classList.toggle("single", single);
+  grid.style.setProperty("--chars", chars.length);
+
+  let html = single ? "" : stores.map((s) => `<div class="store-head">${headHtml(s)}</div>`).join("");
+  for (const [sec, label, slots] of [["weapons", "Weapons", WEAPONS], ["armor", "Armor", ARMOR]]) {
+    const count = vault.inv.items.filter((it) => it.kind === sec && shown.includes(it.loc)).length;
+    const open = !vault.collapsed[sec];
+    html += `<button type="button" class="sec-head" data-sec="${sec}" aria-expanded="${open}">${CHEV_SVG}${label}<span class="count">${count}</span></button>`;
+    if (!open) continue;
+    for (const slot of slots) {
+      html += `<div class="row-label">${SLOT_LABELS[slot]}</div>`;
+      html += shown.map((s) => cellHtml(s, slot)).join("");
+    }
+  }
+  grid.innerHTML = html;
+
+  const total = vault.inv.items.length;
+  $("vcount").textContent = vault.q.trim()
+    ? `${vault.inv.items.filter(matches).length} of ${total} items match`
+    : `${total} weapons and armor`;
 }
 
 /* Which moves are allowed for an item, with a reason when not */
@@ -789,6 +796,7 @@ function openSheet(id) {
   const d = defs.item[it.hash] || {};
   const tier = d.tier >= 2 && d.tier <= 6 ? d.tier : 2;
   const chars = vault.inv.characters;
+  const fits = (c) => !(it.kind === "armor" && d.classType < 3 && c.classType !== d.classType);
 
   const button = (cls, iconHtml, title, sub, attrs, check) => `
     <button type="button" class="act-btn ${cls}" ${attrs} ${check.ok ? "" : "disabled"}>
@@ -796,19 +804,17 @@ function openSheet(id) {
     </button>`;
   const emblem = (c) => c.emblemIcon ? `<img src="${esc(c.emblemIcon)}" alt="">` : `<span class="ico"></span>`;
 
-  const equipBtns = chars
-    .filter((c) => !(it.kind === "armor" && d.classType < 3 && c.classType !== d.classType))
+  const equipBtns = chars.filter(fits)
     .map((c) => button("primary", emblem(c), `Equip on ${className(c)}`,
       it.loc === c.id ? "Equip from this character's inventory" : `Moves it to your ${className(c)} and equips it`,
       `data-action="equip" data-to="${esc(c.id)}"`, canEquipOn(it, c.id)))
     .join("");
-  const moveBtns = chars
-    .filter((c) => c.id !== it.loc && !(it.kind === "armor" && d.classType < 3 && c.classType !== d.classType))
+  const moveBtns = chars.filter((c) => c.id !== it.loc && fits(c))
     .map((c) => button("", emblem(c), `Move to ${className(c)}`, it.loc === "vault" ? "From the vault" : "Goes through the vault",
       `data-action="move" data-to="${esc(c.id)}"`, canGoTo(it, c.id)))
     .join("");
   const vaultBtn = it.loc !== "vault"
-    ? button("", `<span class="ico"><svg width="20" height="20" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3"><rect x="6" y="8" width="36" height="32" rx="2"/><circle cx="24" cy="24" r="8"/></svg></span>`,
+    ? button("", `<span class="ico">${VAULT_SVG.replace("<svg", '<svg width="20" height="20"')}</span>`,
         "Move to vault", "Store it in your vault", `data-action="move" data-to="vault"`, canGoTo(it, "vault"))
     : "";
 
@@ -850,7 +856,7 @@ async function runAction(id, action, to) {
   const name = defs.item[it.hash]?.name || "Item";
   closeSheet();
   vault.busy.add(id);
-  renderGrid();
+  renderVault();
   try {
     const r = await api("/api/transfer", {
       method: "POST",
@@ -863,45 +869,31 @@ async function runAction(id, action, to) {
       it.equipped = true;
     }
     it.loc = r.location;
-    toast(action === "equip" ? `Equipped ${name} on your ${placeName(to)}.` : `Moved ${name} to your ${placeName(to).toLowerCase() === "vault" ? "vault" : placeName(to)}.`);
+    toast(action === "equip" ? `Equipped ${name} on your ${placeName(to)}.` : `Moved ${name} to your ${placeName(to) === "Vault" ? "vault" : placeName(to)}.`);
   } catch (err) {
     if (err.data?.location) it.loc = err.data.location;
     if (err.status === 401) { me.signedIn = false; renderAccount(); }
     toast(err.message, true);
   } finally {
     vault.busy.delete(id);
-    renderDests();
-    renderGrid();
+    renderVault();
   }
 }
 
 /* Vault events */
-$("dests").addEventListener("click", (e) => {
-  const card = e.target.closest(".dest");
-  if (!card) return;
-  vault.loc = card.dataset.loc;
-  renderDests();
-  renderGrid();
-});
-document.querySelector(".seg").addEventListener("click", (e) => {
-  const b = e.target.closest("button[data-type]");
-  if (!b) return;
-  vault.type = b.dataset.type;
-  renderVault();
-});
-$("slot-chips").addEventListener("click", (e) => {
-  const b = e.target.closest(".chip");
-  if (!b) return;
-  vault.slot = b.dataset.slot;
-  renderSlotChips();
-  renderGrid();
-});
-$("vfilter").addEventListener("input", (e) => { vault.q = e.target.value; renderGrid(); });
-$("vsort").addEventListener("change", (e) => { vault.sort = e.target.value; renderGrid(); });
-$("vgrid").addEventListener("click", (e) => {
-  const tile = e.target.closest(".tile");
+$("stores").addEventListener("click", (e) => {
+  const sec = e.target.closest(".sec-head");
+  if (sec) { vault.collapsed[sec.dataset.sec] = !vault.collapsed[sec.dataset.sec]; return renderVault(); }
+  const tile = e.target.closest(".tile[data-id]");
   if (tile) openSheet(tile.dataset.id);
 });
+$("store-tabs").addEventListener("click", (e) => {
+  const tab = e.target.closest(".store-tab");
+  if (tab) { vault.store = tab.dataset.store; renderVault(); }
+});
+narrow.addEventListener("change", () => vault.inv && renderVault());
+$("vfilter").addEventListener("input", (e) => { vault.q = e.target.value; renderVault(); });
+$("vsort").addEventListener("change", (e) => { vault.sort = e.target.value; renderVault(); });
 $("v-refresh").addEventListener("click", () => loadVault(true));
 $("v-retry").addEventListener("click", () => loadVault());
 $("sheet").addEventListener("click", (e) => {
@@ -912,41 +904,55 @@ $("sheet").addEventListener("click", (e) => {
 $("scrim").addEventListener("click", closeSheet);
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("sheet").hidden) closeSheet(); });
 
-/* Drag and drop: drag a tile onto a character or the vault */
-let dragId = null;
-$("vgrid").addEventListener("dragstart", (e) => {
-  const tile = e.target.closest(".tile");
+/* Drag and drop: onto another column to move, onto an equipped slot to equip */
+let dragId = null, dropEl = null;
+function dropPlan(it, el) {
+  const cell = el.closest(".cell");
+  if (!cell) return null;
+  const to = cell.dataset.store;
+  const eqSlot = el.closest(".eq-slot");
+  if (eqSlot && to !== "vault" && cell.dataset.slot === it.slot) {
+    const check = canEquipOn(it, to);
+    return { action: "equip", to, target: eqSlot, check };
+  }
+  return { action: "move", to, target: cell, check: canGoTo(it, to) };
+}
+function clearDrop() { dropEl?.classList.remove("drop-ok"); dropEl = null; }
+$("stores").addEventListener("dragstart", (e) => {
+  const tile = e.target.closest(".tile[data-id]");
   if (!tile) return;
   dragId = tile.dataset.id;
   e.dataTransfer.effectAllowed = "move";
   e.dataTransfer.setData("text/plain", dragId);
   tile.classList.add("dragging");
 });
-$("vgrid").addEventListener("dragend", (e) => {
+$("stores").addEventListener("dragend", (e) => {
   e.target.closest(".tile")?.classList.remove("dragging");
-  document.querySelectorAll(".dest.drop-ok").forEach((d) => d.classList.remove("drop-ok"));
+  clearDrop();
   dragId = null;
 });
-$("dests").addEventListener("dragover", (e) => {
-  const card = e.target.closest(".dest");
-  if (!card || !dragId || card.dataset.loc === "all") return;
-  const it = vault.inv.items.find((x) => x.id === dragId);
-  if (!it || !canGoTo(it, card.dataset.loc).ok) return;
+$("stores").addEventListener("dragover", (e) => {
+  const it = dragId && vault.inv.items.find((x) => x.id === dragId);
+  const plan = it && dropPlan(it, e.target);
+  if (!plan || !plan.check.ok) return clearDrop();
   e.preventDefault();
   e.dataTransfer.dropEffect = "move";
-  card.classList.add("drop-ok");
+  if (dropEl !== plan.target) { clearDrop(); dropEl = plan.target; dropEl.classList.add("drop-ok"); }
 });
-$("dests").addEventListener("dragleave", (e) => e.target.closest(".dest")?.classList.remove("drop-ok"));
-$("dests").addEventListener("drop", (e) => {
-  const card = e.target.closest(".dest");
-  if (!card || !dragId) return;
+$("stores").addEventListener("drop", (e) => {
+  const it = dragId && vault.inv.items.find((x) => x.id === dragId);
+  const plan = it && dropPlan(it, e.target);
+  clearDrop();
+  if (!plan) return;
   e.preventDefault();
-  card.classList.remove("drop-ok");
-  const it = vault.inv.items.find((x) => x.id === dragId);
-  const check = it && canGoTo(it, card.dataset.loc);
-  if (check?.ok) runAction(it.id, "move", card.dataset.loc);
-  else if (check?.why) toast(check.why, true);
+  if (plan.check.ok) runAction(it.id, plan.action, plan.to);
+  else if (plan.check.why) toast(plan.check.why, true);
 });
+
+/* Keep sticky column headers just under the top bar */
+function syncBarHeight() { document.documentElement.style.setProperty("--bar-h", document.querySelector(".bar").offsetHeight + "px"); }
+window.addEventListener("resize", syncBarHeight);
+syncBarHeight();
 
 /* ================= Player lookup ================= */
 let state = null;
