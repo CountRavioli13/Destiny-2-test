@@ -1,6 +1,8 @@
 // GET /api/inventory  →  the signed-in player's weapons and armor (vault,
 // character inventories and equipped), with each item's stats and active
 // perks, plus whatever is waiting at each character's Postmaster.
+//   ?lite=1         → skip stats and perks (much smaller, so the vault shows sooner)
+//   ?part=details   → only stats and perks for every item, keyed by item id
 const { bungie, handler } = require("../lib/bungie");
 const { itemDefs } = require("../lib/manifest");
 const { requireSession } = require("../lib/session");
@@ -19,13 +21,28 @@ module.exports = handler(async (query, { req, res }) => {
   const s = await requireSession(req, res);
   itemDefs(); // warm up the item file in the background while Bungie answers
 
+  const lite = query.get("lite") === "1";
+  const detailsOnly = query.get("part") === "details";
+
   // 102 vault, 200 characters, 201 character inventories, 205 equipped,
   // 300 item details, 304 item stats, 305 item sockets (perks and mods)
-  const p = await bungie(`/Destiny2/${s.mt}/Profile/${s.mid}/?components=102,200,201,205,300,304,305`, { token: s.at });
+  const components = detailsOnly ? "102,201,205,304,305" : lite ? "102,200,201,205,300" : "102,200,201,205,300,304,305";
+  const p = await bungie(`/Destiny2/${s.mt}/Profile/${s.mid}/?components=${components}`, { token: s.at });
 
   const instances = p.itemComponents?.instances?.data || {};
   const statsById = p.itemComponents?.stats?.data || {};
   const socketsById = p.itemComponents?.sockets?.data || {};
+  const statsOf = (id) => Object.fromEntries(
+    Object.entries(statsById[id]?.stats || {}).filter(([h]) => h !== POWER_STAT).map(([h, v]) => [h, v.value])
+  );
+  const plugsOf = (id) => (socketsById[id]?.sockets || []).filter((sk) => sk.plugHash && sk.isVisible !== false).map((sk) => sk.plugHash);
+
+  if (detailsOnly) {
+    const details = {};
+    const ids = new Set([...Object.keys(statsById), ...Object.keys(socketsById)]);
+    for (const id of ids) details[id] = { stats: statsOf(id), plugs: plugsOf(id) };
+    return { details };
+  }
 
   const items = [];
   const add = (it, loc, equipped) => {
@@ -43,10 +60,8 @@ module.exports = handler(async (query, { req, res }) => {
       masterwork: Boolean(it.state & 4),
       crafted: Boolean(it.state & 8),
       ornament: it.overrideStyleItemHash || null,
-      stats: Object.fromEntries(
-        Object.entries(statsById[id]?.stats || {}).filter(([h]) => h !== POWER_STAT).map(([h, v]) => [h, v.value])
-      ),
-      plugs: (socketsById[id]?.sockets || []).filter((sk) => sk.plugHash && sk.isVisible !== false).map((sk) => sk.plugHash)
+      stats: lite ? {} : statsOf(id),
+      plugs: lite ? [] : plugsOf(id)
     });
   };
 
@@ -84,5 +99,5 @@ module.exports = handler(async (query, { req, res }) => {
       emblemIcon: img(c.emblemPath)
     }));
 
-  return { characters, items, postmaster, membershipId: s.mid };
+  return { characters, items, postmaster, membershipId: s.mid, partial: lite };
 });
