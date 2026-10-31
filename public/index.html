@@ -157,6 +157,9 @@
   .inv { display: grid; grid-template-columns: repeat(3, 50px); gap: 4px; }
   .stores.single .inv { flex: 1; grid-template-columns: repeat(auto-fill, 50px); }
   .cell.vault { display: grid; grid-template-columns: repeat(auto-fill, 50px); gap: 4px; align-content: start; }
+  .stores .drop-col { background: rgba(88,192,138,.1); box-shadow: inset 0 0 0 1px rgba(88,192,138,.45); }
+  .store-head.drop-col { background: none; box-shadow: none; }
+  .store-head.drop-col .emblem-card { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--win); }
   .cell.drop-ok, .eq-slot.drop-ok { background: rgba(88,192,138,.14); box-shadow: inset 0 0 0 2px var(--win); }
 
   .tile {
@@ -1072,15 +1075,15 @@ function renderVault() {
   grid.classList.toggle("single", single);
   grid.style.setProperty("--chars", chars.length);
 
-  let html = single ? "" : stores.map((s) => `<div class="store-head">${headHtml(s)}</div>`).join("");
+  let html = single ? "" : stores.map((s) => `<div class="store-head" data-store="${esc(s)}">${headHtml(s)}</div>`).join("");
   const pm = vault.inv.postmaster.filter((x) => shown.includes(x.charId));
   if (pm.length) {
     const open = !vault.collapsed.postmaster;
     html += `<button type="button" class="sec-head" data-sec="postmaster" aria-expanded="${open}">${CHEV_SVG}Postmaster<span class="count">${pm.length}</span></button>`;
     if (open) html += shown.map((s) => {
-      if (s === "vault") return `<div class="cell"></div>`;
+      if (s === "vault") return `<div class="cell" data-store="vault"></div>`;
       const here = pm.filter((x) => x.charId === s);
-      return `<div class="cell pm"><div class="pm-count${here.length >= 18 ? " warn" : ""}">${here.length} / 21</div>
+      return `<div class="cell pm" data-store="${esc(s)}"><div class="pm-count${here.length >= 18 ? " warn" : ""}">${here.length} / 21</div>
         <div class="pm-grid">${here.map(pmTileHtml).join("")}</div></div>`;
     }).join("");
   }
@@ -2127,18 +2130,49 @@ document.addEventListener("keydown", (e) => {
 
 /* Drag and drop: onto another column to move, onto an equipped slot to equip */
 let dragId = null, dropEl = null;
-function dropPlan(it, el) {
-  const cell = el.closest(".cell");
-  if (!cell) return null;
-  const to = cell.dataset.store;
-  const eqSlot = el.closest(".eq-slot");
-  if (eqSlot && to !== "vault" && cell.dataset.slot === it.slot) {
-    const check = canEquipOn(it, to);
-    return { action: "equip", to, target: eqSlot, check };
+// Which column (character or vault) the pointer is over, by its horizontal position,
+// so an item can be dropped anywhere under a character, not just on one row.
+function storeAtX(x) {
+  const heads = [...$("stores").querySelectorAll(".store-head[data-store]")];
+  if (!heads.length) return vault.store; // phone layout: the one column shown
+  const gap = 20;
+  for (const head of heads) {
+    const r = head.getBoundingClientRect();
+    if (x >= r.left - gap / 2 && x <= r.right + gap / 2) return head.dataset.store;
   }
-  return { action: "move", to, target: cell, check: canGoTo(it, to) };
+  return null;
 }
-function clearDrop() { dropEl?.classList.remove("drop-ok"); dropEl = null; }
+function dropPlan(it, e) {
+  // Dropping right on a character's equipped item in the same slot equips it.
+  const eqSlot = e.target.closest?.(".eq-slot");
+  const cell = eqSlot?.closest(".cell");
+  if (eqSlot && cell && cell.dataset.store !== "vault" && cell.dataset.slot === it.slot) {
+    return { action: "equip", to: cell.dataset.store, target: eqSlot, check: canEquipOn(it, cell.dataset.store) };
+  }
+  const to = storeAtX(e.clientX);
+  if (!to) return null;
+  return { action: "move", to, column: true, check: canGoTo(it, to) };
+}
+let dropKey = null;
+function clearDrop() {
+  dropEl?.classList.remove("drop-ok");
+  dropEl = null;
+  $("stores").querySelectorAll(".drop-col").forEach((el) => el.classList.remove("drop-col"));
+  dropKey = null;
+}
+function showDrop(plan) {
+  const key = plan.column ? `col:${plan.to}` : null;
+  if (key && key === dropKey) return;
+  if (!key && dropEl === plan.target) return;
+  clearDrop();
+  if (key) {
+    dropKey = key;
+    $("stores").querySelectorAll(`[data-store="${CSS.escape(plan.to)}"]`).forEach((el) => el.classList.add("drop-col"));
+  } else {
+    dropEl = plan.target;
+    dropEl.classList.add("drop-ok");
+  }
+}
 $("stores").addEventListener("dragstart", (e) => {
   const tile = e.target.closest(".tile[data-id]");
   if (!tile) return;
@@ -2153,17 +2187,20 @@ $("stores").addEventListener("dragend", (e) => {
   clearDrop();
   dragId = null;
 });
+$("stores").addEventListener("dragleave", (e) => {
+  if (!e.relatedTarget || !$("stores").contains(e.relatedTarget)) clearDrop();
+});
 $("stores").addEventListener("dragover", (e) => {
   const it = dragId && vault.inv.items.find((x) => x.id === dragId);
-  const plan = it && dropPlan(it, e.target);
+  const plan = it && dropPlan(it, e);
   if (!plan || !plan.check.ok) return clearDrop();
   e.preventDefault();
   e.dataTransfer.dropEffect = "move";
-  if (dropEl !== plan.target) { clearDrop(); dropEl = plan.target; dropEl.classList.add("drop-ok"); }
+  showDrop(plan);
 });
 $("stores").addEventListener("drop", (e) => {
   const it = dragId && vault.inv.items.find((x) => x.id === dragId);
-  const plan = it && dropPlan(it, e.target);
+  const plan = it && dropPlan(it, e);
   clearDrop();
   if (!plan) return;
   e.preventDefault();
