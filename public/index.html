@@ -1550,7 +1550,11 @@ function canEquipOn(it, charId) {
 const AMMO = { 1: "Primary", 2: "Special", 3: "Heavy" };
 const HIDDEN_STATS = new Set(["1935470627", "1480404414", "3897883278"]); // Power, Attack, Defense
 const NUMERIC_STATS = new Set(["4284893193", "3871231066", "2961396640", "447667954", "2715839340", "925767036"]);
+// Armor stats in the game's order: Health, Melee, Grenade, Super, Class, Weapons
+const ARMOR_STAT_ORDER = ["392767087", "4244567218", "1735777505", "144602215", "1943323491", "2996146975"];
+const statRank = (h) => { const i = STAT_ORDER.indexOf(String(h)); return i < 0 ? 999 : i; };
 const STAT_ORDER = [
+  ...ARMOR_STAT_ORDER,
   "4043523819", "1240592695", "155624089", "943549884", "4188031367", "1345609583", "3555269338", "2714457168",
   "2523465841", "3614673599", "1591432999", "2837207746", "209426660", "3022301683", "2762071195",
   "4284893193", "3871231066", "2961396640", "447667954", "925767036", "2715839340"
@@ -2452,7 +2456,7 @@ const OPT_WEIGHTS = { off: 0, low: 1, high: 3 };
 function armorStatHashes() {
   const set = new Set();
   for (const it of vault.inv.items) if (it.kind === "armor") Object.keys(it.stats).forEach((h) => set.add(h));
-  return [...set].filter((h) => defs.stat[h]?.name && !HIDDEN_STATS.has(h));
+  return [...set].filter((h) => defs.stat[h]?.name && !HIDDEN_STATS.has(h)).sort((a, b) => statRank(a) - statRank(b));
 }
 function optimizerHtml() {
   const chars = vault.inv.characters;
@@ -3351,7 +3355,7 @@ function renderLoadout(c) {
 }
 
 function renderStats(c) {
-  const entries = Object.entries(c.stats).filter(([h]) => defs.stat[h]?.name);
+  const entries = Object.entries(c.stats).filter(([h]) => defs.stat[h]?.name).sort((a, b) => statRank(a[0]) - statRank(b[0]));
   if (!entries.length) { $("char-stats").innerHTML = `<p class="note">No stats available for this character.</p>`; return; }
   const max = Math.max(...entries.map(([, v]) => v)) > 100 ? 200 : 100;
   $("char-stats").innerHTML = entries.map(([h, v]) => {
