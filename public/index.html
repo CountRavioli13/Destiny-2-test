@@ -481,6 +481,64 @@
   .hc-tags { display: flex; flex-wrap: wrap; gap: 4px; }
   .hc-tags span { padding: 1px 6px; border-radius: 3px; background: var(--surface-2); color: var(--muted); font-size: 11px; }
 
+  /* Item pop-up */
+  .pop { position: fixed; z-index: 55; width: 400px; max-width: calc(100vw - 16px); max-height: calc(100vh - var(--bar-h, 58px) - 16px); overflow: auto;
+    background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 6px; box-shadow: 0 18px 48px rgba(0,0,0,.65); font-size: 13px; }
+  .pop-head { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 12px; color: #fff; background: var(--tier-5); }
+  .pop-head.tier-6 { background: #c9a62f; color: #1b1404; }
+  .pop-head.tier-4 { background: var(--tier-4); }
+  .pop-head.tier-3 { background: var(--tier-3); }
+  .pop-head.tier-2 { background: #6f6b66; }
+  .pop-title { min-width: 0; flex: 1; display: grid; }
+  .pop-title b { font: 800 1.2rem/1.05 var(--display); text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pop-title span { font-size: 11px; opacity: .85; }
+  .pop-pow { display: inline-flex; align-items: center; gap: 4px; font: 800 1.35rem/1 var(--display); font-variant-numeric: tabular-nums; }
+  .pop-pow img { width: 16px; height: 16px; }
+  .pop-btns { display: flex; gap: 4px; }
+  .pop-btns .icon-btn { width: 28px; height: 28px; color: inherit; background: rgba(0,0,0,.22); border-color: transparent; font-size: 18px; line-height: 1; }
+  .pop-btns .icon-btn:hover { background: rgba(0,0,0,.4); }
+  .pop-btns .icon-btn.on { background: rgba(0,0,0,.5); }
+  .pop-btns svg { width: 14px; height: 14px; }
+  .pop-grid { display: grid; grid-template-columns: minmax(0, 1fr) 64px; }
+  .pop-main { display: grid; gap: 10px; align-content: start; padding: 10px 10px 12px 12px; min-width: 0; }
+  .pop-gr { display: flex; align-items: center; gap: 6px; color: #9fe8bb; font-size: 12px; }
+  .pop-gr svg { width: 12px; height: 12px; }
+  .pop-note { color: var(--muted); font-size: 12px; }
+  .pop-stats { display: grid; grid-template-columns: auto 30px minmax(0, 1fr); align-items: center; gap: 3px 8px; font-size: 12px; }
+  .ps-l { color: var(--muted); text-align: right; white-space: nowrap; }
+  .ps-v { text-align: right; font-variant-numeric: tabular-nums; color: var(--fg); }
+  .ps-l.total, .ps-v.total { color: var(--fg); font-weight: 700; }
+  .ps-b { height: 9px; background: var(--surface-2); }
+  .ps-b i { display: block; height: 100%; background: #e8e9ec; }
+  .pop-perks { display: grid; border-top: 1px solid var(--line); }
+  .pp-row { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 4px 0; border-bottom: 1px solid var(--line); }
+  .pp-main { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; padding: 0; text-align: left; color: var(--fg); background: none; border: 0; cursor: pointer; }
+  .pp-main:hover .pp-name { color: var(--accent); }
+  .pp-ic { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: #3d6fb5; }
+  .pp-row.intr .pp-ic { border-radius: 4px; background: var(--surface-2); }
+  .pp-ic img { width: 26px; height: 26px; }
+  .pp-ic.wish, .pp-alt.wish { box-shadow: 0 0 0 2px #4cc77f; }
+  .pp-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pp-alts { display: flex; gap: 3px; flex: none; }
+  .pp-alt { width: 24px; height: 24px; padding: 0; display: grid; place-items: center; border-radius: 50%; cursor: pointer; background: var(--surface-2); border: 0; opacity: .75; }
+  .pp-alt:hover { opacity: 1; box-shadow: 0 0 0 2px var(--accent); }
+  .pp-alt img { width: 20px; height: 20px; }
+  .pop-mods { display: flex; flex-wrap: wrap; gap: 4px; }
+  .pp-mod { width: 34px; height: 34px; padding: 0; display: grid; place-items: center; cursor: pointer; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; }
+  .pp-mod.empty { opacity: .45; }
+  .pp-mod img { width: 30px; height: 30px; }
+  .pop-acts { display: grid; align-content: start; gap: 4px; padding: 10px 8px; background: var(--surface); border-left: 1px solid var(--line); }
+  .pa-l { font: 600 10px var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin-top: 4px; }
+  .pa-row { display: grid; gap: 4px; }
+  .pa-btn { width: 46px; height: 46px; padding: 0; display: grid; place-items: center; cursor: pointer; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; font-size: 18px; }
+  .pa-btn:hover:not(:disabled) { border-color: var(--accent); }
+  .pa-btn:disabled { opacity: .3; cursor: not-allowed; }
+  .pa-btn img { width: 100%; height: 100%; object-fit: cover; }
+  .pa-btn svg { width: 18px; height: 18px; }
+  .pa-ic { display: grid; place-items: center; }
+  .pa-ic svg { width: 22px; height: 22px; }
+  .tile.popped { outline: 2px solid var(--accent); outline-offset: 1px; }
+
   /* Rarity band on item panels, like in-game tooltips */
   .sheet-hero.tier-6 { box-shadow: inset 0 4px 0 #ceae33; }
   .sheet-hero.tier-5 { box-shadow: inset 0 4px 0 var(--tier-5); }
@@ -1032,6 +1090,7 @@
 <aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-name" hidden></aside>
 <div class="compare" id="compare" role="dialog" aria-modal="true" aria-labelledby="cmp-title" hidden><div class="compare-box" id="compare-box"></div></div>
 <div class="hovercard" id="hovercard" aria-hidden="true" hidden></div>
+<div class="pop" id="pop" role="dialog" aria-labelledby="pop-name" hidden></div>
 <div class="act-tip" id="act-tip" role="tooltip" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -1148,7 +1207,7 @@ async function loadDefs(type, hashes) {
 /* ================= Settings (saved in this browser) ================= */
 const ACCENTS = { gold: "#e4b84c", arc: "#6fd3f0", void: "#b48ae0", strand: "#4fd987", solar: "#f08a3c", white: "#e8ebf0" };
 const DEFAULT_SETTINGS = {
-  theme: "dark", accent: "gold", size: "m", watermarks: true, elements: true, godrolls: true, hover: true,
+  theme: "dark", accent: "gold", size: "m", watermarks: true, elements: true, godrolls: true, hover: true, itemView: "popup",
   charOrder: "recent", sort: "power", armorCollapsed: false, hidePostmaster: false
 };
 let settings = { ...DEFAULT_SETTINGS };
@@ -1199,6 +1258,7 @@ function settingsHtml() {
         ${row("Element icons", "Arc, Solar, Void… next to Power", sw("elements"))}
         ${row("God-roll marks", "Green thumbs-up on matching weapons", sw("godrolls"))}
         ${row("Hover cards", "Quick info when the mouse rests on an item", sw("hover"))}
+        ${row("Clicking an item opens", "On phones it's always the full panel", seg("itemView", [["popup", "Pop-up"], ["sheet", "Full panel"]]))}
       </div>
     </div>
     <div class="sheet-section">
@@ -1598,6 +1658,7 @@ function renderVault() {
     }
   }
   grid.innerHTML = html;
+  if (vault.popId) { document.querySelector(`#stores .tile[data-id="${CSS.escape(vault.popId)}"]`)?.classList.add("popped"); requestAnimationFrame(placePop); }
 
   const total = vault.inv.items.length;
   const q = vault.q.trim();
@@ -1835,6 +1896,7 @@ function loadDetail(it) {
   }
   return detailLoads[it.id].then(() => {
     if (vault.panel === "item" && vault.openId === it.id) renderSheet();
+    if (vault.popId === it.id) renderPop();
   });
 }
 
@@ -1896,6 +1958,164 @@ async function switchPerk(id, socketIndex, plugHash) {
   }
 }
 
+/* ---------- Item pop-up (DIM-style), with Expand to the full panel ---------- */
+const EXPAND_SVG = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 8.5 7.5M6.5 13.5h-4v-4M2.5 13.5l5-5"/></svg>`;
+const usePop = () => settings.itemView !== "sheet" && !narrow.matches;
+
+function popStatsHtml(it, stats) {
+  const rows = Object.entries(stats || {})
+    .filter(([h, v]) => !HIDDEN_STATS.has(h) && defs.stat[h]?.name && v != null)
+    .sort((a, b) => statRank(a[0]) - statRank(b[0]));
+  if (!rows.length) return "";
+  const armor = it.kind === "armor";
+  const max = armor ? Math.max(45, ...rows.map(([, v]) => v)) : 100;
+  return `<div class="pop-stats">${rows.map(([h, v]) => `<span class="ps-l">${esc(defs.stat[h].name)}</span><span class="ps-v">${v}</span>${
+      !armor && NUMERIC_STATS.has(h) ? "<span></span>" : `<span class="ps-b"><i style="width:${Math.min(100, (v / max) * 100)}%"></i></span>`}`).join("")}
+    ${armor ? `<span class="ps-l total">Total</span><span class="ps-v total">${rows.reduce((s, [, v]) => s + v, 0)}</span><span></span>` : ""}</div>`;
+}
+
+function popPerksHtml(it, det) {
+  const dd = defs.detail[it.hash];
+  if (!dd || !det?.sockets) return `<div class="pop-perks">${Array(4).fill('<div class="sk sk-line"></div>').join("")}</div>`;
+  const info = (h) => defs.plug[h] || {};
+  const wished = wishPerks(it.hash);
+  const rows = [], mods = [];
+  for (const cat of dd.categories) {
+    const name = defs.socketCategory[cat.hash]?.name || "";
+    if (!name || /cosmetic|ghost|tracker|shader|ornament/i.test(name)) continue;
+    for (const i of cat.indexes) {
+      const s = det.sockets[i];
+      if (!s || !s.visible || !s.plug || !info(s.plug).name) continue;
+      if (/intrinsic|perk|trait/i.test(name)) {
+        const alts = (det.options[i] || []).filter((h) => String(h) !== String(s.plug) && info(h).name);
+        const p = info(s.plug);
+        rows.push(`<div class="pp-row${/intrinsic/i.test(name) ? " intr" : ""}">
+          <button type="button" class="pp-main" data-pick="${s.plug}" data-socket="${i}" title="${esc(p.description || p.name)}">
+            <span class="pp-ic${wished.has(s.plug) ? " wish" : ""}">${p.icon ? `<img src="${esc(p.icon)}" alt="">` : ""}</span><span class="pp-name">${esc(p.name)}</span></button>
+          ${alts.length ? `<span class="pp-alts">${alts.slice(0, 6).map((h) => `<button type="button" class="pp-alt${wished.has(h) ? " wish" : ""}" data-pick="${h}" data-socket="${i}" title="${esc(info(h).name)}${it.vendor ? "" : " · click to read or switch"}">${info(h).icon ? `<img src="${esc(info(h).icon)}" alt="">` : ""}</button>`).join("")}</span>` : ""}
+        </div>`);
+      } else {
+        const p = info(s.plug);
+        mods.push(`<button type="button" class="pp-mod${/empty|default/i.test(p.name) ? " empty" : ""}" data-pick="${s.plug}" title="${esc(p.name)}${p.description ? ": " + esc(p.description) : ""}">${p.icon ? `<img src="${esc(p.icon)}" alt="">` : ""}</button>`);
+      }
+    }
+  }
+  return `<div class="pop-perks">${rows.join("")}</div>${mods.length ? `<div class="pop-mods">${mods.join("")}</div>` : ""}`;
+}
+
+function popActsHtml(it) {
+  const d = defs.item[it.hash] || {};
+  const chars = vault.inv.characters;
+  const fits = (c) => !(it.kind === "armor" && d.classType < 3 && c.classType !== d.classType);
+  const face = (c) => c === "vault" ? `<span class="pa-ic">${VAULT_SVG}</span>` : c.emblemIcon ? `<img src="${esc(c.emblemIcon)}" alt="">` : `<span class="pa-ic"></span>`;
+  const btn = (place, label, action, to, check) => `<button type="button" class="pa-btn" data-action="${action}" data-to="${esc(to)}" ${check.ok ? "" : "disabled"}
+    title="${esc(check.ok ? `${action === "equip" ? "Equip on" : "Move to"} ${label}` : check.why || "")}" aria-label="${action === "equip" ? "Equip on" : "Move to"} ${esc(label)}">${face(place)}</button>`;
+  const equip = chars.filter(fits).map((c) => btn(c, className(c), "equip", c.id, canEquipOn(it, c.id))).join("");
+  const move = [
+    ...chars.filter((c) => c.id !== it.loc && fits(c)).map((c) => btn(c, className(c), "move", c.id, canGoTo(it, c.id))),
+    ...(it.loc !== "vault" ? [btn("vault", "Vault", "move", "vault", canGoTo(it, "vault"))] : [])
+  ].join("");
+  return `<div class="pop-acts">
+    ${equip ? `<span class="pa-l">Equip</span><div class="pa-row">${equip}</div>` : ""}
+    ${move ? `<span class="pa-l">Move</span><div class="pa-row">${move}</div>` : ""}
+    <span class="pa-l">More</span>
+    <div class="pa-row"><button type="button" class="pa-btn txt" data-action="compare" title="Compare with your other copies">⇆</button>
+      <button type="button" class="pa-btn txt" data-action="expand" title="Open the full panel: notes, tags, perk switching">${EXPAND_SVG}</button></div>
+  </div>`;
+}
+
+function popHtml(it) {
+  const d = defs.item[it.hash] || {};
+  const det = details[it.id];
+  const tier = d.tier >= 2 && d.tier <= 6 ? d.tier : 2;
+  const el = elementOf(it);
+  const gr = wishMatch(it);
+  const body = det?.error
+    ? `<p class="note">Couldn't load perks and stats: ${esc(det.error)}</p>`
+    : popStatsHtml(it, det?.stats || it.stats) + popPerksHtml(it, det);
+  return `
+    <div class="pop-head tier-${tier}">
+      <div class="pop-title"><b id="pop-name">${esc(d.name || "Item")}</b><span>${esc(TIERS[tier] || "")} ${esc(d.type || "")}</span></div>
+      <span class="pop-pow">${el?.icon ? `<img src="${esc(el.icon)}" alt="${esc(el.name)}">` : ""}${it.power ?? ""}</span>
+      <div class="pop-btns">${lockButton(it)}
+        <button type="button" class="icon-btn" data-action="expand" title="Expand to the full panel" aria-label="Expand to the full panel">${EXPAND_SVG}</button>
+        <button type="button" class="icon-btn" data-close aria-label="Close">×</button></div>
+    </div>
+    <div class="pop-grid">
+      <div class="pop-main">
+        ${gr ? `<div class="pop-gr">${THUMB_SVG} Community god roll</div>` : ""}
+        ${it.equipped ? `<div class="pop-note">Equipped on your ${esc(placeName(it.loc))}</div>` : ""}
+        ${body}
+      </div>
+      ${popActsHtml(it)}
+    </div>`;
+}
+
+function placePop() {
+  const pop = $("pop");
+  if (pop.hidden || !vault.popId) return;
+  const tile = document.querySelector(`#stores .tile[data-id="${CSS.escape(vault.popId)}"]`);
+  if (!tile) return;
+  const r = tile.getBoundingClientRect();
+  const w = pop.offsetWidth, hgt = pop.offsetHeight, gap = 8;
+  const top0 = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--bar-h")) || 58) + 8;
+  let left = r.right + gap;
+  if (left + w > innerWidth - 8) left = r.left - gap - w;
+  if (left < 8) left = Math.max(8, Math.min(innerWidth - w - 8, r.left));
+  const top = Math.max(top0, Math.min(r.top - 6, innerHeight - hgt - 8));
+  pop.style.left = `${Math.round(left)}px`;
+  pop.style.top = `${Math.round(top)}px`;
+}
+function renderPop() {
+  const it = vault.popId && vault.inv?.items.find((x) => x.id === vault.popId);
+  if (!it) return closePop();
+  $("pop").innerHTML = popHtml(it);
+  placePop();
+}
+function openPop(id) {
+  const it = vault.inv.items.find((x) => x.id === id);
+  if (!it) return;
+  if (vault.popId === id && !$("pop").hidden) return closePop();
+  vault.popId = id;
+  $("pop").hidden = false;
+  document.querySelectorAll("#stores .tile.popped").forEach((t) => t.classList.remove("popped"));
+  document.querySelector(`#stores .tile[data-id="${CSS.escape(id)}"]`)?.classList.add("popped");
+  renderPop();
+  loadDetail(it);
+}
+function closePop() {
+  vault.popId = null;
+  $("pop").hidden = true;
+  document.querySelectorAll("#stores .tile.popped").forEach((t) => t.classList.remove("popped"));
+}
+function expandPop(plug = null, socket = null) {
+  const id = vault.popId;
+  closePop();
+  if (!id) return;
+  openSheet(id);
+  if (plug) { pickedPlug = String(plug); pickedSocket = socket; renderSheet(); }
+}
+$("pop").addEventListener("click", (e) => {
+  if (e.target.closest("[data-close]")) return closePop();
+  const pick = e.target.closest("[data-pick]");
+  if (pick) return expandPop(pick.dataset.pick, pick.dataset.socket ?? null);
+  const b = e.target.closest("[data-action]");
+  if (!b || b.disabled) return;
+  const a = b.dataset.action, id = vault.popId;
+  if (a === "expand") return expandPop();
+  if (a === "compare") { closePop(); return openCompare(id); }
+  if (a === "lock" || a === "unlock") return runAction(id, a, b.dataset.to);
+  closePop();
+  runAction(id, a, b.dataset.to);
+});
+document.addEventListener("pointerdown", (e) => {
+  if (!vault.popId || $("pop").hidden) return;
+  if (e.target.closest("#pop") || e.target.closest("#stores .tile[data-id]") || e.target.closest("#toast")) return;
+  closePop();
+});
+window.addEventListener("scroll", () => { if (vault.popId) placePop(); }, { passive: true });
+window.addEventListener("resize", () => { if (vault.popId) { if (usePop()) placePop(); else closePop(); } });
+
 function openSheet(id) {
   const it = vault.inv.items.find((x) => x.id === id);
   if (!it) return;
@@ -1953,6 +2173,7 @@ async function runAction(id, action, to) {
     vault.busy.delete(id);
     renderVault();
     if (isLock && vault.openId === id) renderSheet();
+    if (isLock && vault.popId === id) renderPop();
   }
 }
 
@@ -3206,7 +3427,7 @@ $("stores").addEventListener("click", (e) => {
   const sec = e.target.closest(".sec-head");
   if (sec) { vault.collapsed[sec.dataset.sec] = !vault.collapsed[sec.dataset.sec]; return renderVault(); }
   const tile = e.target.closest(".tile[data-id]");
-  if (tile) { hideHover(); return openSheet(tile.dataset.id); }
+  if (tile) { hideHover(); return usePop() ? openPop(tile.dataset.id) : openSheet(tile.dataset.id); }
   const pmTile = e.target.closest(".tile[data-pm]");
   if (pmTile) openPanel("postmaster", pmTile.dataset.pm);
 });
@@ -3335,7 +3556,7 @@ $("v-tip-close").addEventListener("click", () => {
   try { localStorage.setItem("tip-dismissed", "1"); } catch {}
 });
 $("stores").addEventListener("mouseover", (e) => {
-  if (!canHover.matches || dragId || !settings.hover) return;
+  if (!canHover.matches || dragId || !settings.hover || vault.popId) return;
   const tile = e.target.closest(".tile[data-id]");
   if (!tile) return;
   clearTimeout(hoverTimer);
@@ -3375,6 +3596,7 @@ $("scrim").addEventListener("click", closeSheet);
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (vault.menu) { vault.menu = null; renderVault(); return; }
+  if (vault.popId) { closePop(); return; }
   if (!$("compare").hidden) closeCompare();
   else if (!$("sheet").hidden) closeSheet();
 });
