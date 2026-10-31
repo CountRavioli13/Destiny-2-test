@@ -50,6 +50,14 @@ const TYPES = {
       type: d.itemTypeDisplayName || ""
     };
   }],
+  // Vendors (Xûr, Banshee-44…)
+  vendor: ["DestinyVendorDefinition", (d) => ({
+    name: d.displayProperties?.name || "",
+    subtitle: d.displayProperties?.subtitle || "",
+    icon: img(d.displayProperties?.smallTransparentIcon || d.displayProperties?.mapIcon || d.displayProperties?.icon),
+    banner: img(d.displayProperties?.largeIcon),
+    visible: d.visible !== false
+  })],
   // Element icons (Arc, Solar, Void…)
   damage: ["DestinyDamageTypeDefinition", (d) => ({
     name: d.displayProperties?.name || "",

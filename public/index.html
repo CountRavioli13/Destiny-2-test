@@ -6,6 +6,12 @@
 <title>Guardian Lookup</title>
 <meta name="description" content="Manage your Destiny 2 vault, move and equip gear, and look up any player.">
 <meta name="theme-color" content="#0a0d12">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Guardian">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -281,6 +287,86 @@
   .switch[aria-checked="true"] { background: var(--accent); border-color: var(--accent); }
   .switch[aria-checked="true"]::after { transform: translateX(18px); background: var(--accent-ink); }
   .set-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* Tags & notes */
+  .tile .tg { position: absolute; left: 2px; bottom: 2px; z-index: 3; width: 14px; height: 14px; display: grid; place-items: center;
+    border-radius: 50%; background: rgba(6,8,12,.8); color: var(--tg); box-shadow: 0 0 0 1px var(--tg); }
+  .tile .tg svg { width: 9px; height: 9px; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; font-size: 13px; cursor: pointer;
+    color: var(--muted); background: var(--surface); border: 1px solid var(--line-2); border-radius: 999px; }
+  .tag-btn svg { width: 12px; height: 12px; color: var(--tg); }
+  .tag-btn[aria-pressed="true"] { color: #111; background: var(--tg); border-color: var(--tg); font-weight: 600; }
+  .tag-btn[aria-pressed="true"] svg { color: #111; }
+  .note-box { width: 100%; resize: vertical; min-height: 44px; font: 400 13px/1.4 var(--body); }
+  .hc-tag { display: flex; align-items: center; gap: 6px; color: var(--tg); font-weight: 600; }
+  .hc-tag svg { width: 11px; height: 11px; }
+  .hc-note { color: var(--muted); font-style: italic; }
+
+  /* Character actions + farming */
+  .store-acts { display: flex; gap: 6px; margin-top: 6px; }
+  #store-acts-m .store-acts { margin: 0 0 10px; }
+  .mini-btn { flex: 1; min-width: 0; padding: 6px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font: 700 12px/1 var(--display); letter-spacing: .04em; text-transform: uppercase; cursor: pointer;
+    color: var(--fg); background: var(--surface); border: 1px solid var(--line-2); border-radius: 4px; }
+  .mini-btn:hover { border-color: var(--accent); }
+  .mini-btn.on { color: #fff; background: #1f8a4c; border-color: #39b56d; }
+  .farm-banner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 12px; padding: 8px 12px; font-size: 13px;
+    color: #d6f5e3; background: rgba(31,138,76,.18); border: 1px solid rgba(57,181,109,.6); border-radius: 6px; }
+  .farm-banner b { color: #fff; }
+  .farm-banner .btn { margin-left: auto; padding: 6px 12px; }
+  .farm-dot { width: 9px; height: 9px; border-radius: 50%; background: #39d47a; box-shadow: 0 0 0 0 rgba(57,212,122,.6); animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(57,212,122,.6); } 100% { box-shadow: 0 0 0 9px rgba(57,212,122,0); } }
+  @media (prefers-reduced-motion: reduce) { .farm-dot { animation: none; } }
+  .pill { padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--muted); background: var(--surface-2); }
+  .pill.on { color: #fff; background: #1f8a4c; }
+
+  /* Armor optimizer */
+  .opt-row { gap: 8px; }
+  .opt-row .set-label { flex: 1 1 90px; }
+  .opt-min { width: 64px; padding: 6px 8px; }
+  .opt-card { display: grid; gap: 8px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+  .opt-icons { display: flex; gap: 4px; }
+  .opt-icons img { width: 40px; height: 40px; border-radius: 3px; }
+  .opt-stats { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); }
+  .opt-stats b { color: var(--fg); font-family: var(--mono); }
+  .opt-stats .hi b { color: var(--accent); }
+  .opt-stats .tot { margin-left: auto; }
+  .opt-card .act-btn { justify-self: start; padding: 6px 12px; }
+  [data-opt-exotic] { width: 100%; }
+
+  /* Vendors */
+  .vend-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .vend-h1 { margin: 6px 0 0; font: 800 clamp(1.8rem, 5vw, 2.4rem)/1 var(--display); text-transform: uppercase; }
+  .vtools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .chk { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; }
+  .vend-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; margin-top: 14px; }
+  .vcard { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; min-width: 0; }
+  .vcard.xur { border-color: rgba(228,184,76,.5); }
+  .vc-head { position: relative; display: flex; align-items: center; gap: 12px; padding: 14px; background: #1c2230 center / cover no-repeat; }
+  .vc-head::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10,13,18,.9), rgba(10,13,18,.55)); }
+  .vc-head > * { position: relative; }
+  .vc-head img { width: 46px; height: 46px; flex: none; }
+  .vc-head h3 { margin: 0; font: 800 1.35rem/1.05 var(--display); text-transform: uppercase; }
+  .vcard.xur .vc-head h3 { font-size: 1.9rem; color: var(--accent); }
+  .vc-head span { font-size: 12px; color: var(--muted); }
+  .vc-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; padding: 10px; }
+  .vcard.xur .vc-items { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+  .vitem { display: flex; gap: 8px; align-items: center; min-width: 0; padding: 6px; text-decoration: none; border-radius: 5px; background: var(--bg-2); border: 1px solid transparent; }
+  .vitem:hover { border-color: var(--line-2); }
+  .vi-ic { position: relative; width: 44px; height: 44px; flex: none; border-radius: 3px; overflow: hidden; background: var(--surface-2); }
+  .vi-ic.t6 { box-shadow: inset 0 0 0 1px rgba(214,182,62,.95); }
+  .vi-ic img { width: 100%; height: 100%; }
+  .vi-q { position: absolute; right: 2px; bottom: 1px; font: 700 10px var(--mono); color: #fff; text-shadow: 0 1px 2px #000; }
+  .vi-text { min-width: 0; display: grid; gap: 1px; }
+  .vi-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vi-name.ex { color: var(--tier-6); }
+  .vi-type { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vi-cost { display: flex; gap: 8px; flex-wrap: wrap; font: 500 11px var(--mono); color: var(--fg); }
+  .vi-cost span { display: inline-flex; align-items: center; gap: 3px; }
+  .vi-cost img { width: 13px; height: 13px; }
+  .vi-cost.free { color: var(--win); }
+  .xur-away { padding: 14px 16px; color: var(--muted); background: var(--surface); border: 1px dashed var(--line-2); border-radius: 8px; }
+  .xur-away b { color: var(--fg); }
 
   /* Search suggestions */
   .vsuggest {
@@ -640,6 +726,7 @@
     </a>
     <nav class="nav" aria-label="Sections">
       <a href="#vault" id="nav-vault">Vault</a>
+      <a href="#vendors" id="nav-vendors">Vendors</a>
       <a href="#lookup" id="nav-lookup">Player lookup</a>
     </nav>
     <div class="account" id="account"></div>
@@ -712,6 +799,7 @@
           <option value="rarity">Sort: Rarity</option>
           <option value="name">Sort: Name</option>
         </select>
+        <button class="btn ghost" type="button" id="v-optimizer">Optimizer</button>
         <button class="btn ghost" type="button" id="v-loadouts">Loadouts</button>
         <button class="btn ghost icon-only" type="button" id="v-refresh" title="Refresh from Bungie" aria-label="Refresh from Bungie">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2.5v3h-3"/></svg>
@@ -736,9 +824,27 @@
         </div>
       </div>
       <p class="tip" id="v-tip" hidden>Drag an item to another column to move it, or onto an equipped slot to equip it. Click any item for perks, stats and options. <button type="button" id="v-tip-close">Got it</button></p>
+      <div class="farm-banner" id="farm-banner" role="status" hidden></div>
       <div class="store-tabs" id="store-tabs" hidden></div>
+      <div id="store-acts-m"></div>
       <div class="stores" id="stores"></div>
     </div>
+  </section>
+
+  <!-- ===================== VENDORS ===================== -->
+  <section id="view-vendors" hidden>
+    <div class="vend-top">
+      <div><span class="eyebrow">Vendors</span><h1 class="vend-h1">This week's stock</h1></div>
+      <div class="vtools" id="vend-tools">
+        <label class="sr" for="vend-char">Character</label>
+        <select class="field" id="vend-char"></select>
+        <label class="chk"><input type="checkbox" id="vend-gear" checked> Weapons &amp; armor only</label>
+        <button class="btn ghost icon-only" type="button" id="vend-refresh" title="Refresh vendors" aria-label="Refresh vendors">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2.5v3h-3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="vend-body"></div>
   </section>
 
   <!-- ===================== LOOKUP ===================== -->
@@ -890,7 +996,7 @@ function flashTile(id) {
 
 /* Game definitions, cached in this browser so repeat visits load fast */
 const DEFS_VERSION = 3;
-const defs = { item: {}, stat: {}, record: {}, activity: {}, detail: {}, plug: {}, socketCategory: {}, plugname: {}, damage: {} };
+const defs = { item: {}, stat: {}, record: {}, activity: {}, detail: {}, plug: {}, socketCategory: {}, plugname: {}, damage: {}, vendor: {} };
 const DAMAGE_HASH = { 1: 3373582085, 2: 2303181850, 3: 1847026933, 4: 3454344768, 6: 151347233, 7: 3949783978 };
 function elementOf(it) {
   if (it.kind !== "weapons" || !DAMAGE[it.damage]) return null;
@@ -989,6 +1095,18 @@ function settingsHtml() {
       </div>
     </div>
     <div class="sheet-section">
+      <h4>Loadouts &amp; tags</h4>
+      <div class="set-row"><div class="set-label"><b>Cloud save</b><small>${esc(cloudLabel())}</small></div>
+        <span class="pill${cloud.available ? " on" : ""}">${cloud.available ? "On" : "Off"}</span></div>
+      ${cloud.available ? "" : `<p class="sheet-note">To sync loadouts and tags across devices, the site owner connects a free Redis database in Vercel → Storage, then redeploys.</p>`}
+    </div>
+    <div class="sheet-section">
+      <h4>App</h4>
+      ${isStandalone() ? `<p class="sheet-note">You're using the installed app.</p>`
+        : installPrompt ? `<button type="button" class="btn" data-action="install">Install Guardian Lookup</button>`
+        : `<p class="sheet-note">To install: on iPhone, tap Share then <b>Add to Home Screen</b>. On Android or desktop Chrome, use the install icon in the address bar or the browser menu's <b>Install app</b>.</p>`}
+    </div>
+    <div class="sheet-section">
       <h4>Data</h4>
       <div class="set-actions">
         <button type="button" class="btn ghost" data-action="set-tip">Show the tip again</button>
@@ -1016,14 +1134,17 @@ function renderAccount() {
 }
 
 function route() {
-  const view = location.hash === "#lookup" ? "lookup" : "vault";
+  const view = location.hash === "#lookup" ? "lookup" : location.hash === "#vendors" ? "vendors" : "vault";
   $("view-vault").hidden = view !== "vault";
   $("view-lookup").hidden = view !== "lookup";
+  $("view-vendors").hidden = view !== "vendors";
+  $("nav-vendors").toggleAttribute("aria-current", view === "vendors");
+  if (view === "vendors") { $("nav-vendors").setAttribute("aria-current", "page"); showVendors(); }
   document.body.classList.toggle("wide", view === "vault");
   $("nav-vault").toggleAttribute("aria-current", view === "vault");
   $("nav-lookup").toggleAttribute("aria-current", view === "lookup");
   if (view === "vault") { $("nav-vault").setAttribute("aria-current", "page"); showVault(); }
-  else { $("nav-lookup").setAttribute("aria-current", "page"); renderRecent(); }
+  else if (view === "lookup") { $("nav-lookup").setAttribute("aria-current", "page"); renderRecent(); }
   closeSheet();
   if (vault.compare) closeCompare();
 }
@@ -1074,6 +1195,7 @@ async function loadVault(quiet = false, silent = false) {
       })
       .filter(Boolean);
     vault.inv = inv;
+    if (!vault.userDataLoaded) { vault.userDataLoaded = true; userData = readUserData(); loadUserData(); }
     vault.dupes = {};
     for (const it of inv.items) vault.dupes[it.hash] = (vault.dupes[it.hash] || 0) + 1;
     vault.perkNames = vault.perkNames && inv.items.every((it) => it.plugs.every((p) => defs.plugname[p]));
@@ -1141,6 +1263,7 @@ function tileHtml(it) {
         ${d.watermark ? `<img class="wm" src="${esc(d.watermark)}" alt="" loading="lazy" draggable="false">` : ""}
         ${wishMatch(it) ? `<span class="gr" title="Community god roll">${THUMB_SVG}</span>` : ""}
         ${it.locked ? LOCK_SVG : ""}
+        ${tagOf(it) ? `<span class="tg" style="--tg:${TAGS[tagOf(it)].color}" title="${TAGS[tagOf(it)].label}">${TAGS[tagOf(it)].svg}</span>` : ""}
       </span>
       <span class="pw">${it.crafted ? `<span class="craft" title="Crafted"></span>` : ""}${elHtml}${it.power ?? ""}</span>
     </button>`;
@@ -1170,6 +1293,8 @@ function showHover(tile) {
       <div class="hc-meta">${esc(placeName(it.loc))}${it.equipped ? " · Equipped" : ""}</div>
       ${traits.length ? `<div class="hc-perks">${traits.map(esc).join(" · ")}</div>` : ""}
       ${gr ? `<div class="hc-gr">${THUMB_SVG} Community god roll</div>` : ""}
+      ${tagOf(it) ? `<div class="hc-tag" style="--tg:${TAGS[tagOf(it)].color}">${TAGS[tagOf(it)].svg}${TAGS[tagOf(it)].label}</div>` : ""}
+      ${noteOf(it) ? `<div class="hc-note">“${esc(noteOf(it))}”</div>` : ""}
       ${tags.length ? `<div class="hc-tags">${tags.map((t) => `<span>${t}</span>`).join("")}</div>` : ""}
     </div>`;
   card.hidden = false;
@@ -1210,6 +1335,14 @@ function cellHtml(store, slot) {
     </div>`;
 }
 
+function actsHtml(charId) {
+  const farming = farm.charId === charId;
+  return `<div class="store-acts">
+    <button type="button" class="mini-btn" data-act="max" data-char="${esc(charId)}" title="Equip your highest-Power gear">⚡ Max Power</button>
+    <button type="button" class="mini-btn${farming ? " on" : ""}" data-act="farm" data-char="${esc(charId)}" title="Keep this character's inventory from filling up">${farming ? "■ Stop farming" : "Farm"}</button>
+  </div>`;
+}
+
 function renderVault() {
   const chars = settings.charOrder === "class"
     ? [...vault.inv.characters].sort((a, b) => a.classType - b.classType)
@@ -1224,11 +1357,13 @@ function renderVault() {
     ? stores.map((s) => `<button type="button" class="store-tab" data-store="${esc(s)}" aria-pressed="${s === vault.store}">${headHtml(s)}</button>`).join("")
     : "";
 
+  $("store-acts-m").innerHTML = single && vault.store !== "vault" ? actsHtml(vault.store) : "";
+  renderFarmBanner();
   const grid = $("stores");
   grid.classList.toggle("single", single);
   grid.style.setProperty("--chars", chars.length);
 
-  let html = single ? "" : stores.map((s) => `<div class="store-head" data-store="${esc(s)}">${headHtml(s)}</div>`).join("");
+  let html = single ? "" : stores.map((s) => `<div class="store-head" data-store="${esc(s)}">${headHtml(s)}${s !== "vault" ? actsHtml(s) : ""}</div>`).join("");
   const pm = vault.inv.postmaster.filter((x) => shown.includes(x.charId));
   if (pm.length && !settings.hidePostmaster) {
     const open = !vault.collapsed.postmaster;
@@ -1429,13 +1564,14 @@ function sheetHtml(it) {
       ${actionButtons(it)}
       ${it.equipped ? `<p class="sheet-note">Equipped items can't be moved. Equip something else in the ${esc(SLOT_LABELS[it.slot])} slot first.</p>` : ""}
     </div>
-    ${godrollBanner(it)}${body}
+    ${tagSectionHtml(it)}${godrollBanner(it)}${body}
     <a class="sheet-link" href="https://www.light.gg/db/items/${esc(it.hash)}/" target="_blank" rel="noopener">See god rolls and reviews on light.gg ↗</a>`;
 }
 
 function renderSheet() {
   let html;
   if (vault.panel === "settings") html = settingsHtml();
+  else if (vault.panel === "optimizer") html = optimizerHtml();
   else if (vault.panel === "loadouts") html = loadoutsHtml();
   else if (vault.panel === "postmaster") html = pmSheetHtml();
   else {
@@ -1545,6 +1681,8 @@ const IS_FILTERS = {
   godroll: (it) => Boolean(wishMatch(it)), wishlist: (it) => Boolean(wishMatch(it)),
   helmet: (it) => it.slot === "helmet", gauntlets: (it) => it.slot === "arms", arms: (it) => it.slot === "arms",
   chest: (it) => it.slot === "chest", legs: (it) => it.slot === "legs", classitem: (it) => it.slot === "classItem",
+  favorite: (it) => tagOf(it) === "favorite", keep: (it) => tagOf(it) === "keep", junk: (it) => tagOf(it) === "junk",
+  infuse: (it) => tagOf(it) === "infuse", tagged: (it) => Boolean(tagOf(it)), notes: (it) => Boolean(noteOf(it)),
   titan: (it) => it.kind === "armor" && defs.item[it.hash]?.classType === 0,
   hunter: (it) => it.kind === "armor" && defs.item[it.hash]?.classType === 1,
   warlock: (it) => it.kind === "armor" && defs.item[it.hash]?.classType === 2
@@ -1576,6 +1714,9 @@ function compileQuery(q) {
     if ((m = t.match(/^is:(\w+)$/i))) {
       fn = IS_FILTERS[m[1].toLowerCase()];
       if (!fn) { unknown.push(raw); fn = () => true; }
+    } else if ((m = t.match(/^note:(.+)$/i))) {
+      const v = clean(m[1]);
+      fn = (it) => noteOf(it).toLowerCase().includes(v);
     } else if ((m = t.match(/^perk:(.+)$/i))) {
       const v = clean(m[1]); needsPerks = true;
       fn = (it) => perkNames(it).some((n) => n.includes(v));
@@ -1793,14 +1934,7 @@ function renderCompare() {
 
 function closeCompare() { $("compare").hidden = true; vault.compare = null; }
 
-/* ================= Loadouts (saved in this browser) ================= */
-const loKey = () => `loadouts-${vault.inv?.membershipId || me.membershipId || "me"}`;
-function getLoadouts() { try { return JSON.parse(localStorage.getItem(loKey()) || "[]"); } catch { return []; } }
-function setLoadouts(list) {
-  try { localStorage.setItem(loKey(), JSON.stringify(list)); return true; }
-  catch { toast("Your browser blocked saving. Loadouts need site storage to be allowed.", true); return false; }
-}
-
+/* ================= Loadouts ================= */
 function loadoutsHtml() {
   const chars = vault.inv.characters;
   const list = getLoadouts();
@@ -1826,7 +1960,7 @@ function loadoutsHtml() {
   return `
     <div class="sheet-hero">
       <div class="sheet-top">
-        <div style="min-width:0"><div class="name" id="sheet-name">Loadouts</div><div class="kind">Saved in this browser on this device</div></div>
+        <div style="min-width:0"><div class="name" id="sheet-name">Loadouts</div><div class="kind">${esc(cloudLabel())}</div></div>
         <div class="sheet-btns"><button type="button" class="sheet-close" data-close aria-label="Close">×</button></div>
       </div>
     </div>
@@ -1864,16 +1998,110 @@ function deleteLoadout(id) {
   renderSheet();
 }
 
-async function applyLoadout(loId, charId) {
-  const lo = getLoadouts().find((x) => x.id === loId);
+/* ================= Your data: loadouts + tags ================= */
+// Kept in this browser, and in the cloud too once a database is connected in Vercel.
+const cloud = { available: null, error: null, timer: null, lastSaved: null };
+const udKey = () => `userdata-${vault.inv?.membershipId || "me"}`;
+let userData = { loadouts: [], tags: {}, updated: 0 };
+
+function readUserData() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(udKey()) || "null");
+    if (saved) return { loadouts: saved.loadouts || [], tags: saved.tags || {}, updated: saved.updated || 0 };
+    // Loadouts saved by the earlier version of the site
+    const old = JSON.parse(localStorage.getItem(`loadouts-${vault.inv?.membershipId || "me"}`) || "[]");
+    return { loadouts: old, tags: {}, updated: old.length ? 1 : 0 };
+  } catch { return { loadouts: [], tags: {}, updated: 0 }; }
+}
+function writeUserData() {
+  userData.updated = Date.now();
+  try { localStorage.setItem(udKey(), JSON.stringify(userData)); }
+  catch { toast("Your browser blocked saving. Allow site storage to keep loadouts and tags.", true, { title: "Couldn't save" }); }
+  if (cloud.available) { clearTimeout(cloud.timer); cloud.timer = setTimeout(pushCloud, 800); }
+}
+async function pushCloud() {
+  try {
+    await api("/api/store", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: userData }) });
+    cloud.error = null;
+    cloud.lastSaved = Date.now();
+  } catch (err) {
+    cloud.error = err.message;
+  }
+  if (vault.panel === "settings" || vault.panel === "loadouts") renderSheet();
+}
+async function loadUserData() {
+  userData = readUserData();
+  try {
+    const r = await api("/api/store");
+    cloud.available = r.available;
+    if (!r.available) return;
+    const remote = r.data;
+    if (remote && (remote.updated || 0) > (userData.updated || 0)) {
+      userData = { loadouts: remote.loadouts || [], tags: remote.tags || {}, updated: remote.updated };
+      try { localStorage.setItem(udKey(), JSON.stringify(userData)); } catch {}
+      renderVault();
+    } else if ((userData.updated || 0) > (remote?.updated || 0)) {
+      pushCloud();
+    }
+  } catch {
+    cloud.available = false;
+  }
+}
+const cloudLabel = () => cloud.available
+  ? (cloud.error ? `Cloud save problem: ${cloud.error}` : "Synced to your account, on every device")
+  : "Saved in this browser on this device";
+
+function getLoadouts() { return userData.loadouts; }
+function setLoadouts(list) { userData.loadouts = list; writeUserData(); return true; }
+
+/* ---------- Tags and notes ---------- */
+const TAGS = {
+  favorite: { label: "Favorite", color: "#f2c94c", svg: `<svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 .8 7.6 4l3.5.5-2.5 2.4.6 3.5L6 8.8 2.8 10.4l.6-3.5L.9 4.5 4.4 4z"/></svg>` },
+  keep: { label: "Keep", color: "#58c08a", svg: `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m2 6.3 2.6 2.6L10 3.4"/></svg>` },
+  junk: { label: "Junk", color: "#e5705f", svg: `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m3 3 6 6M9 3 3 9"/></svg>` },
+  infuse: { label: "Infuse", color: "#6fb4f0", svg: `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M6 10V2.5M2.8 5.5 6 2.3l3.2 3.2"/></svg>` }
+};
+const tagOf = (it) => userData.tags[it.id]?.t || null;
+const noteOf = (it) => userData.tags[it.id]?.n || "";
+function saveTagEntry(id, entry) {
+  if (!entry.t && !entry.n) delete userData.tags[id];
+  else userData.tags[id] = entry;
+  writeUserData();
+  renderVault();
+}
+function setTag(id, tag) {
+  const entry = { ...(userData.tags[id] || {}) };
+  if (entry.t === tag) delete entry.t; else entry.t = tag;
+  saveTagEntry(id, entry);
+}
+function setNote(id, note) {
+  const entry = { ...(userData.tags[id] || {}) };
+  note = note.trim().slice(0, 200);
+  if (note) entry.n = note; else delete entry.n;
+  if ((entry.n || "") === (userData.tags[id]?.n || "")) return;
+  saveTagEntry(id, entry);
+}
+function tagSectionHtml(it) {
+  const cur = tagOf(it);
+  return `<div class="sheet-section">
+      <h4>Tag &amp; note</h4>
+      <div class="tag-row">${Object.entries(TAGS).map(([k, t]) => `
+        <button type="button" class="tag-btn" data-action="tag" data-tag="${k}" aria-pressed="${cur === k}" style="--tg:${t.color}">${t.svg}${t.label}</button>`).join("")}</div>
+      <label class="sr" for="item-note">Note</label>
+      <textarea class="field note-box" id="item-note" rows="2" maxlength="200" placeholder="Add a note, like “PvP roll” or “waiting for adept”">${esc(noteOf(it))}</textarea>
+    </div>`;
+}
+
+/* ---------- Equip a set of items on a character (loadouts, Max Power, optimizer) ---------- */
+async function applyItems(refs, charId, title) {
   const c = charById(charId);
-  if (!lo || !c || vault.applying) return;
+  if (!c || vault.applying) return;
   vault.applying = true;
   closeSheet();
-  toast(`Moving and equipping on your ${className(c)}…`, false, { title: `Applying ${lo.name}`, info: true });
+  toast(`Moving and equipping on your ${className(c)}…`, false, { title, info: true });
   const problems = [];
   const toEquip = [];
-  for (const ref of lo.items) {
+  for (const ref of refs) {
     const it = vault.inv.items.find((x) => x.id === ref.id);
     const name = defs.item[ref.hash]?.name || "An item";
     if (!it) { problems.push(`${name} isn't in your inventory anymore`); continue; }
@@ -1908,6 +2136,7 @@ async function applyLoadout(loId, charId) {
         if (!r.equipped.includes(it.id)) continue;
         for (const other of vault.inv.items) if (other.loc === charId && other.slot === it.slot) other.equipped = false;
         it.equipped = true;
+        flashTile(it.id);
       }
       if (r.failed.length) problems.push(`${r.failed.length} item(s) couldn't be equipped (two Exotics, or you're in an activity)`);
     } catch (err) {
@@ -1916,11 +2145,288 @@ async function applyLoadout(loId, charId) {
   }
   vault.applying = false;
   renderVault();
-  if (!problems.length) toEquip.forEach((x) => flashTile(x.id));
-  toast(problems.length
-    ? `Applied “${lo.name}” with ${problems.length} problem${problems.length > 1 ? "s" : ""}: ${problems.slice(0, 2).join("; ")}`
-    : `Applied “${lo.name}” to your ${className(c)}.`, problems.length > 0);
+  if (problems.length) toast(problems.slice(0, 2).join("; "), true, { title: `${title}: ${problems.length} problem${problems.length > 1 ? "s" : ""}` });
+  else toast(`Done on your ${className(c)}.`, false, { title });
 }
+
+async function applyLoadout(loId, charId) {
+  const lo = getLoadouts().find((x) => x.id === loId);
+  if (lo) applyItems(lo.items, charId, `Applied ${lo.name}`);
+}
+
+/* ---------- Max Power ---------- */
+function usableBy(it, charId) {
+  const c = charById(charId);
+  const cls = defs.item[it.hash]?.classType;
+  if (it.kind === "armor" && cls < 3 && cls !== c.classType) return false;
+  return it.loc === charId || canGoTo(it, charId).ok;
+}
+function bestSet(slots, charId, scoreOf) {
+  const lists = slots.map((s) => vault.inv.items.filter((it) => it.slot === s && usableBy(it, charId)).sort((a, b) => scoreOf(b) - scoreOf(a)));
+  const build = (exoticSlot) => lists.map((list, i) => list.find((it) => tierOf(it) !== 6 || i === exoticSlot) || null);
+  const sum = (set) => set.reduce((s, it) => s + (it ? scoreOf(it) : 0), 0);
+  let best = build(-1);
+  for (let i = 0; i < slots.length; i++) { const set = build(i); if (sum(set) > sum(best)) best = set; }
+  return best.filter(Boolean);
+}
+function maxPower(charId) {
+  const set = [...bestSet(WEAPONS, charId, (it) => it.power || 0), ...bestSet(ARMOR, charId, (it) => it.power || 0)];
+  const avg = set.length ? Math.floor(set.reduce((s, it) => s + (it.power || 0), 0) / set.length) : 0;
+  applyItems(set.map((it) => ({ id: it.id, hash: it.hash })), charId, `Max Power ✦${avg}`);
+}
+
+/* ---------- Farming mode ---------- */
+const farm = { charId: null, timer: null, moved: 0, last: null, busy: false };
+function startFarming(charId) {
+  stopFarming(true);
+  farm.charId = charId;
+  farm.moved = 0;
+  farm.timer = setInterval(farmTick, 30000);
+  farmTick();
+  toast(`Every 30 seconds, extra gear on your ${className(charById(charId))} goes to the vault. Locked, Favorite and Keep items stay put.`, false, { title: "Farming mode on", info: true });
+}
+function stopFarming(silent = false) {
+  clearInterval(farm.timer);
+  const was = farm.charId;
+  farm.charId = null;
+  farm.timer = null;
+  renderFarmBanner();
+  if (was && !silent) toast(`${farm.moved} item${farm.moved === 1 ? "" : "s"} moved to the vault.`, false, { title: "Farming mode off" });
+  if (vault.inv) renderVault();
+}
+async function farmTick() {
+  if (farm.busy || !farm.charId) return;
+  farm.busy = true;
+  renderFarmBanner();
+  try {
+    await loadVault(true, true);
+    const c = farm.charId;
+    for (const slot of [...WEAPONS, ...ARMOR]) {
+      if (!farm.charId) break;
+      const loose = vault.inv.items.filter((it) => it.loc === c && it.slot === slot && !it.equipped);
+      if (loose.length < 8) continue; // 9 is full; act before it gets there
+      const movable = loose
+        .filter((it) => !it.locked && !["favorite", "keep"].includes(tagOf(it)) && canGoTo(it, "vault").ok)
+        .sort((a, b) => (a.power || 0) - (b.power || 0));
+      let count = loose.length;
+      for (const it of movable) {
+        if (count <= 6 || !farm.charId) break;
+        try {
+          const r = await api("/api/transfer", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "move", itemId: it.id, itemHash: it.hash, from: it.loc, to: "vault" })
+          });
+          it.loc = r.location;
+          farm.moved++;
+          count--;
+        } catch (err) {
+          if (err.status === 401) { stopFarming(); return; }
+          break;
+        }
+      }
+    }
+    farm.last = Date.now();
+  } finally {
+    farm.busy = false;
+    if (vault.inv) renderVault();
+    renderFarmBanner();
+  }
+}
+function renderFarmBanner() {
+  const el = $("farm-banner");
+  if (!farm.charId || !vault.inv) { el.hidden = true; return; }
+  const secs = farm.last ? Math.round((Date.now() - farm.last) / 1000) : null;
+  el.innerHTML = `<span class="farm-dot" aria-hidden="true"></span>
+    <span><b>Farming mode</b> is on for your ${className(charById(farm.charId))} · ${farm.moved} moved to the vault ·
+    ${farm.busy ? "checking now…" : secs != null ? `last check ${secs}s ago` : "starting…"}</span>
+    <button type="button" class="btn ghost" id="farm-stop">Stop</button>`;
+  el.hidden = false;
+}
+
+/* ---------- Armor optimizer ---------- */
+const opt = { charId: null, weights: {}, mins: {}, exotic: "any", results: null, ran: false };
+const OPT_WEIGHTS = { off: 0, low: 1, high: 3 };
+function armorStatHashes() {
+  const set = new Set();
+  for (const it of vault.inv.items) if (it.kind === "armor") Object.keys(it.stats).forEach((h) => set.add(h));
+  return [...set].filter((h) => defs.stat[h]?.name && !HIDDEN_STATS.has(h));
+}
+function optimizerHtml() {
+  const chars = vault.inv.characters;
+  if (!opt.charId || !charById(opt.charId)) opt.charId = chars[0]?.id;
+  const c = charById(opt.charId);
+  const stats = armorStatHashes();
+  const exotics = [...new Map(vault.inv.items
+    .filter((it) => it.kind === "armor" && tierOf(it) === 6 && defs.item[it.hash]?.classType === c?.classType)
+    .map((it) => [String(it.hash), defs.item[it.hash]?.name || "Exotic"])).entries()];
+  const results = opt.results || [];
+  return `
+    <div class="sheet-hero">
+      <div class="sheet-top">
+        <div style="min-width:0"><div class="name" id="sheet-name">Armor optimizer</div><div class="kind">Find the best armor set for the stats you care about</div></div>
+        <div class="sheet-btns"><button type="button" class="sheet-close" data-close aria-label="Close">×</button></div>
+      </div>
+    </div>
+    <div class="sheet-section">
+      <h4>Character</h4>
+      <div class="seg-opts">${chars.map((ch) => `<button type="button" class="seg-opt" data-opt-char="${esc(ch.id)}" aria-pressed="${ch.id === opt.charId}">${className(ch)}</button>`).join("")}</div>
+    </div>
+    <div class="sheet-section">
+      <h4>Stats</h4>
+      <p class="sheet-note">Set how much each stat matters, and an optional minimum total.</p>
+      <div>${stats.map((h) => {
+        const w = opt.weights[h] || "low";
+        return `<div class="set-row opt-row"><div class="set-label"><b>${esc(defs.stat[h].name)}</b></div>
+          <div class="seg-opts">${["off", "low", "high"].map((v) => `<button type="button" class="seg-opt" data-opt-w="${h}" data-val="${v}" aria-pressed="${w === v}">${{ off: "Ignore", low: "Some", high: "Lots" }[v]}</button>`).join("")}</div>
+          <label class="sr" for="opt-min-${h}">Minimum ${esc(defs.stat[h].name)}</label>
+          <input class="field opt-min" id="opt-min-${h}" type="number" min="0" max="300" inputmode="numeric" placeholder="Min" data-opt-min="${h}" value="${opt.mins[h] ?? ""}">
+        </div>`;
+      }).join("")}</div>
+    </div>
+    <div class="sheet-section">
+      <h4>Exotic</h4>
+      <label class="sr" for="opt-exotic">Exotic armor</label>
+      <select class="field" id="opt-exotic" data-opt-exotic>
+        <option value="any"${opt.exotic === "any" ? " selected" : ""}>Any exotic (or none)</option>
+        <option value="none"${opt.exotic === "none" ? " selected" : ""}>No exotic</option>
+        ${exotics.map(([h, n]) => `<option value="${h}"${opt.exotic === h ? " selected" : ""}>${esc(n)}</option>`).join("")}
+      </select>
+      <button type="button" class="btn" data-action="opt-run">Find best sets</button>
+    </div>
+    ${opt.ran ? `<div class="sheet-section"><h4>Best sets</h4>${results.length ? results.map((r, i) => `
+      <div class="opt-card">
+        <div class="opt-icons">${r.items.map((it) => `<img src="${esc(iconOf(it) || "")}" alt="" title="${esc(defs.item[it.hash]?.name)} · ${esc(placeName(it.loc))}">`).join("")}</div>
+        <div class="opt-stats">${stats.map((h) => `<span${(opt.weights[h] || "low") === "high" ? ' class="hi"' : ""}>${esc(defs.stat[h].name)} <b>${r.totals[h] || 0}</b></span>`).join("")}<span class="tot">Total <b>${r.total}</b></span></div>
+        <button type="button" class="act-btn primary" data-action="opt-equip" data-i="${i}"><b>Equip on ${className(c)}</b></button>
+      </div>`).join("") : `<p class="note">No set meets those minimums. Try lowering one.</p>`}</div>` : ""}`;
+}
+function runOptimizer() {
+  const c = charById(opt.charId);
+  const stats = armorStatHashes();
+  const w = (h) => OPT_WEIGHTS[opt.weights[h] || "low"];
+  const score = (it) => stats.reduce((s, h) => s + w(h) * (it.stats[h] || 0), 0);
+  const per = ARMOR.map((slot) => {
+    const list = vault.inv.items.filter((it) => it.slot === slot && usableBy(it, c.id) && [3, c.classType].includes(defs.item[it.hash]?.classType));
+    const legend = list.filter((it) => tierOf(it) !== 6).sort((a, b) => score(b) - score(a)).slice(0, 10);
+    let exo = list.filter((it) => tierOf(it) === 6).sort((a, b) => score(b) - score(a));
+    exo = opt.exotic === "none" ? [] : opt.exotic === "any" ? exo.slice(0, 4) : exo.filter((it) => String(it.hash) === opt.exotic).slice(0, 3);
+    return [...legend, ...exo];
+  });
+  const needExotic = opt.exotic !== "any" && opt.exotic !== "none";
+  const mins = Object.entries(opt.mins).filter(([, v]) => v !== "" && v != null && !Number.isNaN(Number(v))).map(([h, v]) => [h, Number(v)]);
+  const top = [];
+  const pick = new Array(ARMOR.length);
+  const walk = (i, exotics) => {
+    if (i === ARMOR.length) {
+      if (needExotic && exotics !== 1) return;
+      const totals = {};
+      for (const h of stats) totals[h] = pick.reduce((s, it) => s + (it.stats[h] || 0), 0);
+      if (mins.some(([h, v]) => (totals[h] || 0) < v)) return;
+      const sc = stats.reduce((s, h) => s + w(h) * totals[h], 0);
+      const total = stats.reduce((s, h) => s + totals[h], 0);
+      if (top.length < 5 || sc > top[top.length - 1].score) {
+        top.push({ items: [...pick], totals, score: sc, total });
+        top.sort((a, b) => b.score - a.score || b.total - a.total);
+        if (top.length > 5) top.pop();
+      }
+      return;
+    }
+    for (const it of per[i]) {
+      const ex = tierOf(it) === 6 ? 1 : 0;
+      if (exotics + ex > 1) continue;
+      pick[i] = it;
+      walk(i + 1, exotics + ex);
+    }
+  };
+  if (per.every((list) => list.length)) walk(0, 0);
+  opt.results = top;
+  opt.ran = true;
+  renderSheet();
+}
+
+/* ================= Vendors ================= */
+const XUR = 2190858386;
+const vend = { charId: null, data: null, loading: false, error: null, gearOnly: true };
+async function showVendors() {
+  if (!me.configured || !me.signedIn) {
+    $("vend-body").innerHTML = `<div class="pitch"><p>Sign in with Bungie to see what Xûr and the other vendors are selling this week.</p>
+      ${me.configured ? `<div><a class="btn big" href="/api/auth/login">Sign in with Bungie</a></div>` : ""}</div>`;
+    $("vend-tools").hidden = true;
+    return;
+  }
+  $("vend-tools").hidden = false;
+  if (!vault.inv) {
+    $("vend-body").innerHTML = `<div class="sk" style="height:220px"></div>`;
+    await loadVault(true, true);
+    if (!vault.inv) { $("vend-body").innerHTML = `<p class="note">Couldn't load your characters.</p>`; return; }
+  }
+  const chars = vault.inv.characters;
+  if (!vend.charId || !charById(vend.charId)) vend.charId = chars[0]?.id;
+  $("vend-char").innerHTML = chars.map((c) => `<option value="${esc(c.id)}"${c.id === vend.charId ? " selected" : ""}>${className(c)}</option>`).join("");
+  if (!vend.data) loadVendors(); else renderVendors();
+}
+async function loadVendors() {
+  if (vend.loading || !vend.charId) return;
+  vend.loading = true;
+  vend.error = null;
+  $("vend-body").innerHTML = `<div class="vend-grid">${Array(4).fill('<div class="sk" style="height:260px"></div>').join("")}</div>`;
+  try {
+    const r = await api(`/api/vendors?char=${encodeURIComponent(vend.charId)}`);
+    await Promise.all([
+      loadDefs("vendor", r.vendors.map((v) => v.hash)),
+      loadDefs("item", r.vendors.flatMap((v) => v.items.flatMap((it) => [it.hash, ...it.costs.map((c) => c.hash)])))
+    ]);
+    vend.data = r.vendors;
+  } catch (err) {
+    vend.error = err.message;
+  }
+  vend.loading = false;
+  renderVendors();
+}
+function refreshIn(iso) {
+  if (!iso) return "";
+  const ms = new Date(iso) - Date.now();
+  if (ms <= 0) return "Refreshing soon";
+  const d = Math.floor(ms / 86400000), h = Math.floor(ms / 3600000) % 24, m = Math.floor(ms / 60000) % 60;
+  return `Refreshes in ${d ? `${d}d ` : ""}${h}h${d ? "" : ` ${m}m`}`;
+}
+function vendorItemHtml(it) {
+  const d = defs.item[it.hash] || {};
+  const tier = d.tier >= 2 && d.tier <= 6 ? d.tier : 2;
+  return `<a class="vitem" href="https://www.light.gg/db/items/${it.hash}/" target="_blank" rel="noopener" title="${esc(d.name)} · ${esc(d.type)}">
+      <span class="vi-ic t${tier}">${d.icon ? `<img src="${esc(d.icon)}" alt="" loading="lazy">` : ""}${it.quantity > 1 ? `<span class="vi-q">×${it.quantity}</span>` : ""}</span>
+      <span class="vi-text"><span class="vi-name${tier === 6 ? " ex" : ""}">${esc(d.name || "Item")}</span><span class="vi-type">${esc(d.type || "")}</span>
+      ${it.costs.length ? `<span class="vi-cost">${it.costs.map((c) => `<span>${defs.item[c.hash]?.icon ? `<img src="${esc(defs.item[c.hash].icon)}" alt="" title="${esc(defs.item[c.hash].name)}">` : ""}${c.quantity.toLocaleString()}</span>`).join("")}</span>` : `<span class="vi-cost free">Free</span>`}
+      </span></a>`;
+}
+function renderVendors() {
+  const body = $("vend-body");
+  if (vend.error) { body.innerHTML = `<p class="note">Couldn't load vendors: ${esc(vend.error)}</p>`; return; }
+  if (!vend.data) return;
+  const isGear = (h) => { const d = defs.item[h] || {}; return Boolean(SLOT_BY_BUCKET[d.bucket]) || /engram|exotic cipher/i.test(d.type || ""); };
+  const list = vend.data
+    .map((v) => ({ ...v, def: defs.vendor[v.hash] || {}, items: vend.gearOnly ? v.items.filter((it) => isGear(it.hash)) : v.items }))
+    .filter((v) => v.def.name && v.def.visible !== false && v.items.length)
+    .sort((a, b) => (b.hash === XUR) - (a.hash === XUR) || a.def.name.localeCompare(b.def.name));
+  const xur = list.find((v) => v.hash === XUR);
+  const card = (v, big) => `
+    <section class="vcard${big ? " xur" : ""}">
+      <div class="vc-head" style="${v.def.banner ? `background-image:url('${esc(v.def.banner)}')` : ""}">
+        ${v.def.icon ? `<img src="${esc(v.def.icon)}" alt="">` : ""}
+        <div><h3>${esc(v.def.name)}</h3><span>${esc(v.def.subtitle || "")}${v.refresh ? ` · ${refreshIn(v.refresh)}` : ""}</span></div>
+      </div>
+      <div class="vc-items">${v.items.map(vendorItemHtml).join("")}</div>
+    </section>`;
+  body.innerHTML = `
+    ${xur ? card(xur, true) : `<div class="xur-away"><b>Xûr isn't here right now.</b> He arrives each Friday at the weekly reset and leaves Tuesday.</div>`}
+    <div class="vend-grid">${list.filter((v) => v.hash !== XUR).map((v) => card(v, false)).join("") || `<p class="note">No vendors are selling ${vend.gearOnly ? "weapons or armor" : "anything"} to this character right now.</p>`}</div>`;
+}
+
+/* ================= Install as an app ================= */
+let installPrompt = null;
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; if (vault.panel === "settings") renderSheet(); });
+window.addEventListener("appinstalled", () => { installPrompt = null; toast("Guardian Lookup is on your home screen.", false, { title: "Installed" }); });
+const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 
 /* Panels share the side sheet: item details, postmaster items, loadouts */
 function openPanel(kind, key = null) {
@@ -1937,7 +2443,9 @@ function openPanel(kind, key = null) {
 
 /* ================= Search suggestions ================= */
 const FILTER_HINTS = [
-  ["is:godroll", "Community god rolls"], ["is:dupe", "Duplicates you could clean up"], ["is:exotic", "Exotic items"],
+  ["is:godroll", "Community god rolls"], ["is:dupe", "Duplicates you could clean up"],
+  ["is:junk", "Tagged Junk"], ["is:favorite", "Tagged Favorite"], ["is:keep", "Tagged Keep"], ["is:infuse", "Tagged Infuse"],
+  ["is:tagged", "Anything you've tagged"], ["note:", "Search your notes"], ["is:exotic", "Exotic items"],
   ["is:legendary", "Legendary items"], ["is:weapon", "Weapons only"], ["is:armor", "Armor only"],
   ["is:kinetic", "Kinetic weapons"], ["is:arc", "Arc weapons"], ["is:solar", "Solar weapons"], ["is:void", "Void weapons"],
   ["is:stasis", "Stasis weapons"], ["is:strand", "Strand weapons"], ["is:masterwork", "Masterworked items"],
@@ -2224,9 +2732,21 @@ $("sheet").addEventListener("click", (e) => {
   }
   const plug = e.target.closest("[data-plug]");
   if (plug) { pickedPlug = plug.dataset.plug; return renderSheet(); }
+  const oc = e.target.closest("[data-opt-char]");
+  if (oc) { opt.charId = oc.dataset.optChar; opt.results = null; opt.ran = false; opt.exotic = "any"; return renderSheet(); }
+  const ow = e.target.closest("[data-opt-w]");
+  if (ow) { opt.weights[ow.dataset.optW] = ow.dataset.val; return renderSheet(); }
   const b = e.target.closest("[data-action]");
   if (!b || b.disabled) return;
   const a = b.dataset.action;
+  if (a === "tag") { setTag(vault.openId, b.dataset.tag); return renderSheet(); }
+  if (a === "opt-run") return runOptimizer();
+  if (a === "opt-equip") {
+    const r = opt.results?.[Number(b.dataset.i)];
+    if (r) applyItems(r.items.map((it) => ({ id: it.id, hash: it.hash })), opt.charId, "Optimized armor");
+    return;
+  }
+  if (a === "install") { installPrompt?.prompt(); return; }
   if (a === "compare") return openCompare(vault.openId);
   if (a === "set-tip") { try { localStorage.removeItem("tip-dismissed"); } catch {} $("v-tip").hidden = false; return toast("The tip is back at the top of the Vault."); }
   if (a === "set-clear") {
@@ -2245,10 +2765,30 @@ $("sheet").addEventListener("click", (e) => {
   if (a === "lo-delete") return deleteLoadout(b.dataset.lo);
   runAction(vault.openId, a, b.dataset.to);
 });
+$("sheet").addEventListener("change", (e) => {
+  if (e.target.id === "item-note") setNote(vault.openId, e.target.value);
+  if (e.target.matches("[data-opt-exotic]")) { opt.exotic = e.target.value; }
+});
+$("sheet").addEventListener("input", (e) => {
+  if (e.target.matches("[data-opt-min]")) opt.mins[e.target.dataset.optMin] = e.target.value;
+});
 $("sheet").addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && e.target.id === "lo-name") saveCurrentLoadout(e.target.value.trim(), $("lo-char").value);
+  if (e.key === "Enter" && e.target.id === "item-note" && !e.shiftKey) { e.preventDefault(); e.target.blur(); }
+  else if (e.key === "Enter" && e.target.id === "lo-name") saveCurrentLoadout(e.target.value.trim(), $("lo-char").value);
 });
 $("v-loadouts").addEventListener("click", () => openPanel("loadouts"));
+$("v-optimizer").addEventListener("click", () => openPanel("optimizer"));
+$("vend-char").addEventListener("change", (e) => { vend.charId = e.target.value; vend.data = null; loadVendors(); });
+$("vend-gear").addEventListener("change", (e) => { vend.gearOnly = e.target.checked; renderVendors(); });
+$("vend-refresh").addEventListener("click", () => { vend.data = null; loadVendors(); });
+document.addEventListener("click", (e) => {
+  const act = e.target.closest("[data-act]");
+  if (act && vault.inv) {
+    if (act.dataset.act === "max") maxPower(act.dataset.char);
+    if (act.dataset.act === "farm") farm.charId === act.dataset.char ? stopFarming() : startFarming(act.dataset.char);
+  }
+  if (e.target.closest("#farm-stop")) stopFarming();
+});
 $("account").addEventListener("click", (e) => { if (e.target.closest("#open-settings")) openPanel("settings"); });
 $("v-filters").addEventListener("click", () => {
   const open = $("search-help").hidden;
@@ -2599,6 +3139,7 @@ $("recent-chips").addEventListener("click", (e) => {
 /* ================= Start ================= */
 applySettings();
 $("vsort").value = vault.sort;
+if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
 (async function start() {
   const params = new URLSearchParams(location.search);
   const signin = params.get("signin");

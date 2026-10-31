@@ -24,9 +24,13 @@ http
     const { pathname } = new URL(req.url, "http://localhost");
     if (pathname.startsWith("/api/")) return api(req, res);
 
-    if (pathname === "/" || pathname === "/index.html") {
-      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      return fs.createReadStream(path.join(__dirname, "public", "index.html")).pipe(res);
+    // Files in public/ (the page, icons, manifest, service worker)
+    const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".png": "image/png", ".webmanifest": "application/manifest+json" };
+    const publicDir = path.join(__dirname, "public");
+    const file = path.join(publicDir, pathname === "/" ? "index.html" : pathname);
+    if (file.startsWith(publicDir) && fs.existsSync(file) && fs.statSync(file).isFile()) {
+      res.writeHead(200, { "Content-Type": types[path.extname(file)] || "application/octet-stream" });
+      return fs.createReadStream(file).pipe(res);
     }
     res.writeHead(404);
     res.end("Not found");

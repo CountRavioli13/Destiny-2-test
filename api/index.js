@@ -12,6 +12,8 @@ const routes = {
   "item": require("../routes/item"),
   "transfer": require("../routes/transfer"),
   "wishlist": require("../routes/wishlist"),
+  "store": require("../routes/store"),
+  "vendors": require("../routes/vendors"),
   "auth/login": require("../routes/auth/login"),
   "auth/callback": require("../routes/auth/callback"),
   "auth/logout": require("../routes/auth/logout")

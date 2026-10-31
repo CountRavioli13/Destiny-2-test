@@ -7,6 +7,9 @@ A Destiny 2 website with two parts:
   Also: Postmaster (see and pull items), loadouts (saved in your browser),
   compare copies side by side, smart search filters, and community god-roll
   highlights from the DIM "voltron" wish list.
+- **Vendors**: what Xûr and the other vendors are selling this week.
+- **Extras**: Max Power, Farming mode, armor optimizer, item tags and notes,
+  Settings (themes, sizes, display options), and it installs as an app.
 - **Player lookup**: search any player by Bungie Name to see their characters,
   loadout, recent activity and career stats.
 
@@ -26,6 +29,9 @@ routes/inventory.js       Your vault and character inventories
 routes/transfer.js        Moves, equips, locks, pulls from Postmaster, equips loadouts
 routes/item.js            One item's stats, perks and mods
 routes/wishlist.js        Community god rolls for your weapons
+routes/store.js           Cloud save for loadouts and tags (optional database)
+routes/vendors.js         What vendors are selling
+public/sw.js, manifest    Let the site install as an app
 routes/search.js          Finds a player by Bungie Name
 routes/profile.js         Characters, gear, clan, title, Guardian Rank
 routes/activities.js      Recent activity for a character
@@ -47,6 +53,13 @@ Project → Settings → Environment Variables:
 | `BUNGIE_CLIENT_SECRET` | same page → OAuth client_secret |
 
 After adding or changing a variable, redeploy (Deployments → ⋯ → Redeploy).
+
+### Optional: cloud save for loadouts and tags
+
+Without it, loadouts and tags are saved in each browser. To sync them across
+devices: Vercel → your project → **Storage** → **Create Database** → **Upstash
+for Redis** (free) → connect it to the project for Production, then redeploy.
+Vercel adds `KV_REST_API_URL` and `KV_REST_API_TOKEN`, which the site detects.
 
 ## Settings on your Bungie app (for the Vault)
 
