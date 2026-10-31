@@ -4,33 +4,37 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Guardian Lookup</title>
-<meta name="description" content="Look up any Destiny 2 player's characters, loadout, recent activity and career stats.">
+<meta name="description" content="Manage your Destiny 2 vault, move and equip gear, and look up any player.">
 <meta name="theme-color" content="#0a0d12">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  /* Layout: sticky search bar; a profile banner built from the character's
-     emblem; emblem tabs; loadout + stats beside a recent-activity feed;
-     career stats across the bottom. Dark by design, like the in-game UI. */
+  /* Layout: sticky bar with Vault / Lookup tabs and sign-in. The Vault is a
+     row of drop-target cards (characters + vault), a filter toolbar, and a
+     dense item grid grouped by slot; tapping an item opens an action sheet.
+     Lookup keeps the profile banner, loadout, activity and career stats.
+     Dark by design, like the in-game UI. */
   :root {
     --bg: #0a0d12;
     --bg-2: #0f131a;
     --surface: #141922;
     --surface-2: #1a202b;
     --line: #232b38;
+    --line-2: #2f3848;
     --fg: #e8ebf0;
     --muted: #8a94a6;
     --faint: #5c6677;
-    --accent: #e4b84c;       /* Power gold */
+    --accent: #e4b84c;
     --accent-ink: #1b1404;
     --win: #58c08a;
     --loss: #e5705f;
-    --tier-6: #ceae33;  /* Exotic */
-    --tier-5: #7a4a96;  /* Legendary */
-    --tier-4: #5076a3;  /* Rare */
-    --tier-3: #3f7f4c;  /* Uncommon */
-    --tier-2: #8e8a84;  /* Common */
+    --tier-6: #ceae33;
+    --tier-5: #7a4a96;
+    --tier-4: #5076a3;
+    --tier-3: #3f7f4c;
+    --tier-2: #8e8a84;
+    --dmg-1: #d8d8d8; --dmg-2: #7aecf3; --dmg-3: #f2721b; --dmg-4: #b184c5; --dmg-6: #4d88ff; --dmg-7: #35e366;
     --display: "Barlow Condensed", "Arial Narrow", sans-serif;
     --body: "IBM Plex Sans", system-ui, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -41,115 +45,213 @@
   html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0; min-height: 100vh; color: var(--fg); font: 15px/1.55 var(--body);
-    background:
-      radial-gradient(1200px 500px at 70% -10%, rgba(228,184,76,.07), transparent 60%),
-      var(--bg);
+    background: radial-gradient(1200px 500px at 70% -10%, rgba(228,184,76,.07), transparent 60%), var(--bg);
   }
   img { max-width: 100%; display: block; }
   a { color: inherit; }
+  button { font: inherit; color: inherit; }
   [hidden] { display: none !important; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .wrap {
-    max-width: 1120px; margin: 0 auto;
+    max-width: 1240px; margin: 0 auto;
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
   }
 
   /* ---------- Top bar ---------- */
-  body::before {
-    content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
-    z-index: 21; background: rgba(10,13,18,.92);
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 31; background: rgba(10,13,18,.95); }
+  .bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30; background: rgba(10,13,18,.88); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .bar .wrap { display: flex; align-items: center; gap: 8px 20px; padding-block: 10px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 800 18px/1 var(--display); letter-spacing: .14em; text-transform: uppercase; }
+  .brand svg { width: 22px; height: 22px; color: var(--accent); flex: none; }
+  .nav { display: flex; gap: 4px; }
+  .nav a {
+    padding: 8px 12px; text-decoration: none; border-radius: 4px; color: var(--muted);
+    font: 700 15px/1 var(--display); letter-spacing: .12em; text-transform: uppercase;
   }
-  .bar {
-    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
-    background: rgba(10,13,18,.85); backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--line);
-  }
-  .bar .wrap { display: flex; align-items: center; gap: 16px; padding-block: 10px; flex-wrap: wrap; }
-  .brand {
-    display: flex; align-items: center; gap: 10px; text-decoration: none;
-    font: 800 18px/1 var(--display); letter-spacing: .14em; text-transform: uppercase;
-  }
-  .brand svg { width: 22px; height: 22px; color: var(--accent); }
-  .search { flex: 1 1 280px; display: flex; gap: 8px; min-width: 0; }
-  .search input {
-    flex: 1; min-width: 0; padding: 9px 12px; font: 500 14px var(--mono); color: var(--fg);
-    background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
-  }
-  .search input::placeholder { color: var(--faint); }
+  .nav a:hover { color: var(--fg); }
+  .nav a[aria-current="page"] { color: var(--fg); background: var(--surface); box-shadow: inset 0 -2px 0 var(--accent); }
+  .account { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+  .account .who { font-family: var(--mono); color: var(--fg); }
+  .link-btn { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+  .link-btn:hover { color: var(--fg); }
   .btn {
-    padding: 9px 18px; font: 700 15px/1 var(--display); letter-spacing: .1em; text-transform: uppercase;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 9px 18px; font: 700 15px/1 var(--display); letter-spacing: .1em; text-transform: uppercase; text-decoration: none;
     color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 4px; cursor: pointer;
   }
-  .btn:disabled { opacity: .55; cursor: progress; }
+  .btn.ghost { color: var(--fg); background: var(--surface); border: 1px solid var(--line-2); }
+  .btn.ghost:hover { border-color: var(--muted); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn.big { padding: 14px 26px; font-size: 18px; }
 
-  main { padding-block: 32px 64px; }
-  .status { margin: 0 0 16px; color: var(--loss); min-height: 0; }
+  main { padding-block: 28px 72px; }
+  .eyebrow { font: 600 12px/1 var(--display); letter-spacing: .22em; text-transform: uppercase; color: var(--accent); }
+  .note { color: var(--muted); font-size: 14px; margin: 0; }
+  .status { margin: 0 0 16px; color: var(--loss); }
   .status:empty { display: none; }
 
-  /* ---------- Landing ---------- */
-  .landing { display: grid; gap: 28px; padding-block: 48px 24px; max-width: 760px; }
-  .eyebrow { font: 600 12px/1 var(--display); letter-spacing: .22em; text-transform: uppercase; color: var(--accent); }
-  .landing h1 {
-    margin: 10px 0 12px; font: 800 clamp(2.8rem, 9vw, 5rem)/.9 var(--display);
-    text-transform: uppercase; letter-spacing: .01em; text-wrap: balance;
-  }
-  .landing p { margin: 0; color: var(--muted); font-size: 17px; max-width: 56ch; }
-  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; }
+  /* ---------- Vault: signed out ---------- */
+  .pitch { display: grid; gap: 26px; padding-block: 40px 16px; max-width: 760px; }
+  .pitch h1 { margin: 10px 0 12px; font: 800 clamp(2.8rem, 9vw, 5rem)/.9 var(--display); text-transform: uppercase; text-wrap: balance; }
+  .pitch p { margin: 0; color: var(--muted); font-size: 17px; max-width: 58ch; }
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
   .feature { border-top: 2px solid var(--line); padding-top: 12px; }
   .feature b { display: block; font: 700 17px/1.1 var(--display); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
   .feature span { color: var(--muted); font-size: 13px; }
-  .recent { display: grid; gap: 10px; }
-  .recent-label { font: 600 12px/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: var(--faint); }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .recent-chip {
-    padding: 6px 12px; font: 500 13px var(--mono); color: var(--fg); cursor: pointer;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
-  }
-  .recent-chip:hover { border-color: var(--accent); }
-  .hint { color: var(--faint); font-size: 13px; }
+  .fine { color: var(--faint); font-size: 13px; max-width: 62ch; }
 
-  /* ---------- Profile banner ---------- */
-  .hero {
-    position: relative; overflow: hidden; border-radius: 6px; border: 1px solid var(--line);
-    background: var(--surface); min-height: 190px; display: flex; align-items: flex-end;
+  /* ---------- Vault: manager ---------- */
+  .vault-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .vault-head h1 { margin: 6px 0 0; font: 800 clamp(2rem, 6vw, 2.8rem)/1 var(--display); text-transform: uppercase; }
+
+  .dests { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+  .dest {
+    position: relative; display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 72px;
+    padding: 10px 14px 10px 76px; text-align: left; cursor: pointer; color: #fff; overflow: hidden;
+    background: var(--surface) center / cover no-repeat; border: 1px solid var(--line); border-radius: 4px;
+    transition: box-shadow .12s, transform .12s;
   }
-  .hero-bg {
-    position: absolute; inset: -30px; background: center / cover no-repeat;
-    filter: blur(18px) saturate(1.25); opacity: .55; transform: scale(1.1);
+  .dest::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.5) 55%, rgba(0,0,0,.7) 100%); }
+  .dest > * { position: relative; z-index: 1; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
+  .dest.plain { padding-left: 14px; background: var(--surface); }
+  .dest.plain::after { display: none; }
+  .dest .vault-icon { position: absolute; left: 14px; top: 50%; translate: 0 -50%; width: 44px; height: 44px; color: var(--accent); z-index: 1; }
+  .dest.is-vault { padding-left: 72px; background: linear-gradient(135deg, #1b2230, #11151c); }
+  .dest-name { font: 800 1.3rem/1 var(--display); text-transform: uppercase; letter-spacing: .03em; }
+  .dest-sub { font-size: 12px; opacity: .9; }
+  .dest-sub .light { color: #f5d36b; font-family: var(--display); font-weight: 700; font-size: 15px; }
+  .dest[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+  .dest.drop-ok { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--win); transform: translateY(-2px); }
+
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 20px 0 10px; }
+  .seg { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 3px; }
+  .seg button {
+    padding: 7px 16px; border: 0; background: none; cursor: pointer; border-radius: 3px; color: var(--muted);
+    font: 700 15px/1 var(--display); letter-spacing: .1em; text-transform: uppercase;
   }
-  .hero::after {
-    content: ""; position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(10,13,18,.1) 0%, rgba(10,13,18,.85) 100%);
+  .seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--fg); box-shadow: inset 0 -2px 0 var(--accent); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    padding: 5px 11px; font-size: 13px; cursor: pointer; color: var(--muted);
+    background: transparent; border: 1px solid var(--line-2); border-radius: 999px;
   }
+  .chip[aria-pressed="true"] { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); font-weight: 600; }
+  .tools-right { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+  .field {
+    padding: 8px 12px; font: 400 14px var(--body); color: var(--fg); min-width: 0;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+  }
+  .field::placeholder { color: var(--faint); }
+  #vfilter { width: 200px; }
+  .hint { color: var(--faint); font-size: 13px; margin: 0 0 18px; }
+
+  .slot-group { margin-bottom: 26px; }
+  .slot-head { display: flex; align-items: baseline; gap: 10px; border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-bottom: 10px; }
+  .slot-head h3 { margin: 0; font: 700 1.15rem/1 var(--display); text-transform: uppercase; letter-spacing: .1em; }
+  .slot-head span { color: var(--faint); font-size: 13px; font-family: var(--mono); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(66px, 1fr)); gap: 8px; }
+  .tile {
+    position: relative; padding: 0; cursor: pointer; background: #000; text-align: left;
+    border: 2px solid var(--tier, var(--tier-2)); border-radius: 3px; overflow: hidden;
+    transition: transform .1s, box-shadow .1s;
+  }
+  .tile:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,.5); }
+  .tile img { width: 100%; aspect-ratio: 1; object-fit: cover; background: var(--surface-2); }
+  .tile .pw {
+    display: flex; align-items: center; justify-content: center; gap: 4px; padding: 2px 0;
+    background: var(--bg-2); font: 600 12px/1.3 var(--mono); font-variant-numeric: tabular-nums; color: var(--fg);
+  }
+  .tile .pw i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .tile .loc {
+    position: absolute; top: 3px; right: 3px; min-width: 17px; padding: 1px 4px; text-align: center;
+    font: 700 11px/1.3 var(--display); letter-spacing: .04em; color: #fff; background: rgba(0,0,0,.72); border-radius: 2px;
+  }
+  .tile.eq::before {
+    content: ""; position: absolute; top: 0; left: 0; z-index: 1;
+    border-style: solid; border-width: 16px 16px 0 0; border-color: var(--accent) transparent transparent transparent;
+  }
+  .tile .lock { position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; color: #fff; z-index: 2; filter: drop-shadow(0 1px 1px #000); }
+  .tile.eq .lock { left: 16px; }
+  .tile.busy { opacity: .4; pointer-events: none; }
+  .tile.busy::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(255,255,255,.08) 6px 12px); }
+  .tile.dragging { opacity: .35; }
+  .empty-grid { padding: 40px 16px; text-align: center; color: var(--muted); border: 1px dashed var(--line-2); border-radius: 4px; }
+
+  /* Item sheet */
+  .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.5); }
+  .sheet {
+    position: fixed; z-index: 41; top: 0; right: 0; bottom: 0; width: min(380px, 100%);
+    background: var(--bg-2); border-left: 1px solid var(--line-2); box-shadow: -20px 0 40px rgba(0,0,0,.45);
+    display: flex; flex-direction: column; overflow-y: auto;
+    padding: calc(16px + env(safe-area-inset-top, 0px)) calc(18px + env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) 18px;
+  }
+  .sheet-top { display: flex; gap: 14px; align-items: flex-start; }
+  .sheet-top img { width: 72px; height: 72px; border: 2px solid var(--tier, var(--tier-2)); border-radius: 3px; flex: none; background: #000; }
+  .sheet-top .name { font: 800 1.6rem/1.05 var(--display); text-transform: uppercase; overflow-wrap: anywhere; }
+  .sheet-top .kind { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .sheet-close {
+    margin-left: auto; flex: none; width: 34px; height: 34px; border-radius: 4px; cursor: pointer; font-size: 20px; line-height: 1;
+    background: var(--surface); border: 1px solid var(--line-2);
+  }
+  .sheet-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 18px 0; }
+  .sheet-stats div { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; }
+  .sheet-stats b { display: block; font: 700 1.3rem/1.1 var(--display); }
+  .sheet-stats span { color: var(--faint); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
+  .actions { display: grid; gap: 8px; }
+  .actions .group-label { margin-top: 6px; }
+  .act-btn {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px; cursor: pointer; text-align: left;
+    background: var(--surface); border: 1px solid var(--line-2); border-radius: 4px;
+  }
+  .act-btn:hover:not(:disabled) { border-color: var(--accent); }
+  .act-btn:disabled { cursor: not-allowed; opacity: .55; }
+  .act-btn img, .act-btn .ico { width: 34px; height: 34px; border-radius: 2px; flex: none; background: var(--surface-2); }
+  .act-btn .ico { display: grid; place-items: center; color: var(--accent); }
+  .act-btn b { display: block; font: 700 15px/1.2 var(--display); letter-spacing: .06em; text-transform: uppercase; }
+  .act-btn small { color: var(--muted); font-size: 12px; }
+  .act-btn.primary { background: rgba(228,184,76,.12); border-color: rgba(228,184,76,.45); }
+  .sheet-note { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+  .sheet-link { margin-top: 18px; font-size: 13px; color: var(--muted); }
+
+  .toast {
+    position: fixed; z-index: 50; left: 50%; translate: -50% 0; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    max-width: min(520px, calc(100% - 32px)); padding: 12px 16px; border-radius: 4px; font-size: 14px;
+    background: var(--surface-2); border: 1px solid var(--line-2); border-left: 3px solid var(--win); box-shadow: 0 10px 30px rgba(0,0,0,.5);
+  }
+  .toast.error { border-left-color: var(--loss); }
+
+  /* ---------- Lookup ---------- */
+  .lookup-search { display: flex; gap: 8px; max-width: 640px; flex-wrap: wrap; }
+  .lookup-search input { flex: 1 1 240px; min-width: 0; padding: 11px 13px; font: 500 15px var(--mono); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+  .landing { display: grid; gap: 24px; padding-block: 24px; max-width: 760px; }
+  .landing h1 { margin: 10px 0 10px; font: 800 clamp(2.4rem, 8vw, 4rem)/.92 var(--display); text-transform: uppercase; text-wrap: balance; }
+  .landing p { margin: 0; color: var(--muted); font-size: 16px; max-width: 56ch; }
+  .recent { display: grid; gap: 10px; }
+  .recent-label, .group-label { font: 600 12px/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: var(--faint); }
+  .recent-chip { padding: 6px 12px; font: 500 13px var(--mono); color: var(--fg); cursor: pointer; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; }
+  .recent-chip:hover { border-color: var(--accent); }
+  .recent-chip.me { border-color: rgba(228,184,76,.5); }
+
+  .hero { position: relative; overflow: hidden; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); min-height: 190px; display: flex; align-items: flex-end; margin-top: 24px; }
+  .hero-bg { position: absolute; inset: -30px; background: center / cover no-repeat; filter: blur(18px) saturate(1.25); opacity: .55; transform: scale(1.1); }
+  .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,13,18,.1) 0%, rgba(10,13,18,.85) 100%); }
   .hero-body { position: relative; z-index: 1; display: flex; align-items: flex-end; gap: 18px; padding: 22px; width: 100%; flex-wrap: wrap; }
   .hero-emblem { width: 84px; height: 84px; border-radius: 4px; border: 2px solid rgba(255,255,255,.25); background: #000; flex: none; }
   .hero-text { flex: 1 1 280px; min-width: 0; display: grid; gap: 8px; }
-  .hero h2 {
-    margin: 0; font: 800 clamp(2rem, 6vw, 3rem)/.95 var(--display); text-transform: uppercase;
-    overflow-wrap: anywhere; text-shadow: 0 2px 10px rgba(0,0,0,.5);
-  }
+  .hero h2 { margin: 0; font: 800 clamp(2rem, 6vw, 3rem)/.95 var(--display); text-transform: uppercase; overflow-wrap: anywhere; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
   .hero h2 .code { color: var(--muted); font-weight: 600; font-size: .55em; vertical-align: .35em; margin-left: 4px; }
   .badges { display: flex; flex-wrap: wrap; gap: 6px; }
-  .badge {
-    display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; font-size: 12px; font-weight: 500;
-    background: rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.14); border-radius: 999px; text-decoration: none;
-  }
+  .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; font-size: 12px; font-weight: 500; background: rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.14); border-radius: 999px; text-decoration: none; }
   .badge.title { color: var(--accent); border-color: rgba(228,184,76,.45); font-family: var(--display); font-weight: 700; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; }
   a.badge:hover { border-color: rgba(255,255,255,.4); }
   .hero-power { text-align: right; }
   .hero-power .num { font: 800 3.4rem/1 var(--display); color: var(--accent); font-variant-numeric: tabular-nums; text-shadow: 0 2px 12px rgba(0,0,0,.6); }
   .hero-power .lbl { font: 600 12px/1 var(--display); letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
 
-  /* ---------- Character tabs ---------- */
   .tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin-top: 14px; }
-  .tab {
-    position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    min-height: 76px; padding: 10px 16px 10px 82px; text-align: left; color: #fff; font: inherit; cursor: pointer;
-    background: #2a2f38 center / cover no-repeat; border: 0; border-radius: 4px; overflow: hidden;
-    opacity: .55; transition: opacity .15s, transform .15s;
-  }
+  .tab { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 76px; padding: 10px 16px 10px 82px; text-align: left; color: #fff; cursor: pointer; background: #2a2f38 center / cover no-repeat; border: 0; border-radius: 4px; overflow: hidden; opacity: .55; transition: opacity .15s; }
   .tab:hover { opacity: .85; }
   .tab[aria-selected="true"] { opacity: 1; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
   .tab::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.45) 55%, rgba(0,0,0,.65) 100%); }
@@ -157,38 +259,27 @@
   .tab .cls { display: block; font: 800 1.35rem/1 var(--display); text-transform: uppercase; letter-spacing: .03em; }
   .tab .sub { display: block; font-size: 12px; opacity: .9; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tab .light { font: 700 1.6rem/1 var(--display); color: #f5d36b; font-variant-numeric: tabular-nums; }
-  .light::before { content: "✦ "; font-size: .62em; vertical-align: .24em; }
+  .tab .light::before { content: "✦ "; font-size: .62em; vertical-align: .24em; }
 
-  /* ---------- Panels ---------- */
   .layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 28px; margin-top: 32px; align-items: start; }
   .col { display: grid; gap: 28px; min-width: 0; }
   .panel { display: grid; gap: 12px; min-width: 0; }
   .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
   .panel-head h3 { margin: 0; font: 700 1.3rem/1 var(--display); text-transform: uppercase; letter-spacing: .08em; }
   .panel-head .aside { color: var(--muted); font-size: 13px; }
-  .note { color: var(--muted); font-size: 14px; margin: 0; }
-
-  /* Loadout */
-  .group-label { font: 600 12px/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: var(--faint); margin-top: 4px; }
   .items { display: grid; gap: 6px; }
-  .item {
-    display: grid; grid-template-columns: 50px minmax(0, 1fr) auto; align-items: center; gap: 12px;
-    padding: 7px 12px 7px 7px; text-decoration: none; background: var(--surface);
-    border: 1px solid var(--line); border-radius: 4px; transition: border-color .15s, background .15s;
-  }
+  .item { display: grid; grid-template-columns: 50px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 7px 12px 7px 7px; text-decoration: none; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
   .item:hover { border-color: #3a4456; background: var(--surface-2); }
   .item .icon { width: 50px; height: 50px; border: 2px solid var(--tier, var(--tier-2)); border-radius: 2px; background: #000; }
   .item .slot { font: 600 11px/1 var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
   .item .name { font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; margin-top: 2px; }
   .item .kind { font-size: 12px; color: var(--muted); }
   .item.exotic .name { color: var(--tier-6); }
-  .item .pwr { font: 700 1.2rem/1 var(--display); font-variant-numeric: tabular-nums; color: var(--fg); }
+  .item .pwr { font: 700 1.2rem/1 var(--display); font-variant-numeric: tabular-nums; }
   .subclass { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 4px; }
   .subclass img { width: 40px; height: 40px; }
   .subclass .kind { color: var(--muted); font-size: 12px; }
   .subclass .name { font: 700 1.15rem/1.1 var(--display); text-transform: uppercase; letter-spacing: .04em; }
-
-  /* Character stats */
   .stats { display: grid; gap: 10px; }
   .stat { display: grid; grid-template-columns: 22px 92px minmax(0, 1fr) 42px; align-items: center; gap: 10px; }
   .stat img { width: 22px; height: 22px; opacity: .85; }
@@ -196,14 +287,8 @@
   .stat .track { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
   .stat .fill { height: 100%; background: linear-gradient(90deg, #b88f2e, var(--accent)); border-radius: 3px; }
   .stat .val { font: 500 13px var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
-
-  /* Activity feed */
   .feed { display: grid; gap: 6px; }
-  .act {
-    display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 12px; align-items: center;
-    padding: 6px 12px 6px 6px; text-decoration: none; background: var(--surface);
-    border: 1px solid var(--line); border-left: 3px solid var(--result, var(--line)); border-radius: 4px;
-  }
+  .act { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 6px 12px 6px 6px; text-decoration: none; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--result, var(--line)); border-radius: 4px; }
   .act:hover { background: var(--surface-2); }
   .act .thumb { width: 64px; height: 40px; object-fit: cover; border-radius: 2px; background: var(--surface-2); }
   .act .title { font-weight: 600; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -213,146 +298,233 @@
   .act .kda { font: 400 12px var(--mono); color: var(--muted); white-space: nowrap; }
   .win { --result: var(--win); }
   .loss { --result: var(--loss); }
-
-  /* Career stats */
   .career { margin-top: 40px; }
   .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
   .mode { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 14px 16px; }
   .mode h4 { margin: 0; font: 700 1rem/1 var(--display); text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
-  .mode .big { margin: 10px 0 2px; font: 800 2.4rem/1 var(--display); color: var(--fg); font-variant-numeric: tabular-nums; }
+  .mode .big { margin: 10px 0 2px; font: 800 2.4rem/1 var(--display); font-variant-numeric: tabular-nums; }
   .mode .big-label { color: var(--accent); font: 600 12px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; }
   .mode dl { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr auto; row-gap: 6px; column-gap: 12px; }
   .mode dt { color: var(--muted); font-size: 13px; }
   .mode dd { margin: 0; font: 500 13px var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
 
-  /* Loading placeholders */
   .sk { background: linear-gradient(90deg, var(--surface) 0%, var(--surface-2) 50%, var(--surface) 100%); background-size: 200% 100%; animation: sk 1.2s linear infinite; border-radius: 4px; }
   @keyframes sk { from { background-position: 200% 0; } to { background-position: -200% 0; } }
-  .sk-hero { height: 190px; }
-  .sk-row { height: 66px; }
-  .sk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin-top: 14px; }
 
   footer { border-top: 1px solid var(--line); color: var(--faint); font-size: 12px; }
   footer .wrap { padding-block: 20px calc(20px + env(safe-area-inset-bottom, 0px)); }
 
   @media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 640px) {
+    .sheet { top: auto; left: 0; width: 100%; max-height: 85vh; border-left: 0; border-top: 1px solid var(--line-2); border-radius: 10px 10px 0 0; padding-top: 16px; }
+    .tools-right { margin-left: 0; width: 100%; }
+    #vfilter { flex: 1; width: auto; }
+    .dests { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dest { padding-left: 14px; min-height: 64px; }
+    .dest.is-vault { padding-left: 60px; }
+    .dest .vault-icon { width: 34px; height: 34px; }
+  }
   @media (max-width: 480px) {
     .brand span { display: none; }
+    .account .who { display: none; }
     .hero-power { text-align: left; width: 100%; }
     .tab { padding-left: 70px; }
     .stat { grid-template-columns: 20px 76px minmax(0, 1fr) 36px; gap: 8px; }
     .act { grid-template-columns: 52px minmax(0, 1fr) auto; }
     .act .thumb { width: 52px; height: 34px; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 6px; }
   }
-  @media (prefers-reduced-motion: reduce) { .sk { animation: none; } .tab, .item { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .sk { animation: none; } .tile, .dest, .tab { transition: none; } }
 </style>
 </head>
 <body>
 
 <header class="bar">
   <div class="wrap">
-    <a class="brand" href="/" aria-label="Guardian Lookup home">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-        <path d="M12 2 21 7v10l-9 5-9-5V7z"/><circle cx="12" cy="12" r="3.2"/>
-      </svg>
+    <a class="brand" href="#vault" aria-label="Guardian Lookup home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2 21 7v10l-9 5-9-5V7z"/><circle cx="12" cy="12" r="3.2"/></svg>
       <span>Guardian Lookup</span>
     </a>
-    <form class="search" id="search">
-      <label class="sr" for="name">Bungie Name</label>
-      <input id="name" name="name" placeholder="Search a Bungie Name, like Name#1234" autocomplete="off" spellcheck="false" required>
-      <button class="btn" id="go" type="submit">Search</button>
-    </form>
+    <nav class="nav" aria-label="Sections">
+      <a href="#vault" id="nav-vault">Vault</a>
+      <a href="#lookup" id="nav-lookup">Player lookup</a>
+    </nav>
+    <div class="account" id="account"></div>
   </div>
 </header>
 
 <main class="wrap">
-  <p id="status" class="status" role="alert"></p>
 
-  <!-- Before a search -->
-  <section id="landing" class="landing">
-    <div>
-      <span class="eyebrow">Destiny 2 player lookup</span>
-      <h1>Every Guardian, at a glance</h1>
-      <p>Search any player by their Bungie Name to see their characters, current loadout, recent matches and lifetime stats.</p>
+  <!-- ===================== VAULT ===================== -->
+  <section id="view-vault">
+    <div id="v-out" class="pitch" hidden>
+      <div>
+        <span class="eyebrow">Your vault</span>
+        <h1>Move your gear without the orbit</h1>
+        <p>Sign in with Bungie to see every weapon and piece of armor in your vault and on your characters, then move or equip them in a tap.</p>
+      </div>
+      <div><a class="btn big" href="/api/auth/login">Sign in with Bungie</a></div>
+      <div class="features">
+        <div class="feature"><b>Whole vault</b><span>Everything across your vault and characters, sorted by slot</span></div>
+        <div class="feature"><b>Drag to move</b><span>Drop an item on a character or the vault to transfer it</span></div>
+        <div class="feature"><b>Equip anywhere</b><span>Equip gear on any character straight from the vault</span></div>
+      </div>
+      <p class="fine">Sign-in happens on Bungie.net. This site never sees your password and can only read your inventory and move or equip your items.</p>
     </div>
-    <div class="features">
-      <div class="feature"><b>Loadout</b><span>Equipped weapons, armor and subclass with Power levels</span></div>
-      <div class="feature"><b>Recent activity</b><span>The last 12 activities with results and K/D/A</span></div>
-      <div class="feature"><b>Career</b><span>Lifetime PvE, raid, dungeon, Crucible and Trials stats</span></div>
+
+    <div id="v-unconfigured" class="pitch" hidden>
+      <div>
+        <span class="eyebrow">Your vault</span>
+        <h1>Sign-in isn't set up yet</h1>
+        <p>The site owner needs to add the Bungie OAuth client ID and secret to this site's settings before the vault can be used. Player lookup still works.</p>
+      </div>
+      <div><a class="btn ghost" href="#lookup">Go to player lookup</a></div>
     </div>
-    <div class="recent" id="recent" hidden>
-      <span class="recent-label">Recent searches</span>
-      <div class="chips" id="recent-chips"></div>
+
+    <div id="v-loading" hidden aria-label="Loading your vault">
+      <div class="sk" style="height:48px;max-width:320px"></div>
+      <div class="dests" style="margin-top:18px"><div class="sk" style="height:72px"></div><div class="sk" style="height:72px"></div><div class="sk" style="height:72px"></div><div class="sk" style="height:72px"></div></div>
+      <div class="sk" style="height:40px;margin:20px 0"></div>
+      <div class="sk" style="height:320px"></div>
     </div>
-    <p class="hint">Your Bungie Name is shown in the game's roster screen and on bungie.net. It ends with a # and 4 digits.</p>
+
+    <div id="v-error" class="pitch" hidden>
+      <div>
+        <span class="eyebrow">Your vault</span>
+        <h1>Couldn't load your vault</h1>
+        <p id="v-error-msg"></p>
+      </div>
+      <div><button class="btn ghost" type="button" id="v-retry">Try again</button></div>
+    </div>
+
+    <div id="v-app" hidden>
+      <div class="vault-head">
+        <div>
+          <span class="eyebrow">Signed in as <span id="v-me"></span></span>
+          <h1>Vault &amp; characters</h1>
+        </div>
+        <button class="btn ghost" type="button" id="v-refresh">Refresh</button>
+      </div>
+
+      <div class="dests" id="dests" aria-label="Show items in"></div>
+
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Item type">
+          <button type="button" data-type="weapons" aria-pressed="true">Weapons</button>
+          <button type="button" data-type="armor" aria-pressed="false">Armor</button>
+        </div>
+        <div class="chips" id="slot-chips" role="group" aria-label="Slot"></div>
+        <div class="tools-right">
+          <label class="sr" for="vfilter">Filter by name</label>
+          <input class="field" id="vfilter" type="search" placeholder="Filter by name" autocomplete="off">
+          <label class="sr" for="vsort">Sort</label>
+          <select class="field" id="vsort">
+            <option value="power">Sort: Power</option>
+            <option value="rarity">Sort: Rarity</option>
+            <option value="name">Sort: Name</option>
+          </select>
+        </div>
+      </div>
+      <p class="hint">Drag an item onto a character or the vault to move it, or tap an item to move or equip it. A gold corner means equipped.</p>
+      <div id="vgrid"></div>
+    </div>
   </section>
 
-  <!-- While loading -->
-  <section id="loading" hidden aria-label="Loading">
-    <div class="sk sk-hero"></div>
-    <div class="sk-grid"><div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div></div>
-    <div class="layout">
-      <div class="col"><div class="sk" style="height:420px"></div></div>
-      <div class="col"><div class="sk" style="height:420px"></div></div>
-    </div>
-  </section>
+  <!-- ===================== LOOKUP ===================== -->
+  <section id="view-lookup" hidden>
+    <form class="lookup-search" id="search">
+      <label class="sr" for="name">Bungie Name</label>
+      <input id="name" name="name" placeholder="Search a Bungie Name, like Name#1234" autocomplete="off" spellcheck="false" required>
+      <button class="btn" id="go" type="submit">Search</button>
+    </form>
+    <p id="status" class="status" role="alert" style="margin-top:14px"></p>
 
-  <!-- Results -->
-  <section id="result" hidden>
-    <div class="hero" id="hero">
-      <div class="hero-bg" id="hero-bg"></div>
-      <div class="hero-body">
-        <img class="hero-emblem" id="hero-emblem" alt="" width="84" height="84">
-        <div class="hero-text">
-          <h2 id="hero-name"></h2>
-          <div class="badges" id="hero-badges"></div>
+    <div id="landing" class="landing">
+      <div>
+        <span class="eyebrow">Player lookup</span>
+        <h1>Every Guardian, at a glance</h1>
+        <p>Search any player by their Bungie Name to see their characters, current loadout, recent matches and lifetime stats.</p>
+      </div>
+      <div class="recent" id="recent" hidden>
+        <span class="recent-label">Quick picks</span>
+        <div class="chips" id="recent-chips"></div>
+      </div>
+    </div>
+
+    <div id="loading" hidden aria-label="Loading">
+      <div class="sk" style="height:190px;margin-top:24px"></div>
+      <div class="tabs"><div class="sk" style="height:76px"></div><div class="sk" style="height:76px"></div><div class="sk" style="height:76px"></div></div>
+      <div class="layout"><div class="sk" style="height:420px"></div><div class="sk" style="height:420px"></div></div>
+    </div>
+
+    <div id="result" hidden>
+      <div class="hero">
+        <div class="hero-bg" id="hero-bg"></div>
+        <div class="hero-body">
+          <img class="hero-emblem" id="hero-emblem" alt="" width="84" height="84">
+          <div class="hero-text">
+            <h2 id="hero-name"></h2>
+            <div class="badges" id="hero-badges"></div>
+          </div>
+          <div class="hero-power"><div class="num" id="hero-power"></div><div class="lbl">Power</div></div>
         </div>
-        <div class="hero-power">
-          <div class="num" id="hero-power"></div>
-          <div class="lbl">Power</div>
+      </div>
+      <div class="tabs" id="tabs" role="tablist" aria-label="Characters"></div>
+      <div class="layout">
+        <div class="col">
+          <section class="panel">
+            <div class="panel-head"><h3>Loadout</h3><span class="aside">Tap an item for details on light.gg</span></div>
+            <div id="subclass"></div>
+            <div id="loadout"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h3>Character stats</h3></div>
+            <div id="char-stats" class="stats"></div>
+          </section>
+        </div>
+        <div class="col">
+          <section class="panel">
+            <div class="panel-head"><h3>Recent activity</h3><span class="aside" id="feed-aside"></span></div>
+            <div id="feed" class="feed"></div>
+          </section>
         </div>
       </div>
+      <section class="panel career">
+        <div class="panel-head"><h3>Career stats</h3><span class="aside">All characters, all time</span></div>
+        <div id="career" class="modes"></div>
+      </section>
     </div>
-
-    <div class="tabs" id="tabs" role="tablist" aria-label="Characters"></div>
-
-    <div class="layout">
-      <div class="col">
-        <section class="panel">
-          <div class="panel-head"><h3>Loadout</h3><span class="aside">Tap an item for details on light.gg</span></div>
-          <div id="subclass"></div>
-          <div id="loadout"></div>
-        </section>
-        <section class="panel">
-          <div class="panel-head"><h3>Character stats</h3></div>
-          <div id="char-stats" class="stats"></div>
-        </section>
-      </div>
-      <div class="col">
-        <section class="panel">
-          <div class="panel-head"><h3>Recent activity</h3><span class="aside" id="feed-aside"></span></div>
-          <div id="feed" class="feed"></div>
-        </section>
-      </div>
-    </div>
-
-    <section class="panel career">
-      <div class="panel-head"><h3>Career stats</h3><span class="aside">All characters, all time</span></div>
-      <div id="career" class="modes"></div>
-    </section>
   </section>
 </main>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-name" hidden></aside>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <footer>
   <div class="wrap">Guardian Lookup is a fan site and isn't affiliated with Bungie. Destiny data comes from the Bungie.net API.</div>
 </footer>
 
 <script>
+/* ================= Shared ================= */
 const CLASSES = ["Titan", "Hunter", "Warlock"];
 const RACES = ["Human", "Awoken", "Exo"];
+const TIERS = { 6: "Exotic", 5: "Legendary", 4: "Rare", 3: "Uncommon", 2: "Common" };
+const DAMAGE = { 1: "Kinetic", 2: "Arc", 3: "Solar", 4: "Void", 6: "Stasis", 7: "Strand" };
+const SLOT_BY_BUCKET = {
+  1498876634: "kinetic", 2465295065: "energy", 953998645: "power",
+  3448274439: "helmet", 3551918588: "arms", 14239492: "chest", 20886954: "legs", 1585787867: "classItem"
+};
 const SLOT_LABELS = { kinetic: "Kinetic", energy: "Energy", power: "Power", helmet: "Helmet", arms: "Gauntlets", chest: "Chest", legs: "Legs", classItem: "Class item" };
 const WEAPONS = ["kinetic", "energy", "power"];
 const ARMOR = ["helmet", "arms", "chest", "legs", "classItem"];
+const SIGNIN_MESSAGES = {
+  cancelled: "Sign-in was cancelled.",
+  expired: "Sign-in took too long. Try again.",
+  nodestiny: "That Bungie account doesn't have a Destiny 2 profile.",
+  failed: "Sign-in didn't work. Try again.",
+  notconfigured: "Sign-in isn't set up on this site yet."
+};
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -362,55 +534,440 @@ const hrs = (sec) => (sec == null ? "–" : Math.round(sec / 3600).toLocaleStrin
 const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
 function ago(iso) {
   const diff = (new Date(iso) - Date.now()) / 1000;
-  const steps = [["year", 31536000], ["month", 2592000], ["week", 604800], ["day", 86400], ["hour", 3600], ["minute", 60]];
-  for (const [unit, s] of steps) if (Math.abs(diff) >= s) return rtf.format(Math.round(diff / s), unit);
+  for (const [unit, s] of [["year", 31536000], ["month", 2592000], ["week", 604800], ["day", 86400], ["hour", 3600], ["minute", 60]])
+    if (Math.abs(diff) >= s) return rtf.format(Math.round(diff / s), unit);
   return "just now";
 }
 
-/* ---------- Data ---------- */
-const defs = { item: {}, stat: {}, record: {}, activity: {} };
-let state = null;      // { player, profile, career, selected }
-const feeds = {};      // characterId -> activities (or { error })
-
-async function api(path) {
-  const res = await fetch(path);
+async function api(path, options) {
+  const res = await fetch(path, options);
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Request failed (HTTP ${res.status}).`);
+  if (!res.ok) {
+    const err = new Error(data?.error || `Request failed (HTTP ${res.status}).`);
+    err.status = res.status;
+    err.data = data || {};
+    throw err;
+  }
   return data;
 }
 
+let toastTimer;
+function toast(msg, isError = false) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.toggle("error", isError);
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => (t.hidden = true), isError ? 7000 : 3500);
+}
+
+/* Game definitions, cached in this browser so repeat visits load fast */
+const DEFS_VERSION = 2;
+const defs = { item: {}, stat: {}, record: {}, activity: {} };
+try { Object.assign(defs.item, JSON.parse(localStorage.getItem(`defs-item-v${DEFS_VERSION}`) || "{}")); } catch {}
+function persistItemDefs() { try { localStorage.setItem(`defs-item-v${DEFS_VERSION}`, JSON.stringify(defs.item)); } catch {} }
+
 async function loadDefs(type, hashes) {
   const need = [...new Set(hashes.filter((h) => h != null).map(String))].filter((h) => !defs[type][h]);
-  for (let i = 0; i < need.length; i += 60) {
-    const got = await api(`/api/items?type=${type}&hashes=${need.slice(i, i + 60).join(",")}`).catch(() => ({}));
-    Object.assign(defs[type], got);
+  if (!need.length) return;
+  const chunks = [];
+  for (let i = 0; i < need.length; i += 100) chunks.push(need.slice(i, i + 100));
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(3, chunks.length) }, async () => {
+    while (next < chunks.length) {
+      const chunk = chunks[next++];
+      const got = await api(`/api/items?type=${type}&v=${DEFS_VERSION}&hashes=${chunk.join(",")}`).catch(() => ({}));
+      Object.assign(defs[type], got);
+    }
+  }));
+  if (type === "item") persistItemDefs();
+}
+
+/* ================= Account + routing ================= */
+let me = { configured: false, signedIn: false };
+
+function renderAccount() {
+  const el = $("account");
+  if (me.signedIn) {
+    el.innerHTML = `<span class="who">${esc(me.name)}#${esc(me.code)}</span><a class="link-btn" href="/api/auth/logout">Sign out</a>`;
+  } else if (me.configured) {
+    el.innerHTML = `<a class="btn" href="/api/auth/login">Sign in</a>`;
+  } else {
+    el.innerHTML = "";
   }
 }
 
-/* ---------- Recent searches (stored only in this browser) ---------- */
+function route() {
+  const view = location.hash === "#lookup" ? "lookup" : "vault";
+  $("view-vault").hidden = view !== "vault";
+  $("view-lookup").hidden = view !== "lookup";
+  $("nav-vault").toggleAttribute("aria-current", view === "vault");
+  $("nav-lookup").toggleAttribute("aria-current", view === "lookup");
+  if (view === "vault") { $("nav-vault").setAttribute("aria-current", "page"); showVault(); }
+  else { $("nav-lookup").setAttribute("aria-current", "page"); renderRecent(); }
+  closeSheet();
+}
+
+/* ================= Vault ================= */
+const vault = {
+  inv: null, type: "weapons", slot: "all", loc: "all", q: "", sort: "power",
+  busy: new Set(), openId: null, loading: false
+};
+
+function vaultPanel(name) {
+  for (const id of ["v-out", "v-unconfigured", "v-loading", "v-error", "v-app"]) $(id).hidden = id !== name;
+}
+
+function showVault() {
+  if (!me.configured) return vaultPanel("v-unconfigured");
+  if (!me.signedIn) return vaultPanel("v-out");
+  if (vault.inv) { vaultPanel("v-app"); return renderVault(); }
+  loadVault();
+}
+
+async function loadVault(quiet = false) {
+  if (vault.loading) return;
+  vault.loading = true;
+  if (!quiet) vaultPanel("v-loading");
+  $("v-refresh").disabled = true;
+  try {
+    const inv = await api("/api/inventory");
+    await loadDefs("item", inv.items.map((i) => i.hash));
+    inv.items = inv.items
+      .map((it) => {
+        const d = defs.item[it.hash];
+        const slot = d && SLOT_BY_BUCKET[d.bucket];
+        return slot ? { ...it, slot, kind: WEAPONS.includes(slot) ? "weapons" : "armor" } : null;
+      })
+      .filter(Boolean);
+    vault.inv = inv;
+    $("v-me").textContent = `${me.name}#${me.code}`;
+    vaultPanel("v-app");
+    renderVault();
+    if (quiet) toast("Vault refreshed.");
+  } catch (err) {
+    if (err.status === 401) { me.signedIn = false; renderAccount(); vaultPanel("v-out"); toast(err.message, true); }
+    else if (quiet) toast(err.message, true);
+    else { $("v-error-msg").textContent = err.message; vaultPanel("v-error"); }
+  } finally {
+    vault.loading = false;
+    $("v-refresh").disabled = false;
+  }
+}
+
+const charById = (id) => vault.inv.characters.find((c) => c.id === id);
+const className = (c) => CLASSES[c?.classType] || "Guardian";
+const placeName = (loc) => (loc === "vault" ? "Vault" : className(charById(loc)));
+const placeBadge = (loc) => (loc === "vault" ? "V" : className(charById(loc))[0]);
+
+function visibleItems() {
+  const q = vault.q.trim().toLowerCase();
+  return vault.inv.items.filter((it) =>
+    it.kind === vault.type &&
+    (vault.slot === "all" || it.slot === vault.slot) &&
+    (vault.loc === "all" || it.loc === vault.loc) &&
+    (!q || (defs.item[it.hash]?.name || "").toLowerCase().includes(q))
+  );
+}
+
+function renderVault() {
+  renderDests();
+  renderSlotChips();
+  renderGrid();
+  document.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.type === vault.type)));
+}
+
+function renderDests() {
+  const ofType = vault.inv.items.filter((it) => it.kind === vault.type);
+  const count = (loc) => ofType.filter((it) => loc === "all" || it.loc === loc).length;
+  const label = vault.type === "weapons" ? "weapons" : "armor";
+  const cards = [
+    `<button type="button" class="dest plain" data-loc="all" aria-pressed="${vault.loc === "all"}">
+       <span class="dest-name">Everything</span><span class="dest-sub">${count("all")} ${label}</span></button>`,
+    ...vault.inv.characters.map((c) => `
+      <button type="button" class="dest" data-loc="${esc(c.id)}" aria-pressed="${vault.loc === c.id}"
+        style="${c.emblem ? `background-image:url('${esc(c.emblem)}')` : ""}">
+        <span class="dest-name">${className(c)}</span>
+        <span class="dest-sub"><span class="light">✦ ${c.light}</span> · ${count(c.id)} ${label}</span>
+      </button>`),
+    `<button type="button" class="dest is-vault" data-loc="vault" aria-pressed="${vault.loc === "vault"}">
+       <svg class="vault-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+         <rect x="6" y="8" width="36" height="32" rx="2"/><circle cx="24" cy="24" r="8"/><path d="M24 16v3M24 29v3M16 24h3M29 24h3"/><path d="M10 40v3M38 40v3"/>
+       </svg>
+       <span class="dest-name">Vault</span><span class="dest-sub">${count("vault")} ${label}</span></button>`
+  ];
+  $("dests").innerHTML = cards.join("");
+}
+
+function renderSlotChips() {
+  const slots = vault.type === "weapons" ? WEAPONS : ARMOR;
+  if (vault.slot !== "all" && !slots.includes(vault.slot)) vault.slot = "all";
+  $("slot-chips").innerHTML = ["all", ...slots].map((s) =>
+    `<button type="button" class="chip" data-slot="${s}" aria-pressed="${vault.slot === s}">${s === "all" ? "All slots" : SLOT_LABELS[s]}</button>`
+  ).join("");
+}
+
+function sortItems(list) {
+  const d = (it) => defs.item[it.hash] || {};
+  const byName = (a, b) => (d(a).name || "").localeCompare(d(b).name || "");
+  const byPower = (a, b) => (b.power || 0) - (a.power || 0);
+  const cmp = {
+    power: (a, b) => byPower(a, b) || byName(a, b),
+    rarity: (a, b) => (d(b).tier || 0) - (d(a).tier || 0) || byPower(a, b),
+    name: (a, b) => byName(a, b) || byPower(a, b)
+  }[vault.sort];
+  // Equipped items always lead their slot.
+  return list.sort((a, b) => (b.equipped - a.equipped) || cmp(a, b));
+}
+
+const LOCK_SVG = `<svg class="lock" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M3 5V3.6a3 3 0 0 1 6 0V5h.6c.2 0 .4.2.4.4v5.2c0 .2-.2.4-.4.4H2.4a.4.4 0 0 1-.4-.4V5.4c0-.2.2-.4.4-.4H3Zm1.3 0h3.4V3.6a1.7 1.7 0 0 0-3.4 0V5Z"/></svg>`;
+
+function tileHtml(it) {
+  const d = defs.item[it.hash] || {};
+  const tier = d.tier >= 2 && d.tier <= 6 ? d.tier : 2;
+  const where = placeName(it.loc) + (it.equipped ? " (equipped)" : "");
+  const dmg = it.kind === "weapons" && DAMAGE[it.damage] ? `<i style="background:var(--dmg-${it.damage})"></i>` : "";
+  return `
+    <button type="button" class="tile${it.equipped ? " eq" : ""}${vault.busy.has(it.id) ? " busy" : ""}" data-id="${esc(it.id)}"
+      draggable="true" style="--tier:var(--tier-${tier})" title="${esc(d.name)} · ${esc(where)}"
+      aria-label="${esc(d.name)}, ${it.power ?? ""} power, ${esc(where)}">
+      ${d.icon ? `<img src="${esc(d.icon)}" alt="" loading="lazy" width="66" height="66" draggable="false">` : `<img alt="" draggable="false">`}
+      ${it.locked ? LOCK_SVG : ""}
+      <span class="loc">${placeBadge(it.loc)}</span>
+      <span class="pw">${dmg}${it.power ?? "–"}</span>
+    </button>`;
+}
+
+function renderGrid() {
+  const items = visibleItems();
+  const slots = (vault.type === "weapons" ? WEAPONS : ARMOR).filter((s) => vault.slot === "all" || s === vault.slot);
+  if (!items.length) {
+    $("vgrid").innerHTML = `<div class="empty-grid">${vault.q ? `Nothing matches “${esc(vault.q)}”.` : `No ${vault.type} here.`}</div>`;
+    return;
+  }
+  $("vgrid").innerHTML = slots.map((s) => {
+    const list = sortItems(items.filter((it) => it.slot === s));
+    if (!list.length) return "";
+    return `<section class="slot-group"><div class="slot-head"><h3>${SLOT_LABELS[s]}</h3><span>${list.length}</span></div>
+      <div class="grid">${list.map(tileHtml).join("")}</div></section>`;
+  }).join("");
+}
+
+/* Which moves are allowed for an item, with a reason when not */
+function canGoTo(it, loc) {
+  const d = defs.item[it.hash] || {};
+  if (it.loc === loc) return { ok: false };
+  if (it.equipped) return { ok: false, why: "Equip a different item in this slot first." };
+  if (d.noTransfer) return { ok: false, why: "This item can't be transferred." };
+  if (loc !== "vault" && it.kind === "armor" && d.classType < 3 && charById(loc)?.classType !== d.classType)
+    return { ok: false, why: `${CLASSES[d.classType]} armor only.` };
+  return { ok: true };
+}
+function canEquipOn(it, charId) {
+  const d = defs.item[it.hash] || {};
+  const c = charById(charId);
+  if (it.loc === charId && it.equipped) return { ok: false, why: "Already equipped." };
+  if (it.kind === "armor" && d.classType < 3 && c.classType !== d.classType) return { ok: false, why: `${CLASSES[d.classType]} armor only.` };
+  if (it.loc !== charId) {
+    const move = canGoTo(it, charId);
+    if (!move.ok) return move;
+  }
+  return { ok: true };
+}
+
+function openSheet(id) {
+  const it = vault.inv.items.find((x) => x.id === id);
+  if (!it) return;
+  vault.openId = id;
+  const d = defs.item[it.hash] || {};
+  const tier = d.tier >= 2 && d.tier <= 6 ? d.tier : 2;
+  const chars = vault.inv.characters;
+
+  const button = (cls, iconHtml, title, sub, attrs, check) => `
+    <button type="button" class="act-btn ${cls}" ${attrs} ${check.ok ? "" : "disabled"}>
+      ${iconHtml}<span><b>${title}</b><small>${esc(check.ok ? sub : check.why || sub)}</small></span>
+    </button>`;
+  const emblem = (c) => c.emblemIcon ? `<img src="${esc(c.emblemIcon)}" alt="">` : `<span class="ico"></span>`;
+
+  const equipBtns = chars
+    .filter((c) => !(it.kind === "armor" && d.classType < 3 && c.classType !== d.classType))
+    .map((c) => button("primary", emblem(c), `Equip on ${className(c)}`,
+      it.loc === c.id ? "Equip from this character's inventory" : `Moves it to your ${className(c)} and equips it`,
+      `data-action="equip" data-to="${esc(c.id)}"`, canEquipOn(it, c.id)))
+    .join("");
+  const moveBtns = chars
+    .filter((c) => c.id !== it.loc && !(it.kind === "armor" && d.classType < 3 && c.classType !== d.classType))
+    .map((c) => button("", emblem(c), `Move to ${className(c)}`, it.loc === "vault" ? "From the vault" : "Goes through the vault",
+      `data-action="move" data-to="${esc(c.id)}"`, canGoTo(it, c.id)))
+    .join("");
+  const vaultBtn = it.loc !== "vault"
+    ? button("", `<span class="ico"><svg width="20" height="20" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3"><rect x="6" y="8" width="36" height="32" rx="2"/><circle cx="24" cy="24" r="8"/></svg></span>`,
+        "Move to vault", "Store it in your vault", `data-action="move" data-to="vault"`, canGoTo(it, "vault"))
+    : "";
+
+  $("sheet").style.setProperty("--tier", `var(--tier-${tier})`);
+  $("sheet").innerHTML = `
+    <div class="sheet-top">
+      ${d.icon ? `<img src="${esc(d.icon)}" alt="" width="72" height="72">` : ""}
+      <div style="min-width:0">
+        <div class="name" id="sheet-name">${esc(d.name || "Unknown item")}</div>
+        <div class="kind">${esc(TIERS[tier] || "")} ${esc(d.type || "")}</div>
+      </div>
+      <button type="button" class="sheet-close" data-close aria-label="Close">×</button>
+    </div>
+    <div class="sheet-stats">
+      <div><b>${it.power ?? "–"}</b><span>Power</span></div>
+      <div><b>${it.kind === "weapons" ? esc(DAMAGE[it.damage] || "–") : esc(SLOT_LABELS[it.slot])}</b><span>${it.kind === "weapons" ? "Element" : "Slot"}</span></div>
+      <div><b>${esc(placeName(it.loc))}</b><span>${it.equipped ? "Equipped" : "Location"}</span></div>
+    </div>
+    <div class="actions">
+      ${equipBtns ? `<div class="group-label">Equip</div>${equipBtns}` : ""}
+      ${moveBtns || vaultBtn ? `<div class="group-label">Move</div>${moveBtns}${vaultBtn}` : ""}
+      ${it.equipped ? `<p class="sheet-note">Equipped items can't be moved. Equip something else in the ${esc(SLOT_LABELS[it.slot])} slot first.</p>` : ""}
+    </div>
+    <a class="sheet-link" href="https://www.light.gg/db/items/${esc(it.hash)}/" target="_blank" rel="noopener">View perks and rolls on light.gg ↗</a>`;
+  $("sheet").hidden = false;
+  $("scrim").hidden = false;
+  $("sheet").querySelector("[data-close]").focus();
+}
+
+function closeSheet() {
+  vault.openId = null;
+  $("sheet").hidden = true;
+  $("scrim").hidden = true;
+}
+
+async function runAction(id, action, to) {
+  const it = vault.inv.items.find((x) => x.id === id);
+  if (!it || vault.busy.has(id)) return;
+  const name = defs.item[it.hash]?.name || "Item";
+  closeSheet();
+  vault.busy.add(id);
+  renderGrid();
+  try {
+    const r = await api("/api/transfer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, itemId: it.id, itemHash: it.hash, from: it.loc, to })
+    });
+    if (r.equipped) {
+      for (const other of vault.inv.items)
+        if (other !== it && other.loc === to && other.slot === it.slot && other.equipped) other.equipped = false;
+      it.equipped = true;
+    }
+    it.loc = r.location;
+    toast(action === "equip" ? `Equipped ${name} on your ${placeName(to)}.` : `Moved ${name} to your ${placeName(to).toLowerCase() === "vault" ? "vault" : placeName(to)}.`);
+  } catch (err) {
+    if (err.data?.location) it.loc = err.data.location;
+    if (err.status === 401) { me.signedIn = false; renderAccount(); }
+    toast(err.message, true);
+  } finally {
+    vault.busy.delete(id);
+    renderDests();
+    renderGrid();
+  }
+}
+
+/* Vault events */
+$("dests").addEventListener("click", (e) => {
+  const card = e.target.closest(".dest");
+  if (!card) return;
+  vault.loc = card.dataset.loc;
+  renderDests();
+  renderGrid();
+});
+document.querySelector(".seg").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-type]");
+  if (!b) return;
+  vault.type = b.dataset.type;
+  renderVault();
+});
+$("slot-chips").addEventListener("click", (e) => {
+  const b = e.target.closest(".chip");
+  if (!b) return;
+  vault.slot = b.dataset.slot;
+  renderSlotChips();
+  renderGrid();
+});
+$("vfilter").addEventListener("input", (e) => { vault.q = e.target.value; renderGrid(); });
+$("vsort").addEventListener("change", (e) => { vault.sort = e.target.value; renderGrid(); });
+$("vgrid").addEventListener("click", (e) => {
+  const tile = e.target.closest(".tile");
+  if (tile) openSheet(tile.dataset.id);
+});
+$("v-refresh").addEventListener("click", () => loadVault(true));
+$("v-retry").addEventListener("click", () => loadVault());
+$("sheet").addEventListener("click", (e) => {
+  if (e.target.closest("[data-close]")) return closeSheet();
+  const b = e.target.closest(".act-btn");
+  if (b && !b.disabled) runAction(vault.openId, b.dataset.action, b.dataset.to);
+});
+$("scrim").addEventListener("click", closeSheet);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("sheet").hidden) closeSheet(); });
+
+/* Drag and drop: drag a tile onto a character or the vault */
+let dragId = null;
+$("vgrid").addEventListener("dragstart", (e) => {
+  const tile = e.target.closest(".tile");
+  if (!tile) return;
+  dragId = tile.dataset.id;
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/plain", dragId);
+  tile.classList.add("dragging");
+});
+$("vgrid").addEventListener("dragend", (e) => {
+  e.target.closest(".tile")?.classList.remove("dragging");
+  document.querySelectorAll(".dest.drop-ok").forEach((d) => d.classList.remove("drop-ok"));
+  dragId = null;
+});
+$("dests").addEventListener("dragover", (e) => {
+  const card = e.target.closest(".dest");
+  if (!card || !dragId || card.dataset.loc === "all") return;
+  const it = vault.inv.items.find((x) => x.id === dragId);
+  if (!it || !canGoTo(it, card.dataset.loc).ok) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  card.classList.add("drop-ok");
+});
+$("dests").addEventListener("dragleave", (e) => e.target.closest(".dest")?.classList.remove("drop-ok"));
+$("dests").addEventListener("drop", (e) => {
+  const card = e.target.closest(".dest");
+  if (!card || !dragId) return;
+  e.preventDefault();
+  card.classList.remove("drop-ok");
+  const it = vault.inv.items.find((x) => x.id === dragId);
+  const check = it && canGoTo(it, card.dataset.loc);
+  if (check?.ok) runAction(it.id, "move", card.dataset.loc);
+  else if (check?.why) toast(check.why, true);
+});
+
+/* ================= Player lookup ================= */
+let state = null;
+const feeds = {};
+
 function getRecent() { try { return JSON.parse(localStorage.getItem("recent") || "[]"); } catch { return []; } }
 function saveRecent(name) {
   const list = [name, ...getRecent().filter((n) => n.toLowerCase() !== name.toLowerCase())].slice(0, 6);
   try { localStorage.setItem("recent", JSON.stringify(list)); } catch {}
 }
 function renderRecent() {
-  const list = getRecent();
-  $("recent").hidden = !list.length;
-  $("recent-chips").innerHTML = list.map((n) => `<button type="button" class="recent-chip" data-name="${esc(n)}">${esc(n)}</button>`).join("");
+  const mine = me.signedIn ? `${me.name}#${me.code}` : null;
+  const list = getRecent().filter((n) => n !== mine);
+  const chips = [
+    ...(mine ? [`<button type="button" class="recent-chip me" data-name="${esc(mine)}">My profile</button>`] : []),
+    ...list.map((n) => `<button type="button" class="recent-chip" data-name="${esc(n)}">${esc(n)}</button>`)
+  ];
+  $("recent").hidden = !chips.length;
+  $("recent-chips").innerHTML = chips.join("");
 }
-
-/* ---------- Views ---------- */
-function show(view) {
-  for (const id of ["landing", "loading", "result"]) $(id).hidden = id !== view;
-}
-function setStatus(msg) { $("status").textContent = msg || ""; }
+function showLookup(view) { for (const id of ["landing", "loading", "result"]) $(id).hidden = id !== view; }
 
 async function lookup(name) {
   name = name.trim();
   if (!name) return;
   $("go").disabled = true;
-  setStatus("");
-  show("loading");
+  $("status").textContent = "";
+  showLookup("loading");
   try {
     const player = await api(`/api/search?name=${encodeURIComponent(name)}`);
     const ids = `type=${player.membershipType}&id=${player.membershipId}`;
@@ -424,32 +981,26 @@ async function lookup(name) {
       loadDefs("stat", chars.flatMap((c) => Object.keys(c.stats))),
       loadDefs("record", chars.map((c) => c.titleHash))
     ]);
-
     for (const k in feeds) delete feeds[k];
     state = { player, profile, career, selected: 0, ids };
     const full = `${player.name}#${player.code}`;
     saveRecent(full);
     $("name").value = full;
-    document.title = `${player.name} · Guardian Lookup`;
     const url = new URL(location.href);
     url.searchParams.set("name", full);
+    url.hash = "lookup";
     history.replaceState(null, "", url);
-
-    show("result");
-    renderAll();
+    showLookup("result");
+    renderTabs();
+    renderCharacter();
+    renderCareer();
   } catch (err) {
-    show("landing");
+    showLookup("landing");
     renderRecent();
-    setStatus(err.message === "Failed to fetch" ? "Couldn't reach the server. Check your connection and try again." : err.message);
+    $("status").textContent = err.message === "Failed to fetch" ? "Couldn't reach the server. Check your connection and try again." : err.message;
   } finally {
     $("go").disabled = false;
   }
-}
-
-function renderAll() {
-  renderTabs();
-  renderCharacter();
-  renderCareer();
 }
 
 function renderHero(c) {
@@ -459,7 +1010,6 @@ function renderHero(c) {
   $("hero-emblem").hidden = !c?.emblemIcon;
   $("hero-name").innerHTML = `${esc(player.name)}<span class="code">#${esc(player.code)}</span>`;
   $("hero-power").textContent = c ? c.light : "–";
-
   const title = c?.titleHash && defs.record[c.titleHash]?.name;
   const totalHours = Math.round(profile.characters.reduce((s, x) => s + x.minutesPlayed, 0) / 60);
   const badges = [];
@@ -476,10 +1026,8 @@ function renderTabs() {
   $("tabs").innerHTML = state.profile.characters.map((c, i) => {
     const title = c.titleHash && defs.record[c.titleHash]?.name;
     return `
-    <button class="tab" role="tab" id="tab-${i}" aria-selected="${i === state.selected}" data-i="${i}"
-      style="${c.emblem ? `background-image:url('${esc(c.emblem)}')` : ""}">
-      <span><span class="cls">${CLASSES[c.classType] || "Guardian"}</span>
-      <span class="sub">${esc(title || RACES[c.raceType] || "")} · ${ago(c.lastPlayed)}</span></span>
+    <button class="tab" role="tab" id="tab-${i}" aria-selected="${i === state.selected}" data-i="${i}" style="${c.emblem ? `background-image:url('${esc(c.emblem)}')` : ""}">
+      <span><span class="cls">${CLASSES[c.classType] || "Guardian"}</span><span class="sub">${esc(title || RACES[c.raceType] || "")} · ${ago(c.lastPlayed)}</span></span>
       <span class="light" aria-label="Power ${c.light}">${c.light}</span>
     </button>`;
   }).join("");
@@ -504,14 +1052,9 @@ function itemRow(g) {
   const d = defs.item[g.hash] || { name: "Unknown item", type: "", tier: 2 };
   const tier = d.tier >= 2 && d.tier <= 6 ? d.tier : 2;
   return `
-    <a class="item${tier === 6 ? " exotic" : ""}" style="--tier: var(--tier-${tier})"
-       href="https://www.light.gg/db/items/${g.hash}/" target="_blank" rel="noopener">
+    <a class="item${tier === 6 ? " exotic" : ""}" style="--tier: var(--tier-${tier})" href="https://www.light.gg/db/items/${g.hash}/" target="_blank" rel="noopener">
       ${d.icon ? `<img class="icon" src="${esc(d.icon)}" alt="" loading="lazy" width="50" height="50">` : `<span class="icon"></span>`}
-      <div style="min-width:0">
-        <div class="slot">${SLOT_LABELS[g.slot]}</div>
-        <div class="name">${esc(d.name)}</div>
-        <div class="kind">${esc(d.type)}</div>
-      </div>
+      <div style="min-width:0"><div class="slot">${SLOT_LABELS[g.slot]}</div><div class="name">${esc(d.name)}</div><div class="kind">${esc(d.type)}</div></div>
       <div class="pwr">${g.power ?? ""}</div>
     </a>`;
 }
@@ -519,12 +1062,7 @@ function itemRow(g) {
 function renderLoadout(c) {
   const by = Object.fromEntries(c.gear.map((g) => [g.slot, g]));
   const sub = by.subclass && defs.item[by.subclass.hash];
-  $("subclass").innerHTML = sub ? `
-    <div class="subclass">
-      ${sub.icon ? `<img src="${esc(sub.icon)}" alt="" width="40" height="40">` : ""}
-      <div><div class="kind">Subclass</div><div class="name">${esc(sub.name)}</div></div>
-    </div>` : "";
-
+  $("subclass").innerHTML = sub ? `<div class="subclass">${sub.icon ? `<img src="${esc(sub.icon)}" alt="" width="40" height="40">` : ""}<div><div class="kind">Subclass</div><div class="name">${esc(sub.name)}</div></div></div>` : "";
   if (!c.gear.length) {
     $("loadout").innerHTML = `<p class="note">Gear isn't visible for this character. The player may have hidden their inventory in their privacy settings.</p>`;
     return;
@@ -542,13 +1080,7 @@ function renderStats(c) {
   const max = Math.max(...entries.map(([, v]) => v)) > 100 ? 200 : 100;
   $("char-stats").innerHTML = entries.map(([h, v]) => {
     const d = defs.stat[h];
-    return `
-      <div class="stat" title="${esc(d.description)}">
-        ${d.icon ? `<img src="${esc(d.icon)}" alt="" width="22" height="22">` : `<span></span>`}
-        <span class="lbl">${esc(d.name)}</span>
-        <div class="track"><div class="fill" style="width:${Math.min(100, (v / max) * 100)}%"></div></div>
-        <span class="val">${v}</span>
-      </div>`;
+    return `<div class="stat" title="${esc(d.description)}">${d.icon ? `<img src="${esc(d.icon)}" alt="" width="22" height="22">` : `<span></span>`}<span class="lbl">${esc(d.name)}</span><div class="track"><div class="fill" style="width:${Math.min(100, (v / max) * 100)}%"></div></div><span class="val">${v}</span></div>`;
   }).join("");
 }
 
@@ -564,38 +1096,26 @@ async function renderFeed(c) {
     } catch (err) {
       feeds[id] = { error: err.message };
     }
-    if (state.profile.characters[state.selected]?.id !== id) return; // user switched tabs meanwhile
+    if (state.profile.characters[state.selected]?.id !== id) return;
   }
   const list = feeds[id];
   if (list.error) { $("feed").innerHTML = `<p class="note">Couldn't load recent activity: ${esc(list.error)}</p>`; return; }
   if (!list.length) { $("feed").innerHTML = `<p class="note">No recent activity on this character.</p>`; return; }
-
   let wins = 0, games = 0;
   $("feed").innerHTML = list.map((a) => {
-    const map = defs.activity[a.mapHash];
-    const playlist = defs.activity[a.playlistHash];
+    const map = defs.activity[a.mapHash], playlist = defs.activity[a.playlistHash];
     const title = playlist?.name || map?.name || "Activity";
     const where = map?.name && map.name !== title ? map.name : "";
     let res, cls;
-    if (a.pvp && a.standing != null) {
-      games++; if (a.standing === 0) wins++;
-      [res, cls] = a.standing === 0 ? ["Victory", "win"] : ["Defeat", "loss"];
-    } else {
-      [res, cls] = a.completed && a.completionReason === 0 ? ["Completed", "win"] : ["Incomplete", ""];
-    }
+    if (a.pvp && a.standing != null) { games++; if (a.standing === 0) wins++; [res, cls] = a.standing === 0 ? ["Victory", "win"] : ["Defeat", "loss"]; }
+    else [res, cls] = a.completed && a.completionReason === 0 ? ["Completed", "win"] : ["Incomplete", ""];
     const mins = a.duration != null ? Math.round(a.duration / 60) + " min" : "";
     const img = map?.image || playlist?.image;
     return `
       <a class="act ${cls}" href="https://destinytracker.com/destiny-2/pgcr/${esc(a.instanceId)}" target="_blank" rel="noopener">
         ${img ? `<img class="thumb" src="${esc(img)}" alt="" loading="lazy" width="64" height="40">` : `<span class="thumb"></span>`}
-        <div style="min-width:0">
-          <div class="title">${esc(title)}</div>
-          <div class="meta">${[where, ago(a.when), mins].filter(Boolean).map(esc).join(" · ")}</div>
-        </div>
-        <div class="right">
-          <span class="res">${res}</span>
-          <span class="kda">${num(a.kills)} / ${num(a.deaths)} / ${num(a.assists)}</span>
-        </div>
+        <div style="min-width:0"><div class="title">${esc(title)}</div><div class="meta">${[where, ago(a.when), mins].filter(Boolean).map(esc).join(" · ")}</div></div>
+        <div class="right"><span class="res">${res}</span><span class="kda">${num(a.kills)} / ${num(a.deaths)} / ${num(a.assists)}</span></div>
       </a>`;
   }).join("");
   $("feed-aside").textContent = games ? `${wins}–${games - wins} in PvP · K / D / A` : "K / D / A";
@@ -611,19 +1131,11 @@ function renderCareer() {
     const rows = pvp
       ? [["Matches", num(s.activitiesEntered)], ["Win rate", winRate], ["K/D", ratio(s.killsDeathsRatio)], ["KA/D", ratio(s.efficiency)], ["Kills", num(s.kills)], ["Time played", hrs(s.secondsPlayed)]]
       : [["Kills", num(s.kills)], ["Deaths", num(s.deaths)], ["K/D", ratio(s.killsDeathsRatio)], ["Precision kills", num(s.precisionKills)], ["Time played", hrs(s.secondsPlayed)]];
-    return `
-      <div class="mode">
-        <h4>${esc(m.label)}</h4>
-        <div class="big">${pvp ? num(s.activitiesWon) : num(s.activitiesCleared)}</div>
-        <div class="big-label">${pvp ? "Wins" : "Clears"}</div>
-        <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
-      </div>`;
+    return `<div class="mode"><h4>${esc(m.label)}</h4><div class="big">${pvp ? num(s.activitiesWon) : num(s.activitiesCleared)}</div><div class="big-label">${pvp ? "Wins" : "Clears"}</div><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl></div>`;
   }).join("");
 }
 
-/* ---------- Events ---------- */
 $("search").addEventListener("submit", (e) => { e.preventDefault(); lookup($("name").value); });
-
 $("tabs").addEventListener("click", (e) => {
   const tab = e.target.closest(".tab");
   if (!tab) return;
@@ -632,15 +1144,29 @@ $("tabs").addEventListener("click", (e) => {
   renderCharacter();
   $(`tab-${state.selected}`).focus();
 });
-
 $("recent-chips").addEventListener("click", (e) => {
   const chip = e.target.closest(".recent-chip");
   if (chip) { $("name").value = chip.dataset.name; lookup(chip.dataset.name); }
 });
 
-renderRecent();
-const fromUrl = new URLSearchParams(location.search).get("name");
-if (fromUrl) { $("name").value = fromUrl; lookup(fromUrl); }
+/* ================= Start ================= */
+(async function start() {
+  const params = new URLSearchParams(location.search);
+  const signin = params.get("signin");
+  const fromUrl = params.get("name");
+  if (signin) {
+    params.delete("signin");
+    history.replaceState(null, "", location.pathname + (params.toString() ? "?" + params : "") + location.hash);
+  }
+  if (fromUrl && !location.hash) history.replaceState(null, "", location.href.split("#")[0] + "#lookup");
+
+  try { me = await api("/api/me"); } catch { me = { configured: false, signedIn: false }; }
+  renderAccount();
+  window.addEventListener("hashchange", route);
+  route();
+  if (signin && SIGNIN_MESSAGES[signin]) toast(SIGNIN_MESSAGES[signin], true);
+  if (fromUrl) { $("name").value = fromUrl; lookup(fromUrl); }
+})();
 </script>
 </body>
 </html>

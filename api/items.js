@@ -9,7 +9,10 @@ const TYPES = {
     name: d.displayProperties?.name || "Unknown item",
     icon: img(d.displayProperties?.icon),
     type: d.itemTypeDisplayName || "",
-    tier: d.inventory?.tierType ?? 0 // 6 Exotic, 5 Legendary, 4 Rare, 3 Uncommon, 2 Common
+    tier: d.inventory?.tierType ?? 0,           // 6 Exotic, 5 Legendary, 4 Rare, 3 Uncommon, 2 Common
+    bucket: d.inventory?.bucketTypeHash ?? 0,   // which slot it goes in
+    classType: d.classType ?? 3,                // armor: 0 Titan, 1 Hunter, 2 Warlock, 3 any
+    noTransfer: Boolean(d.nonTransferrable)
   })],
   stat: ["DestinyStatDefinition", (d) => ({
     name: d.displayProperties?.name || "",
@@ -28,6 +31,14 @@ const TYPES = {
 // Definitions rarely change, so keep them in memory between requests.
 const cache = new Map();
 
+// Run tasks a few at a time so Bungie doesn't throttle us.
+async function pool(list, size, fn) {
+  let i = 0;
+  await Promise.all(Array.from({ length: Math.min(size, list.length) }, async () => {
+    while (i < list.length) await fn(list[i++]);
+  }));
+}
+
 module.exports = handler(async (query) => {
   const type = query.get("type") || "item";
   if (!TYPES[type]) throw new HttpError(400, "Unknown definition type.");
@@ -35,20 +46,18 @@ module.exports = handler(async (query) => {
 
   const hashes = [...new Set((query.get("hashes") || "").split(","))]
     .filter((h) => /^\d{1,10}$/.test(h))
-    .slice(0, 60);
+    .slice(0, 100);
   if (!hashes.length) throw new HttpError(400, "No hashes given.");
 
   const out = {};
-  await Promise.all(
-    hashes.map(async (hash) => {
-      const key = `${type}:${hash}`;
-      if (!cache.has(key)) {
-        const def = await bungie(`/Destiny2/Manifest/${table}/${hash}/`).catch(() => null);
-        if (!def) return;
-        cache.set(key, trim(def));
-      }
-      out[hash] = cache.get(key);
-    })
-  );
+  await pool(hashes, 12, async (hash) => {
+    const key = `${type}:${hash}`;
+    if (!cache.has(key)) {
+      const def = await bungie(`/Destiny2/Manifest/${table}/${hash}/`).catch(() => null);
+      if (!def) return;
+      cache.set(key, trim(def));
+    }
+    out[hash] = cache.get(key);
+  });
   return out;
 }, 86400);
