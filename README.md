@@ -16,19 +16,21 @@ Your keys live only on the server (in Vercel's settings), never in the page.
 
 ```
 public/index.html      The website itself
-api/auth/login.js      Sends you to Bungie.net to sign in
-api/auth/callback.js   Bungie sends you back here after sign-in
-api/auth/logout.js     Signs you out
-api/me.js              Who's signed in
-api/inventory.js       Your vault and character inventories
-api/transfer.js        Moves, equips, locks, pulls from Postmaster, equips loadouts
-api/item.js            One item's stats, perks and mods
-api/wishlist.js        Community god rolls for your weapons
-api/search.js          Finds a player by Bungie Name
-api/profile.js         Characters, gear, clan, title, Guardian Rank
-api/activities.js      Recent activity for a character
-api/stats.js           Career stats
-api/items.js           Item, stat, title and activity names and icons
+api/index.js           The one server function; sends each /api/... request to routes/
+vercel.json            Points every /api/... address at api/index.js
+routes/auth/login.js      Sends you to Bungie.net to sign in
+routes/auth/callback.js   Bungie sends you back here after sign-in
+routes/auth/logout.js     Signs you out
+routes/me.js              Who's signed in
+routes/inventory.js       Your vault and character inventories
+routes/transfer.js        Moves, equips, locks, pulls from Postmaster, equips loadouts
+routes/item.js            One item's stats, perks and mods
+routes/wishlist.js        Community god rolls for your weapons
+routes/search.js          Finds a player by Bungie Name
+routes/profile.js         Characters, gear, clan, title, Guardian Rank
+routes/activities.js      Recent activity for a character
+routes/stats.js           Career stats
+routes/items.js           Item, stat, title and activity names and icons
 lib/bungie.js          Shared code that talks to Bungie (adds your API key)
 lib/session.js         Keeps you signed in (encrypted cookie, no database)
 dev-server.js          Runs everything on your computer for testing
@@ -105,6 +107,9 @@ A weapon gets a thumbs-up when its active perks match a recommended roll.
 - Applying a loadout moves each item to the character, then equips them all at once.
 
 ## Troubleshooting
+
+- **Deploy fails with "No more than 12 Serverless Functions"**: keep handlers in
+  `routes/` and only `index.js` in `api/` (Vercel's free plan counts each file in `api/`).
 
 - **"Sign-in isn't set up yet"**: add `BUNGIE_CLIENT_ID` and `BUNGIE_CLIENT_SECRET` in Vercel and redeploy.
 - **Bungie shows an error about the redirect**: the Redirect URL on your Bungie app must match your site address exactly, ending in `/api/auth/callback`.

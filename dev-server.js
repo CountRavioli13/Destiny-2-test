@@ -17,18 +17,12 @@ if (!process.env.BUNGIE_API_KEY) {
   console.warn("Warning: BUNGIE_API_KEY isn't set, so requests to Bungie will fail.");
 }
 
-const apiDir = path.join(__dirname, "api");
+const api = require("./api/index.js"); // same single entry point Vercel uses
 
 http
   .createServer((req, res) => {
     const { pathname } = new URL(req.url, "http://localhost");
-
-    // /api/name or /api/folder/name → api/name.js or api/folder/name.js
-    const match = pathname.match(/^\/api\/([\w/]+?)\/?$/);
-    if (match) {
-      const file = path.join(apiDir, match[1] + ".js");
-      if (file.startsWith(apiDir) && fs.existsSync(file)) return require(file)(req, res);
-    }
+    if (pathname.startsWith("/api/")) return api(req, res);
 
     if (pathname === "/" || pathname === "/index.html") {
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
