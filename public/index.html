@@ -610,6 +610,8 @@
   .perk.picked { outline: 2px solid var(--accent); outline-offset: 2px; }
   .perk-info { padding: 10px 12px; background: var(--surface); border-left: 3px solid #3f78a6; border-radius: 0 4px 4px 0; min-height: 52px; }
   .perk-info .t { color: var(--faint); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
+  .switch-row { display: grid; gap: 6px; margin-top: 10px; }
+  .switch-perk { justify-self: start; }
   .mods { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; }
   .mod { display: flex; align-items: center; gap: 10px; padding: 6px 8px; background: var(--surface); border-radius: 4px; font-size: 12px; min-width: 0; text-align: left; cursor: pointer; border: 1px solid transparent; }
   .mod:hover { border-color: var(--line-2); }
@@ -1544,6 +1546,8 @@ const STAT_ORDER = [
 ];
 const details = {};          // item instance id -> { stats, sockets, options }
 let pickedPlug = null;       // perk the player clicked to read about
+let pickedSocket = null;     // which perk column it's in
+let plugBusy = false;
 
 function actionButtons(it) {
   const d = defs.item[it.hash] || {};
@@ -1616,15 +1620,24 @@ function socketsHtml(it, det) {
         if (!options.includes(s.plug)) options.unshift(s.plug);
         return `<div class="perk-col">${options.map((h) => {
           const p = plugInfo(h);
-          return `<button type="button" class="perk${h === s.plug ? " on" : ""}${wished.has(h) ? " wish" : ""}${String(h) === String(pickedPlug) ? " picked" : ""}" data-plug="${h}"
+          return `<button type="button" class="perk${h === s.plug ? " on" : ""}${wished.has(h) ? " wish" : ""}${String(h) === String(pickedPlug) && String(i) === String(pickedSocket) ? " picked" : ""}" data-plug="${h}" data-socket="${i}"
             title="${esc(p.name)}" aria-label="${esc(p.name)}${h === s.plug ? " (active)" : ""}">${p.icon ? `<img src="${esc(p.icon)}" alt="">` : ""}</button>`;
         }).join("")}</div>`;
       }).join("");
-      const shown = pickedPlug && socks.some(({ i, s }) => s.plug == pickedPlug || det.options[i]?.includes(Number(pickedPlug)))
-        ? plugInfo(pickedPlug) : plugInfo(socks[socks.length - 1].s.plug);
+      const pickedHere = pickedPlug && socks.find(({ i }) => String(i) === String(pickedSocket));
+      const shown = pickedHere ? plugInfo(pickedPlug) : plugInfo(socks[socks.length - 1].s.plug);
+      // Offer to switch when the picked perk isn't the one active in its column
+      const canSwitch = pickedHere && String(pickedHere.s.plug) !== String(pickedPlug) && !it._optimistic;
+      const switchBtn = canSwitch
+        ? `<button type="button" class="btn switch-perk" data-action="plug" data-socket="${pickedHere.i}" data-plug="${esc(pickedPlug)}" ${plugBusy ? "disabled" : ""}>
+             ${plugBusy ? "Switching…" : `Switch to ${esc(shown.name)}`}</button>
+           <span class="sheet-note">Replaces ${esc(plugInfo(pickedHere.s.plug).name)} on your weapon. Free, and you can switch back anytime.</span>`
+        : "";
       out.push(`<div class="sheet-section"><h4>${esc(name)}</h4><div class="perk-cols">${cols}</div>
         ${wished.size ? `<p class="sheet-note"><span class="wish-dot"></span> Green ring: recommended in the community wish list</p>` : ""}
-        <div class="perk-info"><span class="t">${esc(shown.type || "Perk")}</span><b>${esc(shown.name)}</b><p>${esc(shown.description || "No description.")}</p></div></div>`);
+        <div class="perk-info"><span class="t">${esc(shown.type || "Perk")}${pickedHere && String(pickedHere.s.plug) === String(pickedPlug) ? " · Active" : ""}</span><b>${esc(shown.name)}</b><p>${esc(shown.description || "No description.")}</p>
+          ${switchBtn ? `<div class="switch-row">${switchBtn}</div>` : ""}</div>
+        <p class="sheet-note">Tap any perk to read it. For one that isn&#39;t active, a Switch button appears.</p></div>`);
     } else {
       out.push(`<div class="sheet-section"><h4>${esc(name)}</h4><div class="mods">${socks.map(({ s }) => {
         const p = plugInfo(s.plug);
@@ -1718,13 +1731,45 @@ function loadDetail(it) {
   });
 }
 
+async function switchPerk(id, socketIndex, plugHash) {
+  const it = vault.inv?.items.find((x) => x.id === id);
+  const det = details[id];
+  if (!it || !det || plugBusy) return;
+  const to = it.loc !== "vault" ? it.loc : vault.inv.characters[0]?.id;
+  const oldPlug = det.sockets[socketIndex]?.plug;
+  const name = defs.plug[plugHash]?.name || "that perk";
+  plugBusy = true;
+  renderSheet();
+  try {
+    await api("/api/transfer", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "plug", itemId: it.id, itemHash: it.hash, from: it.loc, to, socketIndex, plugHash })
+    });
+    det.sockets[socketIndex].plug = Number(plugHash);
+    it.plugs = it.plugs.map((p) => (p === oldPlug ? Number(plugHash) : p));
+    delete it._wish;
+    toast(`${defs.item[it.hash]?.name || "Your weapon"} now has ${name}.`, false, { title: "Perk switched", icon: iconOf(it) });
+    // Stats can change with the perk: refresh them
+    delete details[id];
+    plugBusy = false;
+    await loadDetail(it);
+    renderVault();
+  } catch (err) {
+    if (err.status === 401) { me.signedIn = false; renderAccount(); }
+    toast(err.message, true, { title: "Couldn't switch perk", icon: iconOf(it) });
+  } finally {
+    plugBusy = false;
+    if (vault.openId === id) renderSheet();
+  }
+}
+
 function openSheet(id) {
   const it = vault.inv.items.find((x) => x.id === id);
   if (!it) return;
   const wasOpen = vault.panel === "item" && vault.openId === id && !$("sheet").hidden;
   vault.panel = "item";
   vault.openId = id;
-  if (!wasOpen) pickedPlug = null;
+  if (!wasOpen) { pickedPlug = null; pickedSocket = null; }
   renderSheet();
   $("sheet").hidden = false;
   $("scrim").hidden = false;
@@ -2579,7 +2624,7 @@ function openPanel(kind, key = null) {
   vault.panel = kind;
   vault.openId = key;
   vault.confirmDelete = null;
-  pickedPlug = null;
+  pickedPlug = null; pickedSocket = null;
   renderSheet();
   $("sheet").hidden = false;
   $("scrim").hidden = false;
@@ -2876,8 +2921,10 @@ $("sheet").addEventListener("click", (e) => {
     setSetting(key, set.dataset.val === "toggle" ? !settings[key] : set.dataset.val);
     return renderSheet();
   }
+  const sw = e.target.closest('[data-action="plug"]');
+  if (sw) { if (!sw.disabled) switchPerk(vault.openId, Number(sw.dataset.socket), sw.dataset.plug); return; }
   const plug = e.target.closest("[data-plug]");
-  if (plug) { pickedPlug = plug.dataset.plug; return renderSheet(); }
+  if (plug) { pickedPlug = plug.dataset.plug; pickedSocket = plug.dataset.socket ?? null; return renderSheet(); }
   const oc = e.target.closest("[data-opt-char]");
   if (oc) { opt.charId = oc.dataset.optChar; opt.results = null; opt.ran = false; opt.exotic = "any"; return renderSheet(); }
   const ow = e.target.closest("[data-opt-w]");

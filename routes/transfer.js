@@ -10,6 +10,9 @@
 //       pulls an item from `from`'s Postmaster (itemId "0" for stackables).
 //   { action: "equipMany", itemIds: [...], to }
 //       equips several items already on character `to` at once (loadouts).
+//   { action: "plug", itemId, to, socketIndex, plugHash }
+//       switches a perk to another option the item already has, for free
+//       (the same change you can make in game). `to` is any of the player's character ids.
 const { bungie, handler, readBody, HttpError } = require("../lib/bungie");
 const { requireSession } = require("../lib/session");
 
@@ -39,6 +42,23 @@ module.exports = handler(async (query, { req, res }) => {
       equipped: results.filter((x) => x.equipStatus === 1).map((x) => String(x.itemInstanceId)),
       failed: results.filter((x) => x.equipStatus !== 1).map((x) => String(x.itemInstanceId))
     };
+  }
+
+  /* ---- Switch a perk ---- */
+  if (action === "plug") {
+    const socketIndex = Number(body.socketIndex);
+    if (!isId(itemId) || !isId(to) || !isId(body.plugHash) || !Number.isInteger(socketIndex) || socketIndex < 0 || socketIndex > 30) throw bad();
+    await bungie("/Destiny2/Actions/Items/InsertSocketPlugFree/", {
+      method: "POST",
+      token: s.at,
+      body: {
+        plug: { socketIndex, socketArrayType: 0, plugItemHash: Number(body.plugHash) },
+        itemId: String(itemId),
+        characterId: String(to),
+        membershipType: s.mt
+      }
+    });
+    return { plugged: true, socketIndex, plugHash: Number(body.plugHash) };
   }
 
   /* ---- Pull from the Postmaster ---- */
