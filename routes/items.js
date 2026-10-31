@@ -12,7 +12,9 @@ const TYPES = {
     tier: d.inventory?.tierType ?? 0,           // 6 Exotic, 5 Legendary, 4 Rare, 3 Uncommon, 2 Common
     bucket: d.inventory?.bucketTypeHash ?? 0,   // which slot it goes in
     classType: d.classType ?? 3,                // armor: 0 Titan, 1 Hunter, 2 Warlock, 3 any
-    noTransfer: Boolean(d.nonTransferrable)
+    noTransfer: Boolean(d.nonTransferrable),
+    // the season badge drawn in the icon's corner
+    watermark: img(d.iconWatermark || d.quality?.displayVersionWatermarkIcons?.[0])
   })],
   stat: ["DestinyStatDefinition", (d) => ({
     name: d.displayProperties?.name || "",
@@ -48,6 +50,11 @@ const TYPES = {
       type: d.itemTypeDisplayName || ""
     };
   }],
+  // Element icons (Arc, Solar, Void…)
+  damage: ["DestinyDamageTypeDefinition", (d) => ({
+    name: d.displayProperties?.name || "",
+    icon: img(d.displayProperties?.icon)
+  })],
   socketCategory: ["DestinySocketCategoryDefinition", (d) => ({ name: d.displayProperties?.name || "" })],
   // Just names and icons, for searching perks across the whole inventory
   plugname: ["DestinyInventoryItemDefinition", (d) => ({

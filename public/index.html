@@ -161,26 +161,35 @@
 
   .tile {
     position: relative; display: block; width: 50px; height: 50px; padding: 0; cursor: pointer; overflow: hidden;
-    background: var(--surface-2); border: 0; border-radius: 3px; box-shadow: 0 1px 2px rgba(0,0,0,.45);
-    transition: transform .1s, box-shadow .1s;
+    background: var(--surface-2); border: 0; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,.5);
+    transition: transform .12s, box-shadow .12s;
   }
-  .tile img { width: 100%; height: 100%; object-fit: cover; }
-  .tile.mw::before { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: 3px; box-shadow: inset 0 0 0 2px #e9c45a; pointer-events: none; }
+  .tile > img:not(.wm) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .tile > img.wm { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+  .tile.t6::before { content: ""; position: absolute; inset: 0; z-index: 2; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(214,182,62,.95); pointer-events: none; }
+  .tile.mw::before { content: ""; position: absolute; inset: 0; z-index: 2; border-radius: 3px; box-shadow: inset 0 0 0 2px #e9c45a, inset 0 0 10px rgba(233,196,90,.4); pointer-events: none; }
   .eq-slot .tile { width: 56px; height: 56px; box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px #f2f4f7; }
   .tile.empty { cursor: default; background: transparent; box-shadow: inset 0 0 0 1px var(--line-2); }
   .eq-slot .tile.empty { box-shadow: inset 0 0 0 1px var(--line-2); }
-  .tile:hover:not(.empty) { transform: translateY(-1px); box-shadow: 0 0 0 2px var(--accent), 0 6px 14px rgba(0,0,0,.55); z-index: 3; }
+  .tile:hover:not(.empty) { transform: translateY(-1px); box-shadow: 0 0 0 2px var(--accent), 0 6px 14px rgba(0,0,0,.55); z-index: 4; }
   .tile .pw {
-    position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; align-items: center; justify-content: flex-end; gap: 3px;
-    padding: 8px 4px 3px; background: linear-gradient(transparent, rgba(0,0,0,.85));
-    font: 600 10px/1 var(--mono); color: #fff; text-shadow: 0 1px 1px #000; font-variant-numeric: tabular-nums;
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; height: 13px; padding: 0 3px;
+    display: flex; align-items: center; justify-content: flex-end; gap: 3px;
+    background: rgba(6,8,12,.84); font: 600 10px/13px var(--mono); color: #f2f4f7; font-variant-numeric: tabular-nums;
   }
-  .tile .pw i { width: 7px; height: 7px; border-radius: 50%; flex: none; box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
-  .tile .lock { position: absolute; top: 3px; right: 3px; z-index: 2; width: 10px; height: 10px; color: #fff; filter: drop-shadow(0 1px 1px #000); }
-  .tile .craft { position: absolute; top: 4px; left: 4px; z-index: 2; width: 6px; height: 6px; background: #e0533f; transform: rotate(45deg); box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
+  .eq-slot .tile .pw { height: 14px; line-height: 14px; }
+  .tile .pw img.el { width: 10px; height: 10px; flex: none; }
+  .tile .pw i { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+  .tile .pw .craft { margin-right: auto; width: 5px; height: 5px; flex: none; background: #e0533f; transform: rotate(45deg); }
+  .tile .gr {
+    position: absolute; top: 0; left: 0; z-index: 3; width: 14px; height: 14px; display: grid; place-items: center;
+    background: #2c9a58; color: #fff; border-bottom-right-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,.5);
+  }
+  .tile .gr svg { width: 8px; height: 8px; }
+  .tile .lock { position: absolute; top: 3px; right: 3px; z-index: 3; width: 10px; height: 10px; color: #fff; filter: drop-shadow(0 1px 1px #000); }
   .tile.dim { opacity: .14; box-shadow: none; }
   .tile.busy { opacity: .4; pointer-events: none; }
-  .tile.busy::after { content: ""; position: absolute; inset: 0; z-index: 3; background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(255,255,255,.12) 6px 12px); }
+  .tile.busy::after { content: ""; position: absolute; inset: 0; z-index: 5; background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(255,255,255,.12) 6px 12px); }
   .tile.dragging { opacity: .3; }
 
   .store-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 8px; }
@@ -197,17 +206,78 @@
     #vsort { flex: 1; }
   }
 
+  /* Vault toolbar */
+  .vault-top { display: flex; align-items: baseline; gap: 6px 16px; flex-wrap: wrap; margin-bottom: 10px; }
+  .vcount { color: var(--faint); font-size: 13px; }
+  .vault-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .vsearch { flex: 1 1 360px; min-width: 0; position: relative; display: flex; align-items: center; }
+  .vsearch .mag { position: absolute; left: 12px; width: 15px; height: 15px; color: var(--faint); pointer-events: none; }
+  .vsearch #vfilter {
+    width: 100%; flex: none; padding: 10px 42px 10px 36px; font: 400 14px var(--body); color: var(--fg);
+    background: var(--surface); border: 1px solid var(--line-2); border-radius: 6px;
+  }
+  .vsearch #vfilter::placeholder { color: var(--faint); }
+  .vsearch #vfilter:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(228,184,76,.16); }
+  .vsearch kbd { position: absolute; right: 10px; padding: 1px 6px; font: 500 11px var(--mono); color: var(--faint); border: 1px solid var(--line-2); border-radius: 4px; pointer-events: none; }
+  .vault-bar .btn.ghost[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
+  .btn.icon-only { padding: 8px 10px; }
+  .btn.icon-only svg { width: 17px; height: 17px; }
+  .tip {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 12px; padding: 8px 12px;
+    font-size: 13px; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 4px;
+  }
+  .tip button { margin-left: auto; padding: 2px 4px; background: none; border: 0; color: var(--accent); font-weight: 600; cursor: pointer; }
+  .search-help { margin: 0 0 14px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; color: var(--muted); font-size: 13px; }
+  .search-help .help-body { margin-top: 0; }
+  @media (max-width: 900px) {
+    .vsearch { flex-basis: 100%; }
+    .vsearch kbd { display: none; }
+    .vault-bar .btn:not(.icon-only), .vault-bar #vsort { flex: 1 1 0; min-width: 0; padding-inline: 8px; }
+    .vault-bar .btn:not(.icon-only) { font-size: 14px; }
+    .store-tab .emblem-card { padding-left: 46px; gap: 4px; }
+    .store-tab .ename { font-size: .98rem; }
+    .store-tab .epow { font-size: .92rem; }
+  }
+
+  /* Hover card */
+  .hovercard {
+    position: fixed; z-index: 60; width: 260px; pointer-events: none; overflow: hidden; font-size: 12px;
+    background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 6px; box-shadow: 0 16px 40px rgba(0,0,0,.6);
+  }
+  .hc-head { padding: 8px 12px; color: #fff; background: var(--tier-5); }
+  .hc-head.tier-6 { background: #c9a62f; color: #1b1404; }
+  .hc-head.tier-4 { background: var(--tier-4); }
+  .hc-head.tier-3 { background: var(--tier-3); }
+  .hc-head.tier-2 { background: #6f6b66; }
+  .hc-head b { display: block; font: 800 1.15rem/1.05 var(--display); text-transform: uppercase; letter-spacing: .02em; }
+  .hc-head span { font-size: 11px; opacity: .85; }
+  .hc-body { display: grid; gap: 6px; padding: 10px 12px 12px; }
+  .hc-row { display: flex; align-items: center; gap: 10px; }
+  .hc-pow { font: 800 1.6rem/1 var(--display); color: var(--accent); font-variant-numeric: tabular-nums; }
+  .hc-el { display: inline-flex; align-items: center; gap: 5px; color: #c9d0db; }
+  .hc-el img { width: 14px; height: 14px; }
+  .hc-meta { color: var(--muted); }
+  .hc-perks { color: var(--fg); line-height: 1.45; }
+  .hc-gr { display: flex; align-items: center; gap: 6px; color: #9fe8bb; }
+  .hc-gr svg { width: 12px; height: 12px; }
+  .hc-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .hc-tags span { padding: 1px 6px; border-radius: 3px; background: var(--surface-2); color: var(--muted); font-size: 11px; }
+
+  /* Rarity band on item panels, like in-game tooltips */
+  .sheet-hero.tier-6 { box-shadow: inset 0 4px 0 #ceae33; }
+  .sheet-hero.tier-5 { box-shadow: inset 0 4px 0 var(--tier-5); }
+  .sheet-hero.tier-4 { box-shadow: inset 0 4px 0 var(--tier-4); }
+  .sheet-facts .el img { width: 14px; height: 14px; }
+
   /* Postmaster row */
   .cell.pm { display: grid; gap: 6px; align-content: start; }
   .pm-count { font: 500 11px var(--mono); color: var(--faint); }
   .pm-count.warn { color: var(--loss); }
   .pm-grid { display: grid; grid-template-columns: repeat(auto-fill, 40px); gap: 4px; }
   .cell.pm .tile { width: 40px; height: 40px; }
-  .cell.pm .tile .pw { padding-top: 6px; font-size: 9px; }
+  .cell.pm .tile .pw { height: 12px; line-height: 12px; font-size: 9px; }
 
   /* God roll marks */
-  .tile .pw .gr { margin-right: auto; display: inline-flex; width: 11px; height: 11px; color: #6ee59a; filter: drop-shadow(0 1px 1px #000); }
-  .tile .pw .gr svg { width: 100%; height: 100%; }
   .perk.wish { box-shadow: 0 0 0 2px #4cc77f; }
   .perk.on.wish { box-shadow: 0 0 0 2px var(--bg-2), 0 0 0 4px #4cc77f; }
   .wish-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 2px #4cc77f; margin-right: 4px; vertical-align: -1px; }
@@ -535,27 +605,30 @@
     </div>
 
     <div id="v-app" hidden>
-      <div class="vault-head">
-        <div>
-          <span class="eyebrow">Signed in as <span id="v-me"></span></span>
-          <h1>Inventory</h1>
-        </div>
-        <div class="vtools">
-          <label class="sr" for="vfilter">Search items</label>
-          <input class="field" id="vfilter" type="search" placeholder="Search by name or type" autocomplete="off">
-          <label class="sr" for="vsort">Sort</label>
-          <select class="field" id="vsort">
-            <option value="power">Sort: Power</option>
-            <option value="rarity">Sort: Rarity</option>
-            <option value="name">Sort: Name</option>
-          </select>
-          <button class="btn ghost" type="button" id="v-loadouts">Loadouts</button>
-          <button class="btn ghost" type="button" id="v-refresh">Refresh</button>
-        </div>
+      <div class="vault-top">
+        <span class="eyebrow">Signed in as <span id="v-me"></span></span>
+        <span class="vcount" id="vcount"></span>
       </div>
-      <p class="hint"><b id="vcount"></b> · Drag an item to another column to move it, or onto an equipped slot to equip it. Tap any item for options.</p>
-      <details class="search-help" id="search-help">
-        <summary>Search filters</summary>
+      <div class="vault-bar">
+        <div class="vsearch">
+          <svg class="mag" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5"/></svg>
+          <label class="sr" for="vfilter">Search items</label>
+          <input id="vfilter" type="search" placeholder="Search items, or try is:dupe · perk:outlaw · stat:health>=25" autocomplete="off" spellcheck="false">
+          <kbd aria-hidden="true">/</kbd>
+        </div>
+        <button class="btn ghost" type="button" id="v-filters" aria-expanded="false" aria-controls="search-help">Filters</button>
+        <label class="sr" for="vsort">Sort</label>
+        <select class="field" id="vsort">
+          <option value="power">Sort: Power</option>
+          <option value="rarity">Sort: Rarity</option>
+          <option value="name">Sort: Name</option>
+        </select>
+        <button class="btn ghost" type="button" id="v-loadouts">Loadouts</button>
+        <button class="btn ghost icon-only" type="button" id="v-refresh" title="Refresh from Bungie" aria-label="Refresh from Bungie">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2.5v3h-3"/></svg>
+        </button>
+      </div>
+      <div class="search-help" id="search-help" hidden>
         <div class="help-body">
           <div class="chips">
             <button type="button" class="chip" data-q="is:dupe">is:dupe</button>
@@ -572,7 +645,8 @@
           <b>perk:</b> any perk or mod name (use _ for spaces). <b>stat:</b> any stat name, or total, with &gt; &gt;= &lt; &lt;= or =.
           Put <b>-</b> in front of any filter to exclude it. Combine as many as you like.</p>
         </div>
-      </details>
+      </div>
+      <p class="tip" id="v-tip" hidden>Drag an item to another column to move it, or onto an equipped slot to equip it. Click any item for perks, stats and options. <button type="button" id="v-tip-close">Got it</button></p>
       <div class="store-tabs" id="store-tabs" hidden></div>
       <div class="stores" id="stores"></div>
     </div>
@@ -648,6 +722,7 @@
 <div class="scrim" id="scrim" hidden></div>
 <aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-name" hidden></aside>
 <div class="compare" id="compare" role="dialog" aria-modal="true" aria-labelledby="cmp-title" hidden><div class="compare-box" id="compare-box"></div></div>
+<div class="hovercard" id="hovercard" aria-hidden="true" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <footer>
@@ -711,8 +786,13 @@ function toast(msg, isError = false) {
 }
 
 /* Game definitions, cached in this browser so repeat visits load fast */
-const DEFS_VERSION = 2;
-const defs = { item: {}, stat: {}, record: {}, activity: {}, detail: {}, plug: {}, socketCategory: {}, plugname: {} };
+const DEFS_VERSION = 3;
+const defs = { item: {}, stat: {}, record: {}, activity: {}, detail: {}, plug: {}, socketCategory: {}, plugname: {}, damage: {} };
+const DAMAGE_HASH = { 1: 3373582085, 2: 2303181850, 3: 1847026933, 4: 3454344768, 6: 151347233, 7: 3949783978 };
+function elementOf(it) {
+  if (it.kind !== "weapons" || !DAMAGE[it.damage]) return null;
+  return { name: DAMAGE[it.damage], icon: defs.damage[DAMAGE_HASH[it.damage]]?.icon || null, n: it.damage };
+}
 try { Object.assign(defs.item, JSON.parse(localStorage.getItem(`defs-item-v${DEFS_VERSION}`) || "{}")); } catch {}
 try { Object.assign(defs.plugname, JSON.parse(localStorage.getItem(`defs-plugname-v${DEFS_VERSION}`) || "{}")); } catch {}
 function persistItemDefs() { try { localStorage.setItem(`defs-item-v${DEFS_VERSION}`, JSON.stringify(defs.item)); } catch {} }
@@ -795,7 +875,8 @@ async function loadVault(quiet = false, silent = false) {
     await Promise.all([
       loadDefs("item", [...inv.items.map((i) => i.hash), ...inv.postmaster.map((x) => x.hash)]),
       loadDefs("record", inv.characters.map((c) => c.titleHash)),
-      loadDefs("stat", inv.items.flatMap((i) => Object.keys(i.stats)))
+      loadDefs("stat", inv.items.flatMap((i) => Object.keys(i.stats))),
+      loadDefs("damage", Object.values(DAMAGE_HASH))
     ]);
     inv.postmaster.forEach((x, i) => { x.key = `pm${i}-${x.hash}`; });
     inv.items = inv.items
@@ -811,7 +892,12 @@ async function loadVault(quiet = false, silent = false) {
     vault.perkNames = vault.perkNames && inv.items.every((it) => it.plugs.every((p) => defs.plugname[p]));
     for (const k in details) delete details[k];
     if (vault.wish) { /* reuse the list we already have; matches are recomputed per item */ } else loadWishlist();
+    setTimeout(ensurePerkNames, 1500); // perk names power perk: search and the hover card
     $("v-me").textContent = `${me.name}#${me.code}`;
+    $("v-tip").firstChild.textContent = canHover.matches
+      ? "Drag an item to another column to move it, or onto an equipped slot to equip it. Click any item for perks, stats and options. "
+      : "Tap any item to see its perks and stats, and to move or equip it. ";
+    try { $("v-tip").hidden = localStorage.getItem("tip-dismissed") === "1"; } catch { $("v-tip").hidden = false; }
     vaultPanel("v-app");
     renderVault();
     if (quiet && !silent) toast("Vault refreshed.");
@@ -852,14 +938,53 @@ function tileHtml(it) {
   const d = defs.item[it.hash] || {};
   const tier = d.tier >= 2 && d.tier <= 6 ? d.tier : 2;
   const where = placeName(it.loc) + (it.equipped ? " (equipped)" : "");
-  const dmg = it.kind === "weapons" && DAMAGE[it.damage] ? `<i style="background:var(--dmg-${it.damage})"></i>` : "";
-  const cls = ["tile", it.masterwork ? "mw" : "", matches(it) ? "" : "dim", vault.busy.has(it.id) ? "busy" : ""].filter(Boolean).join(" ");
-  return `<button type="button" class="${cls}" data-id="${esc(it.id)}" draggable="true" style="--tier:var(--tier-${tier})"
-      title="${esc(d.name)} · ${esc(d.type)} · ${esc(where)}" aria-label="${esc(d.name)}, ${it.power ?? ""} power, ${esc(where)}">
+  const el = elementOf(it);
+  const elHtml = el ? (el.icon ? `<img class="el" src="${esc(el.icon)}" alt="">` : `<i style="background:var(--dmg-${el.n})"></i>`) : "";
+  const cls = ["tile", `t${tier}`, it.masterwork ? "mw" : "", matches(it) ? "" : "dim", vault.busy.has(it.id) ? "busy" : ""].filter(Boolean).join(" ");
+  return `<button type="button" class="${cls}" data-id="${esc(it.id)}" draggable="true"
+      aria-label="${esc(d.name)}, ${it.power ?? ""} power, ${esc(where)}">
       ${d.icon ? `<img src="${esc(d.icon)}" alt="" loading="lazy" width="50" height="50" draggable="false">` : `<img alt="" draggable="false">`}
-      ${it.locked ? LOCK_SVG : ""}${it.crafted ? `<span class="craft" aria-hidden="true"></span>` : ""}
-      <span class="pw">${wishMatch(it) ? `<span class="gr" title="Community god roll">${THUMB_SVG}</span>` : ""}${dmg}${it.power ?? ""}</span>
+      ${d.watermark ? `<img class="wm" src="${esc(d.watermark)}" alt="" loading="lazy" draggable="false">` : ""}
+      ${wishMatch(it) ? `<span class="gr" title="Community god roll">${THUMB_SVG}</span>` : ""}
+      ${it.locked ? LOCK_SVG : ""}
+      <span class="pw">${it.crafted ? `<span class="craft" title="Crafted"></span>` : ""}${elHtml}${it.power ?? ""}</span>
     </button>`;
+}
+
+/* ---------- Hover card (mouse only) ---------- */
+const canHover = window.matchMedia("(hover: hover) and (pointer: fine)");
+let hoverTimer = null;
+function hideHover() { clearTimeout(hoverTimer); $("hovercard").hidden = true; }
+function showHover(tile) {
+  const it = vault.inv?.items.find((x) => x.id === tile.dataset.id);
+  if (!it || !tile.isConnected) return;
+  const d = defs.item[it.hash] || {};
+  const tier = d.tier >= 2 && d.tier <= 6 ? d.tier : 2;
+  const el = elementOf(it);
+  const gr = wishMatch(it);
+  const traits = it.plugs.map((h) => defs.plugname[h]).filter((p) => p?.name && /trait/i.test(p.type || "")).map((p) => p.name);
+  const total = it.kind === "armor" ? Object.values(it.stats).reduce((a, b) => a + b, 0) : null;
+  const tags = [it.masterwork && "Masterworked", it.crafted && "Crafted", it.locked && "Locked", (vault.dupes[it.hash] || 0) > 1 && `${vault.dupes[it.hash]} copies`].filter(Boolean);
+  const card = $("hovercard");
+  card.innerHTML = `
+    <div class="hc-head tier-${tier}"><b>${esc(d.name || "Item")}</b><span>${esc(TIERS[tier] || "")} ${esc(d.type || "")}</span></div>
+    <div class="hc-body">
+      <div class="hc-row"><span class="hc-pow">${it.power ?? "–"}</span>
+        ${el ? `<span class="hc-el">${el.icon ? `<img src="${esc(el.icon)}" alt="">` : ""}${el.name}</span>` : ""}
+        ${total != null ? `<span class="hc-el">Stat total ${total}</span>` : ""}</div>
+      <div class="hc-meta">${esc(placeName(it.loc))}${it.equipped ? " · Equipped" : ""}</div>
+      ${traits.length ? `<div class="hc-perks">${traits.map(esc).join(" · ")}</div>` : ""}
+      ${gr ? `<div class="hc-gr">${THUMB_SVG} Community god roll</div>` : ""}
+      ${tags.length ? `<div class="hc-tags">${tags.map((t) => `<span>${t}</span>`).join("")}</div>` : ""}
+    </div>`;
+  card.hidden = false;
+  const r = tile.getBoundingClientRect();
+  const w = card.offsetWidth, hgt = card.offsetHeight;
+  let left = r.right + 10;
+  if (left + w > window.innerWidth - 8) left = r.left - w - 10;
+  let top = Math.min(r.top, window.innerHeight - hgt - 8);
+  card.style.left = Math.max(8, left) + "px";
+  card.style.top = Math.max(8, top) + "px";
 }
 
 function headHtml(store) {
@@ -1077,7 +1202,7 @@ function sheetHtml(it) {
   const tier = d.tier >= 2 && d.tier <= 6 ? d.tier : 2;
   const facts = [
     `<span class="big">${it.power ?? "–"}</span>`,
-    it.kind === "weapons" && DAMAGE[it.damage] ? `<span class="el"><i style="background:var(--dmg-${it.damage})"></i>${DAMAGE[it.damage]}</span>` : "",
+    elementOf(it) ? `<span class="el">${elementOf(it).icon ? `<img src="${esc(elementOf(it).icon)}" alt="">` : `<i style="background:var(--dmg-${it.damage})"></i>`}${DAMAGE[it.damage]}</span>` : "",
     dd && AMMO[dd.ammo] ? `<span>${AMMO[dd.ammo]} ammo</span>` : "",
     `<span>${esc(placeName(it.loc))}${it.equipped ? " · Equipped" : ""}</span>`,
     it.masterwork ? `<span style="color:#e9c45a">Masterworked</span>` : "",
@@ -1091,7 +1216,7 @@ function sheetHtml(it) {
   else body = statsHtml(it, det) + socketsHtml(it, det) + (dd.flavor ? `<div class="sheet-section"><p class="flavor">“${esc(dd.flavor)}”</p></div>` : "");
 
   return `
-    <div class="sheet-hero" style="${dd?.screenshot ? `background-image:url('${esc(dd.screenshot)}')` : ""}">
+    <div class="sheet-hero tier-${tier}" style="${dd?.screenshot ? `background-image:url('${esc(dd.screenshot)}')` : ""}">
       <div class="sheet-top">
         ${d.icon ? `<img src="${esc(d.icon)}" alt="" width="64" height="64">` : ""}
         <div style="min-width:0">
@@ -1611,7 +1736,7 @@ $("stores").addEventListener("click", (e) => {
   const sec = e.target.closest(".sec-head");
   if (sec) { vault.collapsed[sec.dataset.sec] = !vault.collapsed[sec.dataset.sec]; return renderVault(); }
   const tile = e.target.closest(".tile[data-id]");
-  if (tile) return openSheet(tile.dataset.id);
+  if (tile) { hideHover(); return openSheet(tile.dataset.id); }
   const pmTile = e.target.closest(".tile[data-pm]");
   if (pmTile) openPanel("postmaster", pmTile.dataset.pm);
 });
@@ -1642,6 +1767,33 @@ $("sheet").addEventListener("keydown", (e) => {
   if (e.key === "Enter" && e.target.id === "lo-name") saveCurrentLoadout(e.target.value.trim(), $("lo-char").value);
 });
 $("v-loadouts").addEventListener("click", () => openPanel("loadouts"));
+$("v-filters").addEventListener("click", () => {
+  const open = $("search-help").hidden;
+  $("search-help").hidden = !open;
+  $("v-filters").setAttribute("aria-expanded", String(open));
+});
+$("v-tip-close").addEventListener("click", () => {
+  $("v-tip").hidden = true;
+  try { localStorage.setItem("tip-dismissed", "1"); } catch {}
+});
+$("stores").addEventListener("mouseover", (e) => {
+  if (!canHover.matches || dragId) return;
+  const tile = e.target.closest(".tile[data-id]");
+  if (!tile) return;
+  clearTimeout(hoverTimer);
+  hoverTimer = setTimeout(() => showHover(tile), 260);
+});
+$("stores").addEventListener("mouseout", (e) => {
+  if (e.target.closest(".tile[data-id]") && !e.relatedTarget?.closest?.(".tile[data-id]")) hideHover();
+});
+window.addEventListener("scroll", hideHover, { passive: true });
+document.addEventListener("keydown", (e) => {
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || "");
+  if (e.key === "/" && !typing && !$("view-vault").hidden && !$("v-app").hidden) { e.preventDefault(); $("vfilter").focus(); }
+  if (e.key === "Escape" && document.activeElement === $("vfilter") && $("vfilter").value) {
+    $("vfilter").value = ""; vault.q = ""; renderVault();
+  }
+});
 $("compare").addEventListener("click", (e) => {
   if (e.target === $("compare") || e.target.closest("[data-cmp-close]")) return closeCompare();
   const open = e.target.closest("[data-cmp-open]");
@@ -1681,6 +1833,7 @@ $("stores").addEventListener("dragstart", (e) => {
   const tile = e.target.closest(".tile[data-id]");
   if (!tile) return;
   dragId = tile.dataset.id;
+  hideHover();
   e.dataTransfer.effectAllowed = "move";
   e.dataTransfer.setData("text/plain", dragId);
   tile.classList.add("dragging");
