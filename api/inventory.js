@@ -29,7 +29,9 @@ module.exports = handler(async (query, { req, res }) => {
       equipped,
       power: inst.primaryStat?.value ?? null,
       damage: inst.damageType ?? 0,
-      locked: Boolean(it.state & 1)
+      locked: Boolean(it.state & 1),
+      masterwork: Boolean(it.state & 4),
+      crafted: Boolean(it.state & 8)
     });
   };
 

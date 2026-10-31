@@ -161,22 +161,26 @@
 
   .tile {
     position: relative; display: block; width: 50px; height: 50px; padding: 0; cursor: pointer; overflow: hidden;
-    background: #000; border: 1px solid var(--tier, var(--tier-2)); border-radius: 2px;
+    background: var(--surface-2); border: 0; border-radius: 3px; box-shadow: 0 1px 2px rgba(0,0,0,.45);
+    transition: transform .1s, box-shadow .1s;
   }
-  .eq-slot .tile { width: 56px; height: 56px; box-shadow: 0 0 0 2px #fff; border-color: transparent; }
-  .tile.empty { cursor: default; background: var(--surface); border: 1px dashed var(--line-2); box-shadow: none; }
-  .tile img { width: 100%; height: 100%; object-fit: cover; background: var(--surface-2); }
-  .tile:hover:not(.empty) { outline: 2px solid var(--accent); outline-offset: 1px; z-index: 2; }
+  .tile img { width: 100%; height: 100%; object-fit: cover; }
+  .tile.mw::before { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: 3px; box-shadow: inset 0 0 0 2px #e9c45a; pointer-events: none; }
+  .eq-slot .tile { width: 56px; height: 56px; box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px #f2f4f7; }
+  .tile.empty { cursor: default; background: transparent; box-shadow: inset 0 0 0 1px var(--line-2); }
+  .eq-slot .tile.empty { box-shadow: inset 0 0 0 1px var(--line-2); }
+  .tile:hover:not(.empty) { transform: translateY(-1px); box-shadow: 0 0 0 2px var(--accent), 0 6px 14px rgba(0,0,0,.55); z-index: 3; }
   .tile .pw {
-    position: absolute; left: 0; right: 0; bottom: 0; height: 14px; padding: 0 3px;
-    display: flex; align-items: center; justify-content: flex-end; gap: 3px;
-    background: rgba(0,0,0,.75); font: 600 10px/14px var(--mono); color: #fff; font-variant-numeric: tabular-nums;
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; align-items: center; justify-content: flex-end; gap: 3px;
+    padding: 8px 4px 3px; background: linear-gradient(transparent, rgba(0,0,0,.85));
+    font: 600 10px/1 var(--mono); color: #fff; text-shadow: 0 1px 1px #000; font-variant-numeric: tabular-nums;
   }
-  .tile .pw i { width: 6px; height: 6px; border-radius: 50%; margin-right: auto; flex: none; }
-  .tile .lock { position: absolute; top: 2px; right: 2px; width: 11px; height: 11px; color: #fff; filter: drop-shadow(0 1px 1px #000); }
-  .tile.dim { opacity: .15; }
+  .tile .pw i { width: 7px; height: 7px; border-radius: 50%; flex: none; box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
+  .tile .lock { position: absolute; top: 3px; right: 3px; z-index: 2; width: 10px; height: 10px; color: #fff; filter: drop-shadow(0 1px 1px #000); }
+  .tile .craft { position: absolute; top: 4px; left: 4px; z-index: 2; width: 6px; height: 6px; background: #e0533f; transform: rotate(45deg); box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
+  .tile.dim { opacity: .14; box-shadow: none; }
   .tile.busy { opacity: .4; pointer-events: none; }
-  .tile.busy::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(255,255,255,.12) 6px 12px); }
+  .tile.busy::after { content: ""; position: absolute; inset: 0; z-index: 3; background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(255,255,255,.12) 6px 12px); }
   .tile.dragging { opacity: .3; }
 
   .store-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 8px; }
@@ -193,41 +197,91 @@
     #vsort { flex: 1; }
   }
 
-  /* Item sheet */
-  .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.5); }
+  /* Item panel */
+  .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.55); }
   .sheet {
-    position: fixed; z-index: 41; top: 0; right: 0; bottom: 0; width: min(380px, 100%);
-    background: var(--bg-2); border-left: 1px solid var(--line-2); box-shadow: -20px 0 40px rgba(0,0,0,.45);
-    display: flex; flex-direction: column; overflow-y: auto;
-    padding: calc(16px + env(safe-area-inset-top, 0px)) calc(18px + env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) 18px;
+    position: fixed; z-index: 41; top: 0; right: 0; bottom: 0; width: min(460px, 100%);
+    background: var(--bg-2); border-left: 1px solid var(--line-2); box-shadow: -20px 0 40px rgba(0,0,0,.5);
+    overflow-y: auto; overscroll-behavior: contain;
+    padding: 0 calc(18px + env(safe-area-inset-right, 0px)) calc(22px + env(safe-area-inset-bottom, 0px)) 18px;
   }
+  .sheet-hero {
+    position: relative; margin: 0 -18px; padding: calc(18px + env(safe-area-inset-top, 0px)) 18px 16px;
+    background: var(--surface) center / cover no-repeat;
+  }
+  .sheet-hero::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15,19,26,.35) 0%, rgba(15,19,26,.92) 75%, var(--bg-2) 100%); }
+  .sheet-hero > * { position: relative; }
   .sheet-top { display: flex; gap: 14px; align-items: flex-start; }
-  .sheet-top img { width: 72px; height: 72px; border: 2px solid var(--tier, var(--tier-2)); border-radius: 3px; flex: none; background: #000; }
-  .sheet-top .name { font: 800 1.6rem/1.05 var(--display); text-transform: uppercase; overflow-wrap: anywhere; }
-  .sheet-top .kind { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .sheet-top img { width: 64px; height: 64px; border-radius: 3px; flex: none; background: #000; box-shadow: 0 0 0 1px rgba(255,255,255,.2); }
+  .sheet-top .name { font: 800 1.65rem/1.02 var(--display); text-transform: uppercase; overflow-wrap: anywhere; text-shadow: 0 2px 8px rgba(0,0,0,.6); }
+  .sheet-top .kind { color: #c9d0db; font-size: 13px; margin-top: 4px; }
+  .sheet-top .kind .ex { color: var(--tier-6); }
   .sheet-close {
     margin-left: auto; flex: none; width: 34px; height: 34px; border-radius: 4px; cursor: pointer; font-size: 20px; line-height: 1;
-    background: var(--surface); border: 1px solid var(--line-2);
+    background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.2);
   }
-  .sheet-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 18px 0; }
-  .sheet-stats div { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; }
-  .sheet-stats b { display: block; font: 700 1.3rem/1.1 var(--display); }
-  .sheet-stats span { color: var(--faint); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
-  .actions { display: grid; gap: 8px; }
-  .actions .group-label { margin-top: 6px; }
+  .sheet-facts { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 14px; font-size: 13px; color: #c9d0db; align-items: baseline; }
+  .sheet-facts .big { font: 800 2rem/1 var(--display); color: var(--accent); font-variant-numeric: tabular-nums; }
+  .sheet-facts .el { display: inline-flex; align-items: center; gap: 6px; }
+  .sheet-facts .el i { width: 9px; height: 9px; border-radius: 50%; }
+  .sheet-section { margin-top: 20px; display: grid; gap: 10px; }
+  .sheet-section h4 { margin: 0; font: 700 13px/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+  .actions { gap: 8px; }
+  .act-group { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 10px; }
+  .act-label { font: 600 11px/1.2 var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+  .act-row { display: flex; flex-wrap: wrap; gap: 6px; }
   .act-btn {
-    display: flex; align-items: center; gap: 12px; padding: 10px 12px; cursor: pointer; text-align: left;
+    display: inline-flex; align-items: center; gap: 7px; padding: 4px 10px 4px 4px; cursor: pointer;
     background: var(--surface); border: 1px solid var(--line-2); border-radius: 4px;
   }
   .act-btn:hover:not(:disabled) { border-color: var(--accent); }
-  .act-btn:disabled { cursor: not-allowed; opacity: .55; }
-  .act-btn img, .act-btn .ico { width: 34px; height: 34px; border-radius: 2px; flex: none; background: var(--surface-2); }
+  .act-btn:disabled { cursor: not-allowed; opacity: .4; }
+  .act-btn img, .act-btn .ico { width: 24px; height: 24px; border-radius: 2px; flex: none; background: var(--surface-2); }
   .act-btn .ico { display: grid; place-items: center; color: var(--accent); }
-  .act-btn b { display: block; font: 700 15px/1.2 var(--display); letter-spacing: .06em; text-transform: uppercase; }
-  .act-btn small { color: var(--muted); font-size: 12px; }
-  .act-btn.primary { background: rgba(228,184,76,.12); border-color: rgba(228,184,76,.45); }
-  .sheet-note { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
-  .sheet-link { margin-top: 18px; font-size: 13px; color: var(--muted); }
+  .act-btn b { font: 700 14px/1 var(--display); letter-spacing: .06em; text-transform: uppercase; }
+  .act-btn.primary { background: rgba(228,184,76,.1); border-color: rgba(228,184,76,.4); }
+  .sheet-btns { margin-left: auto; display: flex; gap: 6px; flex: none; }
+  .sheet-btns .sheet-close { margin-left: 0; }
+  .icon-btn {
+    width: 34px; height: 34px; display: grid; place-items: center; cursor: pointer; border-radius: 4px; color: #fff;
+    background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.2);
+  }
+  .icon-btn.on { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+  .sheet-note { color: var(--muted); font-size: 12px; margin: 0; }
+
+  .wstats { display: grid; gap: 6px; }
+  .wstat { display: grid; grid-template-columns: 118px minmax(0, 1fr) 34px; align-items: center; gap: 10px; font-size: 13px; }
+  .wstat .lbl { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
+  .wstat .bar { height: 9px; background: var(--surface-2); border-radius: 1px; overflow: hidden; }
+  .wstat .bar span { display: block; height: 100%; background: #e8ebf0; }
+  .wstat .val { font: 500 12px var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+  .wstat.total { border-top: 1px solid var(--line); padding-top: 6px; }
+  .wstat.total .val { color: var(--accent); font-weight: 600; }
+
+  .frame { display: flex; gap: 12px; align-items: flex-start; padding: 10px; background: var(--surface); border-radius: 4px; }
+  .frame img { width: 42px; height: 42px; flex: none; }
+  .frame b, .perk-info b { display: block; font: 700 15px/1.2 var(--display); letter-spacing: .04em; text-transform: uppercase; }
+  .frame p, .perk-info p { margin: 2px 0 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+  .perk-cols { display: flex; flex-wrap: wrap; gap: 8px; }
+  .perk-col { display: flex; flex-direction: column; gap: 6px; padding: 6px; background: var(--surface); border-radius: 24px; }
+  .perk {
+    width: 40px; height: 40px; padding: 5px; border-radius: 50%; cursor: pointer;
+    background: transparent; border: 1px solid var(--line-2);
+  }
+  .perk img { width: 100%; height: 100%; }
+  .perk.on { background: #3f78a6; border-color: #79aedb; }
+  .perk.picked { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .perk-info { padding: 10px 12px; background: var(--surface); border-left: 3px solid #3f78a6; border-radius: 0 4px 4px 0; min-height: 52px; }
+  .perk-info .t { color: var(--faint); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
+  .mods { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; }
+  .mod { display: flex; align-items: center; gap: 10px; padding: 6px 8px; background: var(--surface); border-radius: 4px; font-size: 12px; min-width: 0; text-align: left; cursor: pointer; border: 1px solid transparent; }
+  .mod:hover { border-color: var(--line-2); }
+  .mod img { width: 32px; height: 32px; flex: none; }
+  .mod span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mod.empty { opacity: .5; }
+  .flavor { margin: 0; color: var(--muted); font-style: italic; font-size: 13px; line-height: 1.5; }
+  .sheet-link { display: inline-block; margin-top: 18px; font-size: 13px; color: var(--muted); }
+  .sk-line { height: 12px; margin: 6px 0; }
 
   .toast {
     position: fixed; z-index: 50; left: 50%; translate: -50% 0; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
@@ -330,7 +384,8 @@
 
   @media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
   @media (max-width: 640px) {
-    .sheet { top: auto; left: 0; width: 100%; max-height: 85vh; border-left: 0; border-top: 1px solid var(--line-2); border-radius: 10px 10px 0 0; padding-top: 16px; }
+    .sheet { top: auto; left: 0; width: 100%; max-height: 92vh; border-left: 0; border-top: 1px solid var(--line-2); border-radius: 12px 12px 0 0; }
+    .sheet-hero { padding-top: 18px; }
   }
   @media (max-width: 480px) {
     .brand span { display: none; }
@@ -562,7 +617,7 @@ function toast(msg, isError = false) {
 
 /* Game definitions, cached in this browser so repeat visits load fast */
 const DEFS_VERSION = 2;
-const defs = { item: {}, stat: {}, record: {}, activity: {} };
+const defs = { item: {}, stat: {}, record: {}, activity: {}, detail: {}, plug: {}, socketCategory: {} };
 try { Object.assign(defs.item, JSON.parse(localStorage.getItem(`defs-item-v${DEFS_VERSION}`) || "{}")); } catch {}
 function persistItemDefs() { try { localStorage.setItem(`defs-item-v${DEFS_VERSION}`, JSON.stringify(defs.item)); } catch {} }
 
@@ -647,6 +702,7 @@ async function loadVault(quiet = false) {
       })
       .filter(Boolean);
     vault.inv = inv;
+    for (const k in details) delete details[k];
     $("v-me").textContent = `${me.name}#${me.code}`;
     vaultPanel("v-app");
     renderVault();
@@ -696,11 +752,11 @@ function tileHtml(it) {
   const tier = d.tier >= 2 && d.tier <= 6 ? d.tier : 2;
   const where = placeName(it.loc) + (it.equipped ? " (equipped)" : "");
   const dmg = it.kind === "weapons" && DAMAGE[it.damage] ? `<i style="background:var(--dmg-${it.damage})"></i>` : "";
-  const cls = ["tile", matches(it) ? "" : "dim", vault.busy.has(it.id) ? "busy" : ""].filter(Boolean).join(" ");
+  const cls = ["tile", it.masterwork ? "mw" : "", matches(it) ? "" : "dim", vault.busy.has(it.id) ? "busy" : ""].filter(Boolean).join(" ");
   return `<button type="button" class="${cls}" data-id="${esc(it.id)}" draggable="true" style="--tier:var(--tier-${tier})"
       title="${esc(d.name)} · ${esc(d.type)} · ${esc(where)}" aria-label="${esc(d.name)}, ${it.power ?? ""} power, ${esc(where)}">
       ${d.icon ? `<img src="${esc(d.icon)}" alt="" loading="lazy" width="50" height="50" draggable="false">` : `<img alt="" draggable="false">`}
-      ${it.locked ? LOCK_SVG : ""}
+      ${it.locked ? LOCK_SVG : ""}${it.crafted ? `<span class="craft" aria-hidden="true"></span>` : ""}
       <span class="pw">${dmg}${it.power ?? ""}</span>
     </button>`;
 }
@@ -789,59 +845,187 @@ function canEquipOn(it, charId) {
   return { ok: true };
 }
 
+/* ---------- Item panel: actions, stats, perks, mods ---------- */
+const AMMO = { 1: "Primary", 2: "Special", 3: "Heavy" };
+const HIDDEN_STATS = new Set(["1935470627", "1480404414", "3897883278"]); // Power, Attack, Defense
+const NUMERIC_STATS = new Set(["4284893193", "3871231066", "2961396640", "447667954", "2715839340", "925767036"]);
+const STAT_ORDER = [
+  "4043523819", "1240592695", "155624089", "943549884", "4188031367", "1345609583", "3555269338", "2714457168",
+  "2523465841", "3614673599", "1591432999", "2837207746", "209426660", "3022301683", "2762071195",
+  "4284893193", "3871231066", "2961396640", "447667954", "925767036", "2715839340"
+];
+const details = {};          // item instance id -> { stats, sockets, options }
+let pickedPlug = null;       // perk the player clicked to read about
+
+function actionButtons(it) {
+  const d = defs.item[it.hash] || {};
+  const chars = vault.inv.characters;
+  const fits = (c) => !(it.kind === "armor" && d.classType < 3 && c.classType !== d.classType);
+  const icon = (c) => c === "vault"
+    ? `<span class="ico">${VAULT_SVG.replace("<svg", '<svg width="16" height="16"')}</span>`
+    : c.emblemIcon ? `<img src="${esc(c.emblemIcon)}" alt="">` : `<span class="ico"></span>`;
+  const btn = (cls, place, label, action, to, check) =>
+    `<button type="button" class="act-btn ${cls}" data-action="${action}" data-to="${esc(to)}" ${check.ok ? "" : "disabled"}
+       title="${esc(check.ok ? `${action === "equip" ? "Equip on" : "Move to"} ${label}` : check.why || "")}">${icon(place)}<b>${label}</b></button>`;
+  const equip = chars.filter(fits).map((c) => btn("primary", c, className(c), "equip", c.id, canEquipOn(it, c.id))).join("");
+  const move = [
+    ...chars.filter((c) => c.id !== it.loc && fits(c)).map((c) => btn("", c, className(c), "move", c.id, canGoTo(it, c.id))),
+    ...(it.loc !== "vault" ? [btn("", "vault", "Vault", "move", "vault", canGoTo(it, "vault"))] : [])
+  ].join("");
+  return `${equip ? `<div class="act-group"><span class="act-label">Equip on</span><div class="act-row">${equip}</div></div>` : ""}
+    ${move ? `<div class="act-group"><span class="act-label">Move to</span><div class="act-row">${move}</div></div>` : ""}`;
+}
+
+function lockButton(it) {
+  const chars = vault.inv.characters;
+  const to = it.loc !== "vault" ? it.loc : chars[0]?.id;
+  if (!to) return "";
+  return `<button type="button" class="icon-btn${it.locked ? " on" : ""}" data-action="${it.locked ? "unlock" : "lock"}" data-to="${esc(to)}"
+    aria-pressed="${it.locked}" title="${it.locked ? "Unlock (allow dismantling)" : "Lock (protect from dismantling)"}"
+    aria-label="${it.locked ? "Unlock item" : "Lock item"}">${LOCK_SVG.replace('class="lock"', 'width="14" height="14"')}</button>`;
+}
+
+function statsHtml(it, det) {
+  const rank = (h) => { const i = STAT_ORDER.indexOf(h); return i < 0 ? 999 : i; };
+  const rows = Object.entries(det.stats)
+    .filter(([h, v]) => !HIDDEN_STATS.has(h) && defs.stat[h]?.name && v != null)
+    .sort((a, b) => rank(a[0]) - rank(b[0]));
+  if (!rows.length) return "";
+  const armor = it.kind === "armor";
+  const max = armor ? Math.max(45, ...rows.map(([, v]) => v)) : 100;
+  let html = rows.map(([h, v]) => {
+    const numeric = !armor && NUMERIC_STATS.has(h);
+    return `<div class="wstat"><span class="lbl">${esc(defs.stat[h].name)}</span>
+      ${numeric ? `<span></span>` : `<span class="bar"><span style="width:${Math.min(100, (v / max) * 100)}%"></span></span>`}
+      <span class="val">${v}</span></div>`;
+  }).join("");
+  if (armor) html += `<div class="wstat total"><span class="lbl">Total</span><span></span><span class="val">${rows.reduce((s, [, v]) => s + v, 0)}</span></div>`;
+  return `<div class="sheet-section"><h4>Stats</h4><div class="wstats">${html}</div></div>`;
+}
+
+function socketsHtml(it, det) {
+  const dd = defs.detail[it.hash];
+  if (!dd) return "";
+  const out = [];
+  const plugInfo = (h) => defs.plug[h] || {};
+  for (const cat of dd.categories) {
+    const name = defs.socketCategory[cat.hash]?.name || "";
+    if (!name || /cosmetic|ghost|tracker|shader|ornament/i.test(name)) continue;
+    const socks = cat.indexes.map((i) => ({ i, s: det.sockets[i] })).filter((x) => x.s && x.s.visible && x.s.plug && plugInfo(x.s.plug).name);
+    if (!socks.length) continue;
+
+    if (/intrinsic/i.test(name)) {
+      out.push(`<div class="sheet-section"><h4>${esc(name)}</h4>${socks.map(({ s }) => {
+        const p = plugInfo(s.plug);
+        return `<div class="frame">${p.icon ? `<img src="${esc(p.icon)}" alt="">` : ""}<div><b>${esc(p.name)}</b><p>${esc(p.description)}</p></div></div>`;
+      }).join("")}</div>`);
+    } else if (/perk|trait/i.test(name)) {
+      const cols = socks.map(({ i, s }) => {
+        const options = (det.options[i]?.length ? det.options[i] : [s.plug]).filter((h) => plugInfo(h).name);
+        if (!options.includes(s.plug)) options.unshift(s.plug);
+        return `<div class="perk-col">${options.map((h) => {
+          const p = plugInfo(h);
+          return `<button type="button" class="perk${h === s.plug ? " on" : ""}${String(h) === String(pickedPlug) ? " picked" : ""}" data-plug="${h}"
+            title="${esc(p.name)}" aria-label="${esc(p.name)}${h === s.plug ? " (active)" : ""}">${p.icon ? `<img src="${esc(p.icon)}" alt="">` : ""}</button>`;
+        }).join("")}</div>`;
+      }).join("");
+      const shown = pickedPlug && socks.some(({ i, s }) => s.plug == pickedPlug || det.options[i]?.includes(Number(pickedPlug)))
+        ? plugInfo(pickedPlug) : plugInfo(socks[socks.length - 1].s.plug);
+      out.push(`<div class="sheet-section"><h4>${esc(name)}</h4><div class="perk-cols">${cols}</div>
+        <div class="perk-info"><span class="t">${esc(shown.type || "Perk")}</span><b>${esc(shown.name)}</b><p>${esc(shown.description || "No description.")}</p></div></div>`);
+    } else {
+      out.push(`<div class="sheet-section"><h4>${esc(name)}</h4><div class="mods">${socks.map(({ s }) => {
+        const p = plugInfo(s.plug);
+        const empty = /empty|default/i.test(p.name);
+        return `<button type="button" class="mod${empty ? " empty" : ""}" data-plug="${s.plug}" title="${esc(p.name)}: ${esc(p.description)}">
+          ${p.icon ? `<img src="${esc(p.icon)}" alt="">` : ""}<span>${esc(p.name)}</span></button>`;
+      }).join("")}</div>
+      ${pickedPlug && socks.some(({ s }) => String(s.plug) === String(pickedPlug)) ? `<div class="perk-info"><span class="t">${esc(plugInfo(pickedPlug).type || "Mod")}</span><b>${esc(plugInfo(pickedPlug).name)}</b><p>${esc(plugInfo(pickedPlug).description || "No description.")}</p></div>` : ""}
+      </div>`);
+    }
+  }
+  return out.join("");
+}
+
+function sheetHtml(it) {
+  const d = defs.item[it.hash] || {};
+  const dd = defs.detail[it.hash];
+  const det = details[it.id];
+  const tier = d.tier >= 2 && d.tier <= 6 ? d.tier : 2;
+  const facts = [
+    `<span class="big">${it.power ?? "–"}</span>`,
+    it.kind === "weapons" && DAMAGE[it.damage] ? `<span class="el"><i style="background:var(--dmg-${it.damage})"></i>${DAMAGE[it.damage]}</span>` : "",
+    dd && AMMO[dd.ammo] ? `<span>${AMMO[dd.ammo]} ammo</span>` : "",
+    `<span>${esc(placeName(it.loc))}${it.equipped ? " · Equipped" : ""}</span>`,
+    it.masterwork ? `<span style="color:#e9c45a">Masterworked</span>` : "",
+    it.crafted ? `<span style="color:#e0533f">Crafted</span>` : "",
+    it.locked ? `<span>Locked</span>` : ""
+  ].filter(Boolean).join("");
+
+  let body;
+  if (det?.error) body = `<div class="sheet-section"><p class="note">Couldn't load perks and stats: ${esc(det.error)}</p></div>`;
+  else if (!det || !dd) body = `<div class="sheet-section"><h4>Stats &amp; perks</h4>${Array(6).fill('<div class="sk sk-line"></div>').join("")}</div>`;
+  else body = statsHtml(it, det) + socketsHtml(it, det) + (dd.flavor ? `<div class="sheet-section"><p class="flavor">“${esc(dd.flavor)}”</p></div>` : "");
+
+  return `
+    <div class="sheet-hero" style="${dd?.screenshot ? `background-image:url('${esc(dd.screenshot)}')` : ""}">
+      <div class="sheet-top">
+        ${d.icon ? `<img src="${esc(d.icon)}" alt="" width="64" height="64">` : ""}
+        <div style="min-width:0">
+          <div class="name" id="sheet-name">${esc(d.name || "Unknown item")}</div>
+          <div class="kind"><span class="${tier === 6 ? "ex" : ""}">${esc(TIERS[tier] || "")}</span> ${esc(d.type || "")}</div>
+        </div>
+        <div class="sheet-btns">${lockButton(it)}<button type="button" class="sheet-close" data-close aria-label="Close">×</button></div>
+      </div>
+      <div class="sheet-facts">${facts}</div>
+    </div>
+    <div class="sheet-section actions">
+      ${actionButtons(it)}
+      ${it.equipped ? `<p class="sheet-note">Equipped items can't be moved. Equip something else in the ${esc(SLOT_LABELS[it.slot])} slot first.</p>` : ""}
+    </div>
+    ${body}
+    <a class="sheet-link" href="https://www.light.gg/db/items/${esc(it.hash)}/" target="_blank" rel="noopener">See god rolls and reviews on light.gg ↗</a>`;
+}
+
+function renderSheet() {
+  const it = vault.inv?.items.find((x) => x.id === vault.openId);
+  if (!it) return;
+  const scroll = $("sheet").scrollTop;
+  $("sheet").innerHTML = sheetHtml(it);
+  $("sheet").scrollTop = scroll;
+}
+
+async function loadDetail(it) {
+  if (details[it.id] && !details[it.id].error) return;
+  try {
+    const [det] = await Promise.all([api(`/api/item?id=${encodeURIComponent(it.id)}`), loadDefs("detail", [it.hash])]);
+    const dd = defs.detail[it.hash] || { categories: [] };
+    const plugs = new Set();
+    det.sockets.forEach((s) => s.plug && plugs.add(s.plug));
+    Object.values(det.options).forEach((list) => list.forEach((h) => plugs.add(h)));
+    await Promise.all([
+      loadDefs("socketCategory", dd.categories.map((c) => c.hash)),
+      loadDefs("plug", [...plugs]),
+      loadDefs("stat", Object.keys(det.stats))
+    ]);
+    details[it.id] = det;
+  } catch (err) {
+    details[it.id] = { error: err.message };
+  }
+  if (vault.openId === it.id) renderSheet();
+}
+
 function openSheet(id) {
   const it = vault.inv.items.find((x) => x.id === id);
   if (!it) return;
+  const wasOpen = vault.openId === id && !$("sheet").hidden;
   vault.openId = id;
-  const d = defs.item[it.hash] || {};
-  const tier = d.tier >= 2 && d.tier <= 6 ? d.tier : 2;
-  const chars = vault.inv.characters;
-  const fits = (c) => !(it.kind === "armor" && d.classType < 3 && c.classType !== d.classType);
-
-  const button = (cls, iconHtml, title, sub, attrs, check) => `
-    <button type="button" class="act-btn ${cls}" ${attrs} ${check.ok ? "" : "disabled"}>
-      ${iconHtml}<span><b>${title}</b><small>${esc(check.ok ? sub : check.why || sub)}</small></span>
-    </button>`;
-  const emblem = (c) => c.emblemIcon ? `<img src="${esc(c.emblemIcon)}" alt="">` : `<span class="ico"></span>`;
-
-  const equipBtns = chars.filter(fits)
-    .map((c) => button("primary", emblem(c), `Equip on ${className(c)}`,
-      it.loc === c.id ? "Equip from this character's inventory" : `Moves it to your ${className(c)} and equips it`,
-      `data-action="equip" data-to="${esc(c.id)}"`, canEquipOn(it, c.id)))
-    .join("");
-  const moveBtns = chars.filter((c) => c.id !== it.loc && fits(c))
-    .map((c) => button("", emblem(c), `Move to ${className(c)}`, it.loc === "vault" ? "From the vault" : "Goes through the vault",
-      `data-action="move" data-to="${esc(c.id)}"`, canGoTo(it, c.id)))
-    .join("");
-  const vaultBtn = it.loc !== "vault"
-    ? button("", `<span class="ico">${VAULT_SVG.replace("<svg", '<svg width="20" height="20"')}</span>`,
-        "Move to vault", "Store it in your vault", `data-action="move" data-to="vault"`, canGoTo(it, "vault"))
-    : "";
-
-  $("sheet").style.setProperty("--tier", `var(--tier-${tier})`);
-  $("sheet").innerHTML = `
-    <div class="sheet-top">
-      ${d.icon ? `<img src="${esc(d.icon)}" alt="" width="72" height="72">` : ""}
-      <div style="min-width:0">
-        <div class="name" id="sheet-name">${esc(d.name || "Unknown item")}</div>
-        <div class="kind">${esc(TIERS[tier] || "")} ${esc(d.type || "")}</div>
-      </div>
-      <button type="button" class="sheet-close" data-close aria-label="Close">×</button>
-    </div>
-    <div class="sheet-stats">
-      <div><b>${it.power ?? "–"}</b><span>Power</span></div>
-      <div><b>${it.kind === "weapons" ? esc(DAMAGE[it.damage] || "–") : esc(SLOT_LABELS[it.slot])}</b><span>${it.kind === "weapons" ? "Element" : "Slot"}</span></div>
-      <div><b>${esc(placeName(it.loc))}</b><span>${it.equipped ? "Equipped" : "Location"}</span></div>
-    </div>
-    <div class="actions">
-      ${equipBtns ? `<div class="group-label">Equip</div>${equipBtns}` : ""}
-      ${moveBtns || vaultBtn ? `<div class="group-label">Move</div>${moveBtns}${vaultBtn}` : ""}
-      ${it.equipped ? `<p class="sheet-note">Equipped items can't be moved. Equip something else in the ${esc(SLOT_LABELS[it.slot])} slot first.</p>` : ""}
-    </div>
-    <a class="sheet-link" href="https://www.light.gg/db/items/${esc(it.hash)}/" target="_blank" rel="noopener">View perks and rolls on light.gg ↗</a>`;
+  if (!wasOpen) pickedPlug = null;
+  renderSheet();
   $("sheet").hidden = false;
   $("scrim").hidden = false;
-  $("sheet").querySelector("[data-close]").focus();
+  if (!wasOpen) { $("sheet").scrollTop = 0; $("sheet").querySelector("[data-close]").focus(); }
+  loadDetail(it);
 }
 
 function closeSheet() {
@@ -854,7 +1038,8 @@ async function runAction(id, action, to) {
   const it = vault.inv.items.find((x) => x.id === id);
   if (!it || vault.busy.has(id)) return;
   const name = defs.item[it.hash]?.name || "Item";
-  closeSheet();
+  const isLock = action === "lock" || action === "unlock";
+  if (!isLock) closeSheet();
   vault.busy.add(id);
   renderVault();
   try {
@@ -863,6 +1048,11 @@ async function runAction(id, action, to) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action, itemId: it.id, itemHash: it.hash, from: it.loc, to })
     });
+    if (isLock) {
+      it.locked = r.locked;
+      toast(`${r.locked ? "Locked" : "Unlocked"} ${name}.`);
+      return;
+    }
     if (r.equipped) {
       for (const other of vault.inv.items)
         if (other !== it && other.loc === to && other.slot === it.slot && other.equipped) other.equipped = false;
@@ -877,6 +1067,7 @@ async function runAction(id, action, to) {
   } finally {
     vault.busy.delete(id);
     renderVault();
+    if (isLock && vault.openId === id) renderSheet();
   }
 }
 
@@ -898,7 +1089,9 @@ $("v-refresh").addEventListener("click", () => loadVault(true));
 $("v-retry").addEventListener("click", () => loadVault());
 $("sheet").addEventListener("click", (e) => {
   if (e.target.closest("[data-close]")) return closeSheet();
-  const b = e.target.closest(".act-btn");
+  const plug = e.target.closest("[data-plug]");
+  if (plug) { pickedPlug = plug.dataset.plug; return renderSheet(); }
+  const b = e.target.closest(".act-btn, .icon-btn");
   if (b && !b.disabled) runAction(vault.openId, b.dataset.action, b.dataset.to);
 });
 $("scrim").addEventListener("click", closeSheet);

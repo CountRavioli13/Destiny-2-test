@@ -1,5 +1,6 @@
 // POST /api/transfer  →  move or equip one of the signed-in player's items
-// Body: { action: "move" | "equip", itemId, itemHash, from, to }
+// Body: { action: "move" | "equip" | "lock" | "unlock", itemId, itemHash, from, to }
+//   For lock/unlock, `to` is any of the player's character ids (Bungie requires one).
 //   from / to are a character id or "vault".
 // Bungie only moves items between a character and the vault, so moving
 // character → character goes through the vault in two steps.
@@ -16,10 +17,20 @@ module.exports = handler(async (query, { req, res }) => {
   const s = await requireSession(req, res);
   const { action, itemId, itemHash, from, to } = await readBody(req);
 
-  if (!["move", "equip"].includes(action) || !isId(itemId) || !isId(itemHash) || !isPlace(from) || !isPlace(to)) {
+  if (!["move", "equip", "lock", "unlock"].includes(action) || !isId(itemId) || !isId(itemHash) || !isPlace(from) || !isPlace(to)) {
     throw new HttpError(400, "That request was missing details. Refresh the page and try again.");
   }
   if (action === "equip" && to === "vault") throw new HttpError(400, "Items can't be equipped in the vault.");
+
+  if (action === "lock" || action === "unlock") {
+    if (!isId(to)) throw new HttpError(400, "That request was missing details. Refresh the page and try again.");
+    await bungie("/Destiny2/Actions/Items/SetLockState/", {
+      method: "POST",
+      token: s.at,
+      body: { state: action === "lock", itemId: String(itemId), characterId: String(to), membershipType: s.mt }
+    });
+    return { location: from, locked: action === "lock" };
+  }
 
   const transfer = (characterId, toVault) =>
     bungie("/Destiny2/Actions/Items/TransferItem/", {

@@ -25,7 +25,30 @@ const TYPES = {
   activity: ["DestinyActivityDefinition", (d) => ({
     name: d.displayProperties?.name || "",
     image: img(d.pgcrImage)
-  })]
+  })],
+  // Extra details for the item panel
+  detail: ["DestinyInventoryItemDefinition", (d) => ({
+    flavor: d.flavorText || "",
+    screenshot: img(d.screenshot),
+    ammo: d.equippingBlock?.ammoType ?? 0,                // 1 Primary, 2 Special, 3 Heavy
+    categories: (d.sockets?.socketCategories || []).map((c) => ({ hash: c.socketCategoryHash, indexes: c.socketIndexes || [] }))
+  })],
+  // Perks, mods and frames. Many perks keep their text on a separate "sandbox perk".
+  plug: ["DestinyInventoryItemDefinition", async (d) => {
+    let description = d.displayProperties?.description || "";
+    const perkHash = d.perks?.[0]?.perkHash;
+    if (!description && perkHash) {
+      const perk = await bungie(`/Destiny2/Manifest/DestinySandboxPerkDefinition/${perkHash}/`).catch(() => null);
+      description = perk?.displayProperties?.description || "";
+    }
+    return {
+      name: d.displayProperties?.name || "",
+      icon: img(d.displayProperties?.icon),
+      description,
+      type: d.itemTypeDisplayName || ""
+    };
+  }],
+  socketCategory: ["DestinySocketCategoryDefinition", (d) => ({ name: d.displayProperties?.name || "" })]
 };
 
 // Definitions rarely change, so keep them in memory between requests.
@@ -55,7 +78,7 @@ module.exports = handler(async (query) => {
     if (!cache.has(key)) {
       const def = await bungie(`/Destiny2/Manifest/${table}/${hash}/`).catch(() => null);
       if (!def) return;
-      cache.set(key, trim(def));
+      cache.set(key, await trim(def));
     }
     out[hash] = cache.get(key);
   });
