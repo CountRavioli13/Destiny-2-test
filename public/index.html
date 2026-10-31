@@ -151,7 +151,7 @@
     grid-column: 1 / -1; margin: 10px 0 6px; padding-top: 8px; border-top: 1px solid var(--line);
     font: 600 11px/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: var(--faint);
   }
-  .cell { min-height: 60px; padding: 3px; border-radius: 3px; transition: background .1s, box-shadow .1s; min-width: 0; }
+  .cell { min-height: 76px; padding: 3px; border-radius: 3px; transition: background .1s, box-shadow .1s; min-width: 0; }
   .cell.char { display: flex; gap: 8px; align-items: flex-start; }
   .eq-slot { flex: none; padding: 2px; border-radius: 3px; }
   .inv { display: grid; grid-template-columns: repeat(3, 50px); gap: 4px; }
@@ -160,25 +160,27 @@
   .cell.drop-ok, .eq-slot.drop-ok { background: rgba(88,192,138,.14); box-shadow: inset 0 0 0 2px var(--win); }
 
   .tile {
-    position: relative; display: block; width: 50px; height: 50px; padding: 0; cursor: pointer; overflow: hidden;
-    background: var(--surface-2); border: 0; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,.5);
+    position: relative; display: flex; flex-direction: column; width: 50px; padding: 0; cursor: pointer; overflow: hidden;
+    background: #23272f; border: 0; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,.55);
     transition: transform .12s, box-shadow .12s;
   }
-  .tile > img:not(.wm) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .tile > img.wm { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-  .tile.t6::before { content: ""; position: absolute; inset: 0; z-index: 2; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(214,182,62,.95); pointer-events: none; }
-  .tile.mw::before { content: ""; position: absolute; inset: 0; z-index: 2; border-radius: 3px; box-shadow: inset 0 0 0 2px #e9c45a, inset 0 0 10px rgba(233,196,90,.4); pointer-events: none; }
-  .eq-slot .tile { width: 56px; height: 56px; box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px #f2f4f7; }
-  .tile.empty { cursor: default; background: transparent; box-shadow: inset 0 0 0 1px var(--line-2); }
-  .eq-slot .tile.empty { box-shadow: inset 0 0 0 1px var(--line-2); }
+  .tile .ti { position: relative; display: block; width: 50px; height: 50px; flex: none; background: var(--surface-2); }
+  .tile .ti > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .tile .ti > img.wm { z-index: 1; pointer-events: none; }
+  .tile.t6 .ti::after { content: ""; position: absolute; inset: 0; z-index: 2; box-shadow: inset 0 0 0 1px rgba(214,182,62,.95); pointer-events: none; }
+  .eq-slot .tile { width: 56px; box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px #f2f4f7; }
+  .eq-slot .tile .ti { width: 56px; height: 56px; }
+  .tile.empty { cursor: default; width: 56px; height: 72px; background: transparent; box-shadow: inset 0 0 0 1px var(--line-2); }
   .tile:hover:not(.empty) { transform: translateY(-1px); box-shadow: 0 0 0 2px var(--accent), 0 6px 14px rgba(0,0,0,.55); z-index: 4; }
+  /* Power strip under the icon: gold when masterworked */
   .tile .pw {
-    position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; height: 13px; padding: 0 3px;
-    display: flex; align-items: center; justify-content: flex-end; gap: 3px;
-    background: rgba(6,8,12,.84); font: 600 10px/13px var(--mono); color: #f2f4f7; font-variant-numeric: tabular-nums;
+    display: flex; align-items: center; justify-content: flex-end; gap: 3px; height: 15px; padding: 0 3px;
+    background: #3a3f4b; color: #f2f4f7; font: 700 10px/15px var(--mono); font-variant-numeric: tabular-nums;
   }
-  .eq-slot .tile .pw { height: 14px; line-height: 14px; }
+  .tile.mw .pw { background: linear-gradient(180deg, #e5c35a, #c9a33c); color: #1b1404; }
+  .eq-slot .tile .pw { height: 16px; line-height: 16px; }
   .tile .pw img.el { width: 10px; height: 10px; flex: none; }
+  .tile.mw .pw img.el { filter: drop-shadow(0 0 1px rgba(0,0,0,.6)); }
   .tile .pw i { width: 6px; height: 6px; border-radius: 50%; flex: none; }
   .tile .pw .craft { margin-right: auto; width: 5px; height: 5px; flex: none; background: #e0533f; transform: rotate(45deg); }
   .tile .gr {
@@ -186,7 +188,7 @@
     background: #2c9a58; color: #fff; border-bottom-right-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,.5);
   }
   .tile .gr svg { width: 8px; height: 8px; }
-  .tile .lock { position: absolute; top: 3px; right: 3px; z-index: 3; width: 10px; height: 10px; color: #fff; filter: drop-shadow(0 1px 1px #000); }
+  .tile .lock { position: absolute; bottom: 3px; right: 3px; z-index: 3; width: 10px; height: 10px; color: #7ee2a0; filter: drop-shadow(0 1px 1px #000); }
   .tile.dim { opacity: .14; box-shadow: none; }
   .tile.busy { opacity: .4; pointer-events: none; }
   .tile.busy::after { content: ""; position: absolute; inset: 0; z-index: 5; background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(255,255,255,.12) 6px 12px); }
@@ -239,6 +241,29 @@
     .store-tab .epow { font-size: .92rem; }
   }
 
+  /* Search suggestions */
+  .vsuggest {
+    position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 25; padding: 6px;
+    max-height: min(440px, 62vh); overflow-y: auto; overscroll-behavior: contain;
+    background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 8px; box-shadow: 0 18px 44px rgba(0,0,0,.6);
+  }
+  .sg-group { padding: 9px 10px 4px; font: 600 11px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+  .sg { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 5px; cursor: pointer; }
+  .sg.on, .sg:hover { background: var(--surface-2); }
+  .sg.on { box-shadow: inset 2px 0 0 var(--accent); }
+  .sg img, .sg .sg-ic { width: 28px; height: 28px; flex: none; border-radius: 3px; background: var(--surface); }
+  .sg img.round { border-radius: 50%; background: #2c4560; padding: 3px; }
+  .sg .sg-ic { display: grid; place-items: center; color: var(--faint); font-size: 14px; }
+  .sg-main { flex: 1; min-width: 0; display: grid; }
+  .sg-label { font-size: 14px; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sg-label.code { font: 500 13px var(--mono); }
+  .sg-label mark { background: none; color: var(--accent); font-weight: 700; }
+  .sg-sub { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sg-count { flex: none; font: 500 12px var(--mono); color: var(--muted); }
+  .sg-empty { padding: 10px; font-size: 13px; color: var(--muted); }
+  .sg-foot { margin-top: 4px; padding: 7px 10px 3px; border-top: 1px solid var(--line); font-size: 11px; color: var(--faint); }
+  @media (hover: none) { .sg-foot { display: none; } }
+
   /* Hover card */
   .hovercard {
     position: fixed; z-index: 60; width: 260px; pointer-events: none; overflow: hidden; font-size: 12px;
@@ -274,7 +299,8 @@
   .pm-count { font: 500 11px var(--mono); color: var(--faint); }
   .pm-count.warn { color: var(--loss); }
   .pm-grid { display: grid; grid-template-columns: repeat(auto-fill, 40px); gap: 4px; }
-  .cell.pm .tile { width: 40px; height: 40px; }
+  .cell.pm .tile { width: 40px; }
+  .cell.pm .tile .ti { width: 40px; height: 40px; }
   .cell.pm .tile .pw { height: 12px; line-height: 12px; font-size: 9px; }
 
   /* God roll marks */
@@ -613,8 +639,10 @@
         <div class="vsearch">
           <svg class="mag" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5"/></svg>
           <label class="sr" for="vfilter">Search items</label>
-          <input id="vfilter" type="search" placeholder="Search items, or try is:dupe · perk:outlaw · stat:health>=25" autocomplete="off" spellcheck="false">
+          <input id="vfilter" type="search" placeholder="Search items or perks, or try is:dupe · stat:health>=25" autocomplete="off" spellcheck="false"
+            role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="vsuggest">
           <kbd aria-hidden="true">/</kbd>
+          <div class="vsuggest" id="vsuggest" role="listbox" aria-label="Search suggestions" hidden></div>
         </div>
         <button class="btn ghost" type="button" id="v-filters" aria-expanded="false" aria-controls="search-help">Filters</button>
         <label class="sr" for="vsort">Sort</label>
@@ -794,7 +822,13 @@ function elementOf(it) {
   return { name: DAMAGE[it.damage], icon: defs.damage[DAMAGE_HASH[it.damage]]?.icon || null, n: it.damage };
 }
 try { Object.assign(defs.item, JSON.parse(localStorage.getItem(`defs-item-v${DEFS_VERSION}`) || "{}")); } catch {}
-try { Object.assign(defs.plugname, JSON.parse(localStorage.getItem(`defs-plugname-v${DEFS_VERSION}`) || "{}")); } catch {}
+const SAVED_DEF_TYPES = ["plugname", "plug", "detail", "socketCategory", "damage"];
+for (const t of SAVED_DEF_TYPES) {
+  try { Object.assign(defs[t], JSON.parse(localStorage.getItem(`defs-${t}-v${DEFS_VERSION}`) || "{}")); } catch {}
+}
+function persistDefs(types) {
+  for (const t of types) { try { localStorage.setItem(`defs-${t}-v${DEFS_VERSION}`, JSON.stringify(defs[t])); } catch {} }
+}
 function persistItemDefs() { try { localStorage.setItem(`defs-item-v${DEFS_VERSION}`, JSON.stringify(defs.item)); } catch {} }
 
 async function loadDefs(type, hashes) {
@@ -811,7 +845,7 @@ async function loadDefs(type, hashes) {
     }
   }));
   if (type === "item") persistItemDefs();
-  if (type === "plugname") { try { localStorage.setItem(`defs-plugname-v${DEFS_VERSION}`, JSON.stringify(defs.plugname)); } catch {} }
+  if (SAVED_DEF_TYPES.includes(type)) persistDefs([type]);
 }
 
 /* ================= Account + routing ================= */
@@ -873,7 +907,7 @@ async function loadVault(quiet = false, silent = false) {
   try {
     const inv = await api("/api/inventory");
     await Promise.all([
-      loadDefs("item", [...inv.items.map((i) => i.hash), ...inv.postmaster.map((x) => x.hash)]),
+      loadDefs("item", [...inv.items.map((i) => i.hash), ...inv.items.map((i) => i.ornament).filter(Boolean), ...inv.postmaster.map((x) => x.hash)]),
       loadDefs("record", inv.characters.map((c) => c.titleHash)),
       loadDefs("stat", inv.items.flatMap((i) => Object.keys(i.stats))),
       loadDefs("damage", Object.values(DAMAGE_HASH))
@@ -934,6 +968,11 @@ const LOCK_SVG = `<svg class="lock" viewBox="0 0 12 12" fill="currentColor" aria
 const VAULT_SVG = `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="6" y="8" width="36" height="32" rx="2"/><circle cx="24" cy="24" r="8"/><path d="M24 16v3M24 29v3M16 24h3M29 24h3"/></svg>`;
 const CHEV_SVG = `<svg class="chev" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M1.5 3.5h9L6 9z"/></svg>`;
 
+// The icon to show: the applied ornament's art when there is one, like in game.
+function iconOf(it) {
+  return (it.ornament && defs.item[it.ornament]?.icon) || defs.item[it.hash]?.icon || null;
+}
+
 function tileHtml(it) {
   const d = defs.item[it.hash] || {};
   const tier = d.tier >= 2 && d.tier <= 6 ? d.tier : 2;
@@ -943,10 +982,12 @@ function tileHtml(it) {
   const cls = ["tile", `t${tier}`, it.masterwork ? "mw" : "", matches(it) ? "" : "dim", vault.busy.has(it.id) ? "busy" : ""].filter(Boolean).join(" ");
   return `<button type="button" class="${cls}" data-id="${esc(it.id)}" draggable="true"
       aria-label="${esc(d.name)}, ${it.power ?? ""} power, ${esc(where)}">
-      ${d.icon ? `<img src="${esc(d.icon)}" alt="" loading="lazy" width="50" height="50" draggable="false">` : `<img alt="" draggable="false">`}
-      ${d.watermark ? `<img class="wm" src="${esc(d.watermark)}" alt="" loading="lazy" draggable="false">` : ""}
-      ${wishMatch(it) ? `<span class="gr" title="Community god roll">${THUMB_SVG}</span>` : ""}
-      ${it.locked ? LOCK_SVG : ""}
+      <span class="ti">
+        ${iconOf(it) ? `<img src="${esc(iconOf(it))}" alt="" loading="lazy" width="50" height="50" draggable="false">` : ""}
+        ${d.watermark ? `<img class="wm" src="${esc(d.watermark)}" alt="" loading="lazy" draggable="false">` : ""}
+        ${wishMatch(it) ? `<span class="gr" title="Community god roll">${THUMB_SVG}</span>` : ""}
+        ${it.locked ? LOCK_SVG : ""}
+      </span>
       <span class="pw">${it.crafted ? `<span class="craft" title="Crafted"></span>` : ""}${elHtml}${it.power ?? ""}</span>
     </button>`;
 }
@@ -978,6 +1019,7 @@ function showHover(tile) {
       ${tags.length ? `<div class="hc-tags">${tags.map((t) => `<span>${t}</span>`).join("")}</div>` : ""}
     </div>`;
   card.hidden = false;
+  loadDetail(it); // usually finished by the time you click
   const r = tile.getBoundingClientRect();
   const w = card.offsetWidth, hgt = card.offsetHeight;
   let left = r.right + 10;
@@ -1212,13 +1254,13 @@ function sheetHtml(it) {
 
   let body;
   if (det?.error) body = `<div class="sheet-section"><p class="note">Couldn't load perks and stats: ${esc(det.error)}</p></div>`;
-  else if (!det || !dd) body = `<div class="sheet-section"><h4>Stats &amp; perks</h4>${Array(6).fill('<div class="sk sk-line"></div>').join("")}</div>`;
+  else if (!det || !dd) body = statsHtml(it, { stats: it.stats }) + `<div class="sheet-section"><h4>Perks</h4>${Array(4).fill('<div class="sk sk-line"></div>').join("")}</div>`;
   else body = statsHtml(it, det) + socketsHtml(it, det) + (dd.flavor ? `<div class="sheet-section"><p class="flavor">“${esc(dd.flavor)}”</p></div>` : "");
 
   return `
     <div class="sheet-hero tier-${tier}" style="${dd?.screenshot ? `background-image:url('${esc(dd.screenshot)}')` : ""}">
       <div class="sheet-top">
-        ${d.icon ? `<img src="${esc(d.icon)}" alt="" width="64" height="64">` : ""}
+        ${iconOf(it) ? `<img src="${esc(iconOf(it))}" alt="" width="64" height="64">` : ""}
         <div style="min-width:0">
           <div class="name" id="sheet-name">${esc(d.name || "Unknown item")}</div>
           <div class="kind"><span class="${tier === 6 ? "ex" : ""}">${esc(TIERS[tier] || "")}</span> ${esc(d.type || "")}</div>
@@ -1249,24 +1291,27 @@ function renderSheet() {
   $("sheet").scrollTop = scroll;
 }
 
-async function loadDetail(it) {
-  if (details[it.id] && !details[it.id].error) return;
-  try {
-    const [det] = await Promise.all([api(`/api/item?id=${encodeURIComponent(it.id)}`), loadDefs("detail", [it.hash])]);
-    const dd = defs.detail[it.hash] || { categories: [] };
-    const plugs = new Set();
-    det.sockets.forEach((s) => s.plug && plugs.add(s.plug));
-    Object.values(det.options).forEach((list) => list.forEach((h) => plugs.add(h)));
-    await Promise.all([
-      loadDefs("socketCategory", dd.categories.map((c) => c.hash)),
-      loadDefs("plug", [...plugs]),
-      loadDefs("stat", Object.keys(det.stats))
-    ]);
-    details[it.id] = det;
-  } catch (err) {
-    details[it.id] = { error: err.message };
+const detailLoads = {}; // item id -> request in flight
+function loadDetail(it) {
+  if (details[it.id] && !details[it.id].error) return Promise.resolve();
+  if (!detailLoads[it.id]) {
+    detailLoads[it.id] = (async () => {
+      try {
+        const det = await api(`/api/item?id=${encodeURIComponent(it.id)}&hash=${it.hash}`);
+        for (const [type, map] of Object.entries(det.defs || {})) Object.assign(defs[type], map);
+        persistDefs(["plug", "detail", "socketCategory"]);
+        delete det.defs;
+        details[it.id] = det;
+      } catch (err) {
+        details[it.id] = { error: err.message };
+      } finally {
+        delete detailLoads[it.id];
+      }
+    })();
   }
-  if (vault.openId === it.id) renderSheet();
+  return detailLoads[it.id].then(() => {
+    if (vault.panel === "item" && vault.openId === it.id) renderSheet();
+  });
 }
 
 function openSheet(id) {
@@ -1383,7 +1428,10 @@ function compileQuery(q) {
       fn = (it) => compareOp(it.power ?? 0, op, val);
     } else {
       const v = clean(t.replace(/^name:/i, ""));
-      fn = (it) => { const d = defs.item[it.hash] || {}; return (d.name || "").toLowerCase().includes(v) || (d.type || "").toLowerCase().includes(v); };
+      fn = (it) => {
+        const d = defs.item[it.hash] || {};
+        return (d.name || "").toLowerCase().includes(v) || (d.type || "").toLowerCase().includes(v) || perkNames(it).some((n) => n.includes(v));
+      };
     }
     const pred = neg ? (it) => !fn(it) : fn;
     pred.needsPerks = needsPerks;
@@ -1404,7 +1452,9 @@ async function ensurePerkNames() {
   await loadDefs("plugname", vault.inv.items.flatMap((it) => it.plugs));
   vault.perkNames = true;
   vault.perkNamesLoading = false;
+  compiled = { q: null, preds: [], unknown: [] }; // re-run searches now that perk names exist
   renderVault();
+  if (sg.open) updateSuggest();
 }
 
 /* ================= God rolls (community wish list) ================= */
@@ -1449,8 +1499,8 @@ function pmTileHtml(p) {
   const label = p.quantity > 1 ? `×${p.quantity}` : p.power ?? "";
   return `<button type="button" class="tile${vault.busy.has(p.key) ? " busy" : ""}" data-pm="${esc(p.key)}"
       title="${esc(d.name || "Item")}${p.quantity > 1 ? ` ×${p.quantity}` : ""}" aria-label="${esc(d.name || "Item")} at the Postmaster">
-      ${d.icon ? `<img src="${esc(d.icon)}" alt="" loading="lazy" width="50" height="50" draggable="false">` : `<img alt="">`}
-      ${label !== "" ? `<span class="pw">${label}</span>` : ""}
+      <span class="ti">${d.icon ? `<img src="${esc(d.icon)}" alt="" loading="lazy" width="40" height="40" draggable="false">` : ""}</span>
+      <span class="pw">${label}</span>
     </button>`;
 }
 
@@ -1725,6 +1775,233 @@ function openPanel(kind, key = null) {
   $("sheet").querySelector("[data-close]")?.focus();
 }
 
+/* ================= Search suggestions ================= */
+const FILTER_HINTS = [
+  ["is:godroll", "Community god rolls"], ["is:dupe", "Duplicates you could clean up"], ["is:exotic", "Exotic items"],
+  ["is:legendary", "Legendary items"], ["is:weapon", "Weapons only"], ["is:armor", "Armor only"],
+  ["is:kinetic", "Kinetic weapons"], ["is:arc", "Arc weapons"], ["is:solar", "Solar weapons"], ["is:void", "Void weapons"],
+  ["is:stasis", "Stasis weapons"], ["is:strand", "Strand weapons"], ["is:masterwork", "Masterworked items"],
+  ["is:crafted", "Crafted weapons"], ["is:locked", "Locked items"], ["-is:locked", "Unlocked items"],
+  ["is:equipped", "Equipped right now"], ["is:vault", "In the vault"], ["is:helmet", "Helmets"], ["is:gauntlets", "Gauntlets"],
+  ["is:chest", "Chest armor"], ["is:legs", "Leg armor"], ["is:classitem", "Class items"],
+  ["is:titan", "Titan armor"], ["is:hunter", "Hunter armor"], ["is:warlock", "Warlock armor"],
+  ["perk:", "Search by perk or mod name"], ["stat:", "Filter by a stat, like stat:health>=25"], ["power>", "Power above a number"]
+];
+
+function lev(a, b) {
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+
+// How well query q matches text: higher is better, -1 is no match. Tolerates small typos.
+function matchScore(q, text) {
+  const t = text.toLowerCase();
+  if (!q) return 1;
+  if (t === q) return 100;
+  if (t.startsWith(q)) return 85 - Math.min(10, (t.length - q.length) * 0.2);
+  const words = t.split(/[\s\-'’.:]+/).filter(Boolean);
+  if (words.some((w) => w.startsWith(q))) return 70;
+  const qWords = q.split(/\s+/).filter(Boolean);
+  if (qWords.length > 1 && qWords.every((qw) => words.some((w) => w.startsWith(qw)))) return 65;
+  if (t.includes(q)) return 50;
+  if (q.length >= 3) {
+    const allow = q.length >= 7 ? 2 : 1;
+    const candidates = [t.slice(0, q.length), ...words.map((w) => w.slice(0, q.length)), t];
+    const best = Math.min(...candidates.map((c) => lev(q, c)));
+    if (best <= allow) return 35 - best * 8;
+    if (qWords.length > 1 && qWords.every((qw) => words.some((w) => lev(qw, w.slice(0, qw.length)) <= 1))) return 22;
+  }
+  if (q.length >= 3) {
+    let i = 0;
+    for (const ch of t) if (ch === q[i]) i++;
+    if (i === q.length) return 8;
+  }
+  return -1;
+}
+
+let sgIndex = { key: null };
+function suggestIndex() {
+  const key = `${vault.inv.items.length}|${vault.perkNames}|${Object.keys(defs.plugname).length}`;
+  if (sgIndex.key === key) return sgIndex;
+  const perks = new Map(), names = new Map(), types = new Map();
+  for (const it of vault.inv.items) {
+    const d = defs.item[it.hash] || {};
+    if (d.name) {
+      const e = names.get(d.name) || { name: d.name, icon: d.icon, type: d.type, count: 0 };
+      e.count++; names.set(d.name, e);
+    }
+    if (d.type) types.set(d.type, (types.get(d.type) || 0) + 1);
+    const seen = new Set();
+    for (const h of it.plugs) {
+      const p = defs.plugname[h];
+      if (!p?.name || SKIP_PLUG.test(`${p.name} ${p.type}`) || seen.has(p.name)) continue;
+      seen.add(p.name);
+      const e = perks.get(p.name) || { name: p.name, icon: p.icon, type: p.type, count: 0 };
+      e.count++; perks.set(p.name, e);
+    }
+  }
+  const stats = new Map();
+  for (const it of vault.inv.items) for (const h of Object.keys(it.stats)) {
+    const n = defs.stat[h]?.name;
+    if (n && !HIDDEN_STATS.has(h)) stats.set(n, n.toLowerCase().replace(/\s+/g, ""));
+  }
+  sgIndex = { key, perks: [...perks.values()], names: [...names.values()], types: [...types.entries()], stats: [...stats.entries()] };
+  return sgIndex;
+}
+
+const quoteIfNeeded = (s) => (/\s/.test(s) ? `"${s.toLowerCase()}"` : s.toLowerCase());
+
+function buildSuggestions(token, phrase = "") {
+  const neg = token.length > 1 && token.startsWith("-") ? "-" : "";
+  const raw = (neg ? token.slice(1) : token).replace(/"/g, "");
+  const q = raw.toLowerCase().trim();
+  const idx = suggestIndex();
+  const out = [];
+  const ph = phrase && phrase !== q ? phrase : "";
+  const score = (text) => Math.max(matchScore(q, text), ph ? matchScore(ph, text) + 6 : -1);
+  const perk = (p, s) => out.push({ group: "Perks & mods", score: s + Math.min(5, p.count / 4), icon: p.icon, round: true, label: p.name, sub: p.type,
+    count: p.count, insert: `${neg}perk:${quoteIfNeeded(p.name)}` });
+  let m;
+  if ((m = q.match(/^perk:(.*)$/))) {
+    const pq = m[1].replace(/_/g, " ").trim();
+    idx.perks.map((p) => [p, matchScore(pq, p.name)]).filter(([, s]) => s > 0)
+      .sort((a, b) => b[1] - a[1] || b[0].count - a[0].count).slice(0, 10).forEach(([p, s]) => perk(p, s));
+  } else if ((m = q.match(/^stat:([a-z]*)$/))) {
+    idx.stats.map(([name, key]) => [name, key, matchScore(m[1], name)]).filter(([, , s]) => s > 0)
+      .sort((a, b) => b[2] - a[2]).slice(0, 10)
+      .forEach(([name, key, s]) => out.push({ group: "Stats", score: s, label: name, sub: `Type a number after it, like stat:${key}>=30`, insert: `${neg}stat:${key}>=`, code: true }));
+  } else if (q.length >= 2 || q.startsWith("is:")) {
+    const fq = q.replace(/^is:/, "");
+    if (!q.startsWith("is:")) {
+      idx.perks.map((p) => [p, score(p.name)]).filter(([, s]) => s > 0)
+        .sort((a, b) => b[1] - a[1] || b[0].count - a[0].count).slice(0, 6).forEach(([p, s]) => perk(p, s));
+      idx.names.map((n) => [n, score(n.name)]).filter(([, s]) => s > 0)
+        .sort((a, b) => b[1] - a[1]).slice(0, 4)
+        .forEach(([n, s]) => out.push({ group: "Items", score: s, icon: n.icon, label: n.name, sub: n.type, count: n.count, insert: `${neg}${quoteIfNeeded(n.name)}` }));
+      idx.types.map(([t, c]) => [t, c, score(t)]).filter(([, , s]) => s > 0)
+        .sort((a, b) => b[2] - a[2]).slice(0, 2)
+        .forEach(([t, c, s]) => out.push({ group: "Types", score: s, label: t, sub: "Weapon or armor type", count: c, insert: `${neg}${quoteIfNeeded(t)}` }));
+    }
+    FILTER_HINTS.map(([code, desc]) => [code, desc, Math.max(matchScore(fq, code.replace(/^-?is:/, "")), matchScore(q, desc) - 10)])
+      .filter(([, , s]) => s > 0).sort((a, b) => b[2] - a[2]).slice(0, q.startsWith("is:") ? 12 : 3)
+      .forEach(([code, desc, s]) => out.push({ group: "Filters", score: s, label: code, sub: desc, insert: code, code: true,
+        count: /^-?is:\w+$/.test(code) ? vault.inv.items.filter(compileQuery(code).preds[0]).length : null }));
+  }
+  // Drop weak matches when there's a clearly better one.
+  const top = Math.max(-1, ...out.map((s) => s.score));
+  for (let i = out.length - 1; i >= 0; i--) if (out[i].score < Math.min(18, top - 25)) out.splice(i, 1);
+  // Order groups by their best match, so what you most likely mean comes first.
+  const best = {};
+  for (const s of out) best[s.group] = Math.max(best[s.group] ?? -1, s.score);
+  return out.sort((a, b) => best[b.group] - best[a.group] || (a.group === b.group ? b.score - a.score : a.group.localeCompare(b.group)));
+}
+
+// Token under the caret (quoted phrases count as one token)
+function tokenAt(value, caret) {
+  const re = /-?[a-z]+:"[^"]*"?|-?"[^"]*"?|\S+/gi;
+  let m;
+  while ((m = re.exec(value))) {
+    if (m.index <= caret && caret <= m.index + m[0].length) return { start: m.index, end: m.index + m[0].length, text: m[0] };
+  }
+  return { start: caret, end: caret, text: "" };
+}
+
+const sg = { list: [], active: -1, open: false };
+function renderSuggest() {
+  const box = $("vsuggest");
+  const input = $("vfilter");
+  if (!sg.open) {
+    box.hidden = true;
+    input.setAttribute("aria-expanded", "false");
+    input.removeAttribute("aria-activedescendant");
+    return;
+  }
+  let html = "", group = null;
+  const loading = !vault.perkNames && vault.perkNamesLoading;
+  sg.list.forEach((s, i) => {
+    if (s.group !== group) { group = s.group; html += `<div class="sg-group" role="presentation">${esc(group)}</div>`; }
+    const tok = tokenAt(input.value, input.selectionStart).text.replace(/^-|"/g, "").replace(/^(perk|stat|is):/i, "").toLowerCase();
+    const label = esc(s.label);
+    const at = tok ? s.label.toLowerCase().indexOf(tok) : -1;
+    const marked = at >= 0 ? esc(s.label.slice(0, at)) + `<mark>${esc(s.label.slice(at, at + tok.length))}</mark>` + esc(s.label.slice(at + tok.length)) : label;
+    html += `<div class="sg${i === sg.active ? " on" : ""}" role="option" id="sg-${i}" data-i="${i}" aria-selected="${i === sg.active}">
+      ${s.icon ? `<img class="${s.round ? "round" : ""}" src="${esc(s.icon)}" alt="">` : `<span class="sg-ic">${s.code ? "⌕" : "#"}</span>`}
+      <span class="sg-main"><span class="sg-label${s.code ? " code" : ""}">${marked}</span>${s.sub ? `<span class="sg-sub">${esc(s.sub)}</span>` : ""}</span>
+      ${s.count != null ? `<span class="sg-count">${s.count} item${s.count === 1 ? "" : "s"}</span>` : ""}
+    </div>`;
+  });
+  if (loading) html += `<div class="sg-group">Loading perk names…</div>`;
+  if (!sg.list.length && !loading) html += `<div class="sg-empty">No suggestions. Press Enter to search for “${esc(tokenAt(input.value, input.selectionStart).text)}”.</div>`;
+  html += `<div class="sg-foot">↑ ↓ to choose · Enter or Tab to add · Esc to close</div>`;
+  box.innerHTML = html;
+  box.hidden = false;
+  input.setAttribute("aria-expanded", "true");
+  if (sg.active >= 0) {
+    input.setAttribute("aria-activedescendant", `sg-${sg.active}`);
+    $(`sg-${sg.active}`)?.scrollIntoView({ block: "nearest" });
+  } else input.removeAttribute("aria-activedescendant");
+}
+
+function updateSuggest() {
+  const input = $("vfilter");
+  if (!vault.inv) return;
+  const tok = tokenAt(input.value, input.selectionStart ?? input.value.length);
+  if (!tok.text) {
+    // Nothing typed at the caret: offer a few starting points.
+    sg.list = input.value.trim() ? [] : FILTER_HINTS.filter(([c]) => ["is:godroll", "is:dupe", "perk:", "stat:", "is:exotic"].includes(c))
+      .map(([code, desc]) => ({ group: "Try", score: 1, label: code, sub: desc, insert: code, code: true }));
+  } else {
+    const prev = (input.value.slice(0, tok.start).match(/(?:^|\s)((?:[^\s:"-][^\s:"]*\s+){1,3})$/) || [, ""])[1].trim();
+    sg.list = buildSuggestions(tok.text, prev ? `${prev} ${tok.text}`.toLowerCase() : "").slice(0, 14);
+    if (/perk|^\w{2,}/i.test(tok.text) && !vault.perkNames) ensurePerkNames();
+  }
+  sg.active = sg.list.length && tok.text ? 0 : -1;
+  sg.open = sg.list.length > 0 || Boolean(tok.text);
+  renderSuggest();
+}
+
+// Earlier plain words that belong to the chosen name ("kill" in "kill clip") get replaced too.
+function absorbStart(v, start, label) {
+  const words = label.toLowerCase().split(/[\s\-'’.:]+/).filter(Boolean);
+  let s = start;
+  for (;;) {
+    const m = v.slice(0, s).match(/(\S+)(\s+)$/);
+    if (!m) break;
+    const w = m[1].toLowerCase();
+    if (/[:"]/.test(w) || w.startsWith("-")) break;
+    if (!words.some((x) => x.startsWith(w) || (w.length >= 3 && lev(w, x.slice(0, w.length)) <= 1))) break;
+    s -= m[0].length;
+  }
+  return s;
+}
+
+function acceptSuggestion(i) {
+  const s = sg.list[i];
+  if (!s) return;
+  const input = $("vfilter");
+  const v = input.value;
+  const tok = tokenAt(v, input.selectionStart ?? v.length);
+  const open = /[:=>]$/.test(s.insert); // perk:, stat:x>=, power> wait for more typing
+  const rest = v.slice(tok.end).replace(/^\s+/, "");
+  const before = v.slice(0, s.code ? tok.start : absorbStart(v, tok.start, s.label));
+  const next = before + s.insert + (open ? "" : " ") + rest;
+  input.value = next;
+  const pos = before.length + s.insert.length + (open ? 0 : 1);
+  input.setSelectionRange(pos, pos);
+  vault.q = next;
+  renderVault();
+  if (open) updateSuggest();
+  else { sg.open = false; renderSuggest(); }
+  input.focus();
+}
+
 function godrollBanner(it) {
   const gr = wishMatch(it);
   if (!gr) return "";
@@ -1745,7 +2022,35 @@ $("store-tabs").addEventListener("click", (e) => {
   if (tab) { vault.store = tab.dataset.store; renderVault(); }
 });
 narrow.addEventListener("change", () => vault.inv && renderVault());
-$("vfilter").addEventListener("input", (e) => { vault.q = e.target.value; renderVault(); });
+$("vfilter").addEventListener("input", (e) => { vault.q = e.target.value; renderVault(); updateSuggest(); });
+$("vfilter").addEventListener("focus", updateSuggest);
+$("vfilter").addEventListener("click", updateSuggest);
+$("vfilter").addEventListener("blur", () => setTimeout(() => { sg.open = false; renderSuggest(); }, 120));
+$("vfilter").addEventListener("keydown", (e) => {
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    if (!sg.open) { updateSuggest(); return e.preventDefault(); }
+    if (!sg.list.length) return;
+    e.preventDefault();
+    const n = sg.list.length;
+    sg.active = e.key === "ArrowDown" ? (sg.active + 1) % n : (sg.active - 1 + n) % n;
+    renderSuggest();
+  } else if ((e.key === "Enter" || e.key === "Tab") && sg.open && sg.active >= 0) {
+    e.preventDefault();
+    acceptSuggestion(sg.active);
+  } else if (e.key === "Enter") {
+    sg.open = false; renderSuggest();
+  } else if (e.key === "Escape" && sg.open) {
+    e.preventDefault(); e.stopPropagation();
+    sg.open = false; renderSuggest();
+  } else if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "Home" || e.key === "End") {
+    setTimeout(updateSuggest, 0);
+  }
+});
+$("vsuggest").addEventListener("mousedown", (e) => {
+  e.preventDefault(); // keep focus in the search box
+  const row = e.target.closest(".sg[data-i]");
+  if (row) acceptSuggestion(Number(row.dataset.i));
+});
 $("vsort").addEventListener("change", (e) => { vault.sort = e.target.value; renderVault(); });
 $("v-refresh").addEventListener("click", () => loadVault(true));
 $("v-retry").addEventListener("click", () => loadVault());
@@ -1782,6 +2087,11 @@ $("stores").addEventListener("mouseover", (e) => {
   if (!tile) return;
   clearTimeout(hoverTimer);
   hoverTimer = setTimeout(() => showHover(tile), 260);
+});
+$("stores").addEventListener("pointerdown", (e) => {
+  const tile = e.target.closest(".tile[data-id]");
+  const it = tile && vault.inv?.items.find((x) => x.id === tile.dataset.id);
+  if (it) loadDetail(it);
 });
 $("stores").addEventListener("mouseout", (e) => {
   if (e.target.closest(".tile[data-id]") && !e.relatedTarget?.closest?.(".tile[data-id]")) hideHover();

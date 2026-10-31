@@ -75,16 +75,10 @@ async function pool(list, size, fn) {
   }));
 }
 
-module.exports = handler(async (query) => {
-  const type = query.get("type") || "item";
-  if (!TYPES[type]) throw new HttpError(400, "Unknown definition type.");
+// Look up definitions of one type, using the in-memory cache where possible.
+async function resolve(type, hashList) {
   const [table, trim] = TYPES[type];
-
-  const hashes = [...new Set((query.get("hashes") || "").split(","))]
-    .filter((h) => /^\d{1,10}$/.test(h))
-    .slice(0, 100);
-  if (!hashes.length) throw new HttpError(400, "No hashes given.");
-
+  const hashes = [...new Set(hashList.map(String))].filter((h) => /^\d{1,10}$/.test(h));
   const out = {};
   await pool(hashes, 12, async (hash) => {
     const key = `${type}:${hash}`;
@@ -96,4 +90,15 @@ module.exports = handler(async (query) => {
     out[hash] = cache.get(key);
   });
   return out;
+}
+
+module.exports = handler(async (query) => {
+  const type = query.get("type") || "item";
+  if (!TYPES[type]) throw new HttpError(400, "Unknown definition type.");
+  const hashes = (query.get("hashes") || "").split(",").filter(Boolean).slice(0, 100);
+  if (!hashes.length) throw new HttpError(400, "No hashes given.");
+  return resolve(type, hashes);
 }, 86400);
+
+// Used by routes/item.js to send an item's names and descriptions in the same response.
+module.exports.resolve = resolve;

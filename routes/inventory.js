@@ -40,6 +40,7 @@ module.exports = handler(async (query, { req, res }) => {
       locked: Boolean(it.state & 1),
       masterwork: Boolean(it.state & 4),
       crafted: Boolean(it.state & 8),
+      ornament: it.overrideStyleItemHash || null,
       stats: Object.fromEntries(
         Object.entries(statsById[id]?.stats || {}).filter(([h]) => h !== POWER_STAT).map(([h, v]) => [h, v.value])
       ),
