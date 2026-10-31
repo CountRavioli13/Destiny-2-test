@@ -3,7 +3,7 @@ const crypto = require("crypto");
 const { addCookie, cookie } = require("../../lib/session");
 
 module.exports = async (req, res) => {
-  const clientId = process.env.BUNGIE_CLIENT_ID;
+  const clientId = (process.env.BUNGIE_CLIENT_ID || "").trim();
   res.statusCode = 302;
   if (!clientId) {
     res.setHeader("Location", "/?signin=notconfigured");

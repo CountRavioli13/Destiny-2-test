@@ -377,6 +377,7 @@
         <span class="eyebrow">Your vault</span>
         <h1>Sign-in isn't set up yet</h1>
         <p>The site owner needs to add the Bungie OAuth client ID and secret to this site's settings before the vault can be used. Player lookup still works.</p>
+        <p id="v-missing" class="fine" style="margin-top:12px"></p>
       </div>
       <div><a class="btn ghost" href="#lookup">Go to player lookup</a></div>
     </div>
@@ -619,7 +620,13 @@ function vaultPanel(name) {
 }
 
 function showVault() {
-  if (!me.configured) return vaultPanel("v-unconfigured");
+  if (!me.configured) {
+    const missing = me.missing || [];
+    $("v-missing").textContent = missing.length
+      ? `This deployment can't see: ${missing.join(", ")}. Check the names in Vercel → Settings → Environment Variables, make sure Production is ticked, then redeploy.`
+      : "";
+    return vaultPanel("v-unconfigured");
+  }
   if (!me.signedIn) return vaultPanel("v-out");
   if (vault.inv) { vaultPanel("v-app"); return renderVault(); }
   loadVault();
