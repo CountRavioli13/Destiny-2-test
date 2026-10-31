@@ -1265,7 +1265,7 @@ async function loadItemDetails(inv) {
     if (vault.inv !== inv) return; // a newer inventory replaced this one meanwhile
     for (const it of inv.items) {
       const d = details[it.id];
-      if (d) { it.stats = d.stats; it.plugs = d.plugs; }
+      if (d) { it.stats = d.stats; it.plugs = d.plugs; applyPlugOverrides(it.id, null, it); }
       delete it._wish;
     }
     inv.partial = false;
@@ -1734,6 +1734,7 @@ function loadDetail(it) {
         for (const [type, map] of Object.entries(det.defs || {})) Object.assign(defs[type], map);
         persistDefs(["plug", "detail", "socketCategory"]);
         delete det.defs;
+        applyPlugOverrides(it.id, det, it);
         details[it.id] = det;
       } catch (err) {
         details[it.id] = { error: err.message };
@@ -1747,6 +1748,29 @@ function loadDetail(it) {
   });
 }
 
+/* Perk switches are remembered for a while, because Bungie's copy of your
+   inventory can lag behind and would otherwise show the old perk again. */
+const PLUG_OVR_KEY = "plug-overrides-v1";
+const PLUG_OVR_TTL = 30 * 60000;
+let plugOverrides = {};
+try { plugOverrides = JSON.parse(localStorage.getItem(PLUG_OVR_KEY) || "{}"); } catch {}
+function savePlugOverrides() { try { localStorage.setItem(PLUG_OVR_KEY, JSON.stringify(plugOverrides)); } catch {} }
+// Apply remembered switches to perk data fresh from Bungie; forget them once Bungie agrees.
+function applyPlugOverrides(id, det, it) {
+  const list = plugOverrides[id];
+  if (!list) return;
+  let changed = false;
+  plugOverrides[id] = list.filter((o) => {
+    if (Date.now() - o.at > PLUG_OVR_TTL) { changed = true; return false; }
+    if (det?.sockets?.[o.socket]?.plug === o.plug) { changed = true; return false; } // Bungie caught up
+    if (det?.sockets?.[o.socket]) det.sockets[o.socket].plug = o.plug;
+    if (it?.plugs) it.plugs = it.plugs.map((p) => (p === o.old ? o.plug : p));
+    return true;
+  });
+  if (!plugOverrides[id].length) delete plugOverrides[id];
+  if (changed) savePlugOverrides();
+}
+
 async function switchPerk(id, socketIndex, plugHash) {
   const it = vault.inv?.items.find((x) => x.id === id);
   const det = details[id];
@@ -1757,18 +1781,21 @@ async function switchPerk(id, socketIndex, plugHash) {
   plugBusy = true;
   renderSheet();
   try {
-    await api("/api/transfer", {
+    const r = await api("/api/transfer", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "plug", itemId: it.id, itemHash: it.hash, from: it.loc, to, socketIndex, plugHash })
     });
-    det.sockets[socketIndex].plug = Number(plugHash);
-    it.plugs = it.plugs.map((p) => (p === oldPlug ? Number(plugHash) : p));
+    // Remember it, then show it right away
+    const newPlug = Number(plugHash);
+    plugOverrides[id] = [...(plugOverrides[id] || []).filter((o) => o.socket !== socketIndex), { socket: socketIndex, plug: newPlug, old: oldPlug, at: Date.now() }];
+    savePlugOverrides();
+    if (r.sockets?.length) det.sockets = r.sockets;
+    if (r.stats && Object.keys(r.stats).length) { det.stats = r.stats; it.stats = r.stats; }
+    det.sockets[socketIndex].plug = newPlug;
+    it.plugs = it.plugs.map((p) => (p === oldPlug ? newPlug : p));
     delete it._wish;
+    pickedPlug = String(newPlug);
     toast(`${defs.item[it.hash]?.name || "Your weapon"} now has ${name}.`, false, { title: "Perk switched", icon: iconOf(it) });
-    // Stats can change with the perk: refresh them
-    delete details[id];
-    plugBusy = false;
-    await loadDetail(it);
     renderVault();
   } catch (err) {
     if (err.status === 401) { me.signedIn = false; renderAccount(); }

@@ -48,7 +48,7 @@ module.exports = handler(async (query, { req, res }) => {
   if (action === "plug") {
     const socketIndex = Number(body.socketIndex);
     if (!isId(itemId) || !isId(to) || !isId(body.plugHash) || !Number.isInteger(socketIndex) || socketIndex < 0 || socketIndex > 30) throw bad();
-    await bungie("/Destiny2/Actions/Items/InsertSocketPlugFree/", {
+    const r = await bungie("/Destiny2/Actions/Items/InsertSocketPlugFree/", {
       method: "POST",
       token: s.at,
       body: {
@@ -58,7 +58,14 @@ module.exports = handler(async (query, { req, res }) => {
         membershipType: s.mt
       }
     });
-    return { plugged: true, socketIndex, plugHash: Number(body.plugHash) };
+    // Bungie usually returns the updated item; pass its perks and stats back if so
+    const sockets = r?.item?.sockets?.data?.sockets;
+    const stats = r?.item?.stats?.data?.stats;
+    return {
+      plugged: true, socketIndex, plugHash: Number(body.plugHash),
+      ...(sockets ? { sockets: sockets.map((sk) => ({ plug: sk.plugHash ?? null, enabled: sk.isEnabled !== false, visible: sk.isVisible !== false })) } : {}),
+      ...(stats ? { stats: Object.fromEntries(Object.entries(stats).filter(([h]) => h !== "1935470627").map(([h, v]) => [h, v.value])) } : {})
+    };
   }
 
   /* ---- Pull from the Postmaster ---- */
