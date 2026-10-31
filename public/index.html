@@ -38,8 +38,21 @@
     --display: "Barlow Condensed", "Arial Narrow", sans-serif;
     --body: "IBM Plex Sans", system-ui, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, monospace;
+    --tile: 50px;       /* item size (Settings → Item size) */
+    --tile-eq: 56px;
     color-scheme: dark;
   }
+  html[data-size="s"] { --tile: 44px; --tile-eq: 50px; }
+  html[data-size="l"] { --tile: 60px; --tile-eq: 66px; }
+  /* Themes (Settings → Theme) */
+  html[data-theme="oled"] {
+    --bg: #000; --bg-2: #050608; --surface: #0c0e12; --surface-2: #13161c; --line: #1b1f27; --line-2: #262b35;
+  }
+  html[data-theme="slate"] {
+    --bg: #1b2029; --bg-2: #212732; --surface: #272e3a; --surface-2: #2f3745; --line: #363f4e; --line-2: #445064;
+    --muted: #a3acbb; --faint: #7a8496;
+  }
+  html[data-theme="oled"] body, html[data-theme="slate"] body { background: var(--bg); }
 
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -114,7 +127,7 @@
   .hint b { color: var(--muted); font-weight: 500; }
 
   .stores {
-    --col: 232px;
+    --col: calc(var(--tile-eq) + 3 * var(--tile) + 26px);
     display: grid; grid-template-columns: repeat(var(--chars, 3), var(--col)) minmax(0, 1fr);
     column-gap: 20px; align-items: start;
   }
@@ -151,29 +164,29 @@
     grid-column: 1 / -1; margin: 10px 0 6px; padding-top: 8px; border-top: 1px solid var(--line);
     font: 600 11px/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: var(--faint);
   }
-  .cell { min-height: 76px; padding: 3px; border-radius: 3px; transition: background .1s, box-shadow .1s; min-width: 0; }
+  .cell { min-height: calc(var(--tile-eq) + 20px); padding: 3px; border-radius: 3px; transition: background .1s, box-shadow .1s; min-width: 0; }
   .cell.char { display: flex; gap: 8px; align-items: flex-start; }
   .eq-slot { flex: none; padding: 2px; border-radius: 3px; }
-  .inv { display: grid; grid-template-columns: repeat(3, 50px); gap: 4px; }
-  .stores.single .inv { flex: 1; grid-template-columns: repeat(auto-fill, 50px); }
-  .cell.vault { display: grid; grid-template-columns: repeat(auto-fill, 50px); gap: 4px; align-content: start; }
+  .inv { display: grid; grid-template-columns: repeat(3, var(--tile)); gap: 4px; }
+  .stores.single .inv { flex: 1; grid-template-columns: repeat(auto-fill, var(--tile)); }
+  .cell.vault { display: grid; grid-template-columns: repeat(auto-fill, var(--tile)); gap: 4px; align-content: start; }
   .stores .drop-col { background: rgba(88,192,138,.1); box-shadow: inset 0 0 0 1px rgba(88,192,138,.45); }
   .store-head.drop-col { background: none; box-shadow: none; }
   .store-head.drop-col .emblem-card { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--win); }
   .cell.drop-ok, .eq-slot.drop-ok { background: rgba(88,192,138,.14); box-shadow: inset 0 0 0 2px var(--win); }
 
   .tile {
-    position: relative; display: flex; flex-direction: column; width: 50px; padding: 0; cursor: pointer; overflow: hidden;
+    position: relative; display: flex; flex-direction: column; width: var(--tile); padding: 0; cursor: pointer; overflow: hidden;
     background: #23272f; border: 0; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,.55);
     transition: transform .12s, box-shadow .12s;
   }
-  .tile .ti { position: relative; display: block; width: 50px; height: 50px; flex: none; background: var(--surface-2); }
+  .tile .ti { position: relative; display: block; width: var(--tile); height: var(--tile); flex: none; background: var(--surface-2); }
   .tile .ti > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .tile .ti > img.wm { z-index: 1; pointer-events: none; }
   .tile.t6 .ti::after { content: ""; position: absolute; inset: 0; z-index: 2; box-shadow: inset 0 0 0 1px rgba(214,182,62,.95); pointer-events: none; }
-  .eq-slot .tile { width: 56px; box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px #f2f4f7; }
-  .eq-slot .tile .ti { width: 56px; height: 56px; }
-  .tile.empty { cursor: default; width: 56px; height: 72px; background: transparent; box-shadow: inset 0 0 0 1px var(--line-2); }
+  .eq-slot .tile { width: var(--tile-eq); box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px #f2f4f7; }
+  .eq-slot .tile .ti { width: var(--tile-eq); height: var(--tile-eq); }
+  .tile.empty { cursor: default; width: var(--tile-eq); height: calc(var(--tile-eq) + 16px); background: transparent; box-shadow: inset 0 0 0 1px var(--line-2); }
   .tile:hover:not(.empty) { transform: translateY(-1px); box-shadow: 0 0 0 2px var(--accent), 0 6px 14px rgba(0,0,0,.55); z-index: 4; }
   /* Power strip under the icon: gold when masterworked */
   .tile .pw {
@@ -243,6 +256,31 @@
     .store-tab .ename { font-size: .98rem; }
     .store-tab .epow { font-size: .92rem; }
   }
+
+  /* Display toggles (Settings) */
+  body.no-wm .tile .ti > img.wm { display: none; }
+  body.no-el .tile .pw img.el, body.no-el .tile .pw i { display: none; }
+  body.no-gr .tile .gr { display: none; }
+
+  /* Settings panel */
+  .gear-btn { width: 34px; height: 34px; display: grid; place-items: center; padding: 0; cursor: pointer; color: var(--muted); background: transparent; border: 1px solid var(--line-2); border-radius: 4px; }
+  .gear-btn:hover { color: var(--fg); border-color: var(--muted); }
+  .gear-btn svg { width: 17px; height: 17px; }
+  .set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .set-row:last-child { border-bottom: 0; }
+  .set-label { min-width: 0; flex: 1 1 160px; }
+  .set-label b { display: block; font-size: 14px; font-weight: 600; color: var(--fg); }
+  .set-label small { display: block; font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .seg-opts { display: flex; flex-wrap: wrap; gap: 4px; }
+  .seg-opt { padding: 6px 11px; font-size: 13px; cursor: pointer; color: var(--muted); background: var(--surface); border: 1px solid var(--line-2); border-radius: 4px; }
+  .seg-opt[aria-pressed="true"] { color: var(--fg); border-color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
+  .swatch { width: 28px; height: 28px; padding: 0; border-radius: 50%; cursor: pointer; border: 2px solid transparent; box-shadow: 0 0 0 1px var(--line-2); }
+  .swatch[aria-pressed="true"] { border-color: var(--bg-2); box-shadow: 0 0 0 2px var(--fg); }
+  .switch { position: relative; width: 42px; height: 24px; flex: none; padding: 0; cursor: pointer; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line-2); }
+  .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--muted); transition: transform .15s, background .15s; }
+  .switch[aria-checked="true"] { background: var(--accent); border-color: var(--accent); }
+  .switch[aria-checked="true"]::after { transform: translateX(18px); background: var(--accent-ink); }
+  .set-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
   /* Search suggestions */
   .vsuggest {
@@ -851,17 +889,95 @@ async function loadDefs(type, hashes) {
   if (SAVED_DEF_TYPES.includes(type)) persistDefs([type]);
 }
 
+/* ================= Settings (saved in this browser) ================= */
+const ACCENTS = { gold: "#e4b84c", arc: "#6fd3f0", void: "#b48ae0", strand: "#4fd987", solar: "#f08a3c", white: "#e8ebf0" };
+const DEFAULT_SETTINGS = {
+  theme: "dark", accent: "gold", size: "m", watermarks: true, elements: true, godrolls: true, hover: true,
+  charOrder: "recent", sort: "power", armorCollapsed: false, hidePostmaster: false
+};
+let settings = { ...DEFAULT_SETTINGS };
+try { Object.assign(settings, JSON.parse(localStorage.getItem("settings") || "{}")); } catch {}
+
+function applySettings() {
+  const root = document.documentElement;
+  root.dataset.theme = settings.theme;
+  root.dataset.size = settings.size;
+  root.style.setProperty("--accent", ACCENTS[settings.accent] || ACCENTS.gold);
+  document.body.classList.toggle("no-wm", !settings.watermarks);
+  document.body.classList.toggle("no-el", !settings.elements);
+  document.body.classList.toggle("no-gr", !settings.godrolls);
+  const theme = { dark: "#0a0d12", oled: "#000000", slate: "#1b2029" }[settings.theme];
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme || "#0a0d12");
+}
+
+function setSetting(key, value) {
+  settings[key] = value;
+  try { localStorage.setItem("settings", JSON.stringify(settings)); } catch {}
+  applySettings();
+  if (key === "sort") { vault.sort = value; $("vsort").value = value; }
+  if (key === "armorCollapsed") vault.collapsed.armor = value;
+  if (vault.inv) renderVault();
+  requestAnimationFrame(syncBarHeight);
+}
+
+function settingsHtml() {
+  const seg = (key, opts) => `<div class="seg-opts" role="group">${opts.map(([v, label]) =>
+    `<button type="button" class="seg-opt" data-set="${key}" data-val="${v}" aria-pressed="${settings[key] === v}">${label}</button>`).join("")}</div>`;
+  const sw = (key) => `<button type="button" class="switch" role="switch" data-set="${key}" data-val="toggle" aria-checked="${Boolean(settings[key])}" aria-label="${key}"></button>`;
+  const row = (title, sub, control) => `<div class="set-row"><div class="set-label"><b>${title}</b>${sub ? `<small>${sub}</small>` : ""}</div>${control}</div>`;
+  return `
+    <div class="sheet-hero">
+      <div class="sheet-top">
+        <div style="min-width:0"><div class="name" id="sheet-name">Settings</div><div class="kind">Saved in this browser</div></div>
+        <div class="sheet-btns"><button type="button" class="sheet-close" data-close aria-label="Close">×</button></div>
+      </div>
+    </div>
+    <div class="sheet-section">
+      <h4>Appearance</h4>
+      <div>
+        ${row("Theme", "", seg("theme", [["dark", "Dark"], ["oled", "OLED black"], ["slate", "Slate"]]))}
+        ${row("Accent color", "Buttons, highlights and Power numbers", `<div class="seg-opts">${Object.entries(ACCENTS).map(([k, c]) =>
+          `<button type="button" class="swatch" data-set="accent" data-val="${k}" aria-pressed="${settings.accent === k}" title="${k}" aria-label="${k}" style="background:${c}"></button>`).join("")}</div>`)}
+        ${row("Item size", "", seg("size", [["s", "Small"], ["m", "Medium"], ["l", "Large"]]))}
+        ${row("Season watermarks", "The badge in each icon's corner", sw("watermarks"))}
+        ${row("Element icons", "Arc, Solar, Void… next to Power", sw("elements"))}
+        ${row("God-roll marks", "Green thumbs-up on matching weapons", sw("godrolls"))}
+        ${row("Hover cards", "Quick info when the mouse rests on an item", sw("hover"))}
+      </div>
+    </div>
+    <div class="sheet-section">
+      <h4>Vault</h4>
+      <div>
+        ${row("Character order", "", seg("charOrder", [["recent", "Last played"], ["class", "Titan · Hunter · Warlock"]]))}
+        ${row("Default sort", "", seg("sort", [["power", "Power"], ["rarity", "Rarity"], ["name", "Name"]]))}
+        ${row("Start with Armor collapsed", "Handy when you mostly move weapons", sw("armorCollapsed"))}
+        ${row("Hide the Postmaster row", "", sw("hidePostmaster"))}
+      </div>
+    </div>
+    <div class="sheet-section">
+      <h4>Data</h4>
+      <div class="set-actions">
+        <button type="button" class="btn ghost" data-action="set-tip">Show the tip again</button>
+        <button type="button" class="btn ghost" data-action="set-clear">Clear cached names &amp; icons</button>
+        <button type="button" class="btn ghost" data-action="set-reset">Reset settings</button>
+      </div>
+      <p class="sheet-note">Clearing the cache makes the site re-download item names and perk text. Your loadouts are kept.</p>
+    </div>`;
+}
+
 /* ================= Account + routing ================= */
 let me = { configured: false, signedIn: false };
 
+const GEAR_SVG = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10" cy="10" r="2.6"/><path d="M10 1.8v2.4M10 15.8v2.4M1.8 10h2.4M15.8 10h2.4M4.2 4.2l1.7 1.7M14.1 14.1l1.7 1.7M4.2 15.8l1.7-1.7M14.1 5.9l1.7-1.7"/><circle cx="10" cy="10" r="5.6"/></svg>`;
 function renderAccount() {
   const el = $("account");
+  const gear = `<button type="button" class="gear-btn" id="open-settings" title="Settings" aria-label="Settings">${GEAR_SVG}</button>`;
   if (me.signedIn) {
-    el.innerHTML = `<span class="who">${esc(me.name)}#${esc(me.code)}</span><a class="link-btn" href="/api/auth/logout">Sign out</a>`;
+    el.innerHTML = `<span class="who">${esc(me.name)}#${esc(me.code)}</span><a class="link-btn" href="/api/auth/logout">Sign out</a>${gear}`;
   } else if (me.configured) {
-    el.innerHTML = `<a class="btn" href="/api/auth/login">Sign in</a>`;
+    el.innerHTML = `<a class="btn" href="/api/auth/login">Sign in</a>${gear}`;
   } else {
-    el.innerHTML = "";
+    el.innerHTML = gear;
   }
 }
 
@@ -953,7 +1069,8 @@ const className = (c) => CLASSES[c?.classType] || "Guardian";
 const placeName = (loc) => (loc === "vault" ? "Vault" : className(charById(loc)));
 const narrow = window.matchMedia("(max-width: 900px)");
 vault.store = null;                                   // which column to show on phones
-vault.collapsed = { postmaster: false, weapons: false, armor: false };
+vault.collapsed = { postmaster: false, weapons: false, armor: Boolean(settings.armorCollapsed) };
+vault.sort = settings.sort || "power";
 
 function sortItems(list) {
   const d = (it) => defs.item[it.hash] || {};
@@ -1060,7 +1177,9 @@ function cellHtml(store, slot) {
 }
 
 function renderVault() {
-  const chars = vault.inv.characters;
+  const chars = settings.charOrder === "class"
+    ? [...vault.inv.characters].sort((a, b) => a.classType - b.classType)
+    : vault.inv.characters;
   const stores = [...chars.map((c) => c.id), "vault"];
   if (!stores.includes(vault.store)) vault.store = stores[0];
   const single = narrow.matches;
@@ -1077,7 +1196,7 @@ function renderVault() {
 
   let html = single ? "" : stores.map((s) => `<div class="store-head" data-store="${esc(s)}">${headHtml(s)}</div>`).join("");
   const pm = vault.inv.postmaster.filter((x) => shown.includes(x.charId));
-  if (pm.length) {
+  if (pm.length && !settings.hidePostmaster) {
     const open = !vault.collapsed.postmaster;
     html += `<button type="button" class="sec-head" data-sec="postmaster" aria-expanded="${open}">${CHEV_SVG}Postmaster<span class="count">${pm.length}</span></button>`;
     if (open) html += shown.map((s) => {
@@ -1282,7 +1401,8 @@ function sheetHtml(it) {
 
 function renderSheet() {
   let html;
-  if (vault.panel === "loadouts") html = loadoutsHtml();
+  if (vault.panel === "settings") html = settingsHtml();
+  else if (vault.panel === "loadouts") html = loadoutsHtml();
   else if (vault.panel === "postmaster") html = pmSheetHtml();
   else {
     const it = vault.inv?.items.find((x) => x.id === vault.openId);
@@ -2059,12 +2179,29 @@ $("v-refresh").addEventListener("click", () => loadVault(true));
 $("v-retry").addEventListener("click", () => loadVault());
 $("sheet").addEventListener("click", (e) => {
   if (e.target.closest("[data-close]")) return closeSheet();
+  const set = e.target.closest("[data-set]");
+  if (set) {
+    const key = set.dataset.set;
+    setSetting(key, set.dataset.val === "toggle" ? !settings[key] : set.dataset.val);
+    return renderSheet();
+  }
   const plug = e.target.closest("[data-plug]");
   if (plug) { pickedPlug = plug.dataset.plug; return renderSheet(); }
   const b = e.target.closest("[data-action]");
   if (!b || b.disabled) return;
   const a = b.dataset.action;
   if (a === "compare") return openCompare(vault.openId);
+  if (a === "set-tip") { try { localStorage.removeItem("tip-dismissed"); } catch {} $("v-tip").hidden = false; return toast("The tip is back at the top of the Vault."); }
+  if (a === "set-clear") {
+    try { Object.keys(localStorage).filter((k) => k.startsWith("defs-")).forEach((k) => localStorage.removeItem(k)); } catch {}
+    toast("Cleared. Reloading…");
+    return setTimeout(() => location.reload(), 600);
+  }
+  if (a === "set-reset") {
+    settings = { ...DEFAULT_SETTINGS };
+    setSetting("sort", settings.sort);
+    return renderSheet();
+  }
   if (a === "pull") return runPull(vault.openId);
   if (a === "lo-save") return saveCurrentLoadout($("lo-name").value.trim(), $("lo-char").value);
   if (a === "lo-apply") return applyLoadout(b.dataset.lo, b.dataset.to);
@@ -2075,6 +2212,7 @@ $("sheet").addEventListener("keydown", (e) => {
   if (e.key === "Enter" && e.target.id === "lo-name") saveCurrentLoadout(e.target.value.trim(), $("lo-char").value);
 });
 $("v-loadouts").addEventListener("click", () => openPanel("loadouts"));
+$("account").addEventListener("click", (e) => { if (e.target.closest("#open-settings")) openPanel("settings"); });
 $("v-filters").addEventListener("click", () => {
   const open = $("search-help").hidden;
   $("search-help").hidden = !open;
@@ -2085,7 +2223,7 @@ $("v-tip-close").addEventListener("click", () => {
   try { localStorage.setItem("tip-dismissed", "1"); } catch {}
 });
 $("stores").addEventListener("mouseover", (e) => {
-  if (!canHover.matches || dragId) return;
+  if (!canHover.matches || dragId || !settings.hover) return;
   const tile = e.target.closest(".tile[data-id]");
   if (!tile) return;
   clearTimeout(hoverTimer);
@@ -2422,6 +2560,8 @@ $("recent-chips").addEventListener("click", (e) => {
 });
 
 /* ================= Start ================= */
+applySettings();
+$("vsort").value = vault.sort;
 (async function start() {
   const params = new URLSearchParams(location.search);
   const signin = params.get("signin");
