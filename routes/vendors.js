@@ -23,9 +23,15 @@ async function linkedVendor(itemHash, lite) {
 
 const POWER_STAT = "1935470627";
 
+// What Bungie included, to help diagnose items that come back without a roll.
+const compInfo = (comps, src) => {
+  const n = (k) => Object.keys(comps?.[k]?.data || {}).length;
+  return `${src}; stats ${n("stats")}, sockets ${n("sockets")}, options ${n("reusablePlugs")}, instances ${n("instances")}`;
+};
+
 // Sale items, with the exact roll (stats, perks, perk options) where Bungie has one.
 // `comps` is the item-components block for this vendor, keyed by sale index.
-const saleList = (saleItems, comps) => Object.entries(saleItems || {}).map(([index, it]) => {
+const saleList = (saleItems, comps, src = "") => Object.entries(saleItems || {}).map(([index, it]) => {
   const stats = comps?.stats?.data?.[index]?.stats;
   const sockets = comps?.sockets?.data?.[index]?.sockets;
   const options = comps?.reusablePlugs?.data?.[index]?.plugs;
@@ -35,7 +41,8 @@ const saleList = (saleItems, comps) => Object.entries(saleItems || {}).map(([ind
     costs: (it.costs || []).map((c) => ({ hash: c.itemHash, quantity: c.quantity })),
     ...(stats ? { stats: Object.fromEntries(Object.entries(stats).filter(([h]) => h !== POWER_STAT).map(([h, v]) => [h, v.value])) } : {}),
     ...(sockets ? { sockets: sockets.map((sk) => ({ plug: sk.plugHash ?? null, enabled: sk.isEnabled !== false, visible: sk.isVisible !== false })) } : {}),
-    ...(options ? { options: Object.fromEntries(Object.entries(options).map(([i, list]) => [i, list.map((x) => x.plugItemHash)])) } : {})
+    ...(options ? { options: Object.fromEntries(Object.entries(options).map(([i, list]) => [i, list.map((x) => x.plugItemHash)])) } : {}),
+    ...(!stats && !sockets ? { why: `index ${index}; ${compInfo(comps, src)}` } : {})
   };
 });
 
@@ -46,7 +53,7 @@ module.exports = handler(async (query, { req, res }) => {
 
   // 400 vendors, 402 what they sell, 304/305/310 the exact rolls (stats, perks, perk options)
   const base = `/Destiny2/${s.mt}/Profile/${s.mid}/Character/${char}/Vendors/`;
-  const COMPONENTS = "400,402,304,305,310";
+  const COMPONENTS = "400,402,300,304,305,310";
   const [r, lite] = await Promise.all([bungie(`${base}?components=${COMPONENTS}`, { token: s.at }), itemDefs()]);
   const vendors = r.vendors?.data || {};
   const sales = r.sales?.data || {};
@@ -57,7 +64,7 @@ module.exports = handler(async (query, { req, res }) => {
     if (v.enabled === false) continue;
     const items = [];
     const pages = [];
-    for (const it of saleList(sales[hash]?.saleItems, r.itemComponents?.[hash])) {
+    for (const it of saleList(sales[hash]?.saleItems, r.itemComponents?.[hash], "list")) {
       const link = await linkedVendor(it.hash, lite);
       if (link && String(link) !== hash) pages.push(String(link));
       else items.push(it);
@@ -66,12 +73,16 @@ module.exports = handler(async (query, { req, res }) => {
     pages.forEach((p) => pageHashes.add(p));
   }
 
-  // Load each linked page (from this response if Bungie included it, otherwise on its own)
+  // Load each linked page on its own, so its items come with their rolls. If that
+  // fails, fall back to the copy in the main response (if Bungie included one).
   const pageData = {};
   await Promise.all([...pageHashes].map(async (p) => {
-    if (sales[p]) { pageData[p] = { items: saleList(sales[p].saleItems, r.itemComponents?.[p]), refresh: vendors[p]?.nextRefreshDate || null }; return; }
     const one = await bungie(`${base}${p}/?components=${COMPONENTS}`, { token: s.at }).catch(() => null);
-    if (one) pageData[p] = { items: saleList(one.sales?.data, one.itemComponents), refresh: one.vendor?.data?.nextRefreshDate || null };
+    if (one?.sales?.data) {
+      pageData[p] = { items: saleList(one.sales.data, one.itemComponents, "page"), refresh: one.vendor?.data?.nextRefreshDate || vendors[p]?.nextRefreshDate || null };
+    } else if (sales[p]) {
+      pageData[p] = { items: saleList(sales[p].saleItems, r.itemComponents?.[p], "list-page"), refresh: vendors[p]?.nextRefreshDate || null };
+    }
   }));
 
   const result = out

@@ -399,6 +399,7 @@
   .cost-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; font-size: 13px; background: var(--surface); border: 1px solid var(--line-2); border-radius: 999px; }
   .cost-chip img { width: 16px; height: 16px; }
   .cost-chip.free { color: var(--win); }
+  .sheet-note.tech { font: 400 11px var(--mono); color: var(--faint); margin-top: 6px; }
   .vi-ic { position: relative; width: 44px; height: 44px; flex: none; border-radius: 3px; overflow: hidden; background: var(--surface-2); }
   .vi-ic.t6 { box-shadow: inset 0 0 0 1px rgba(214,182,62,.95); }
   .vi-ic img { width: 100%; height: 100%; }
@@ -2639,7 +2640,7 @@ function vendorSheetHtml(v) {
   const hasRoll = Boolean(v.stats || v.sockets);
   let body;
   if (!kind) body = `<div class="sheet-section"><p class="note">${esc(d.type || "This item")} doesn't have stats or perks.</p></div>`;
-  else if (!hasRoll) body = `<div class="sheet-section"><p class="note">Bungie didn't send this item's roll. It may be a fixed roll; light.gg has the details.</p></div>`;
+  else if (!hasRoll) body = `<div class="sheet-section"><p class="note">Bungie didn't send this item's roll. It may be a fixed roll; light.gg has the details.</p>${v.why ? `<p class="sheet-note tech">Details: ${esc(v.why)}</p>` : ""}</div>`;
   else if (!v.loaded) body = statsHtml(it, det) + `<div class="sheet-section"><h4>Perks</h4>${Array(3).fill('<div class="sk sk-line"></div>').join("")}</div>`;
   else body = statsHtml(it, det) + (dd ? socketsHtml(it, det) : "") + (dd?.flavor ? `<div class="sheet-section"><p class="flavor">“${esc(dd.flavor)}”</p></div>` : "");
   const cost = v.costs.length
