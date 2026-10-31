@@ -40,7 +40,9 @@ module.exports = handler(async (query) => {
   for (const h of played) {
     const d = defs[h];
     if (!d || !(d.mode === RAID_MODE || d.modes.includes(RAID_MODE) || d.typeHash === RAID_TYPE)) continue;
-    const name = d.name.split(":")[0].replace(/\s*\((contest|legacy)[^)]*\)\s*/i, "").trim();
+    let name = d.name.split(":")[0].replace(/\s*\((contest|legacy)[^)]*\)\s*/i, "").trim();
+    // Pantheon's weekly boss rushes are listed under their own names
+    if (/^(the )?pantheon$/i.test(name) || /^featured (reprise|encore)/i.test(name)) name = "Pantheon";
     if (!name) continue;
     const t = totals.get(Number(h));
     const r = raids.get(name) || { name, image: d.image, clears: 0, masterClears: 0, kills: 0, deaths: 0, assists: 0, seconds: 0, fastestMs: 0 };

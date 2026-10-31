@@ -3335,7 +3335,7 @@ function renderRaids() {
   const most = Math.max(...r.raids.map((x) => x.clears));
   $("raids").innerHTML = `
     <div class="raid-sum"><b>${num(r.totalClears)}</b> total raid clears across <b>${r.raids.length}</b> raids
-      <span class="note">· Bungie counts any completion, including from a checkpoint.</span></div>
+      <span class="note">· Bungie counts any completion, including from a checkpoint, so clears and fastest times include those runs.</span></div>
     <div class="raid-grid">${r.raids.map((x) => `
       <div class="raid-card">
         <div class="raid-img" style="${x.image ? `background-image:url('${esc(x.image)}')` : ""}">
@@ -3345,7 +3345,7 @@ function renderRaids() {
           <div class="raid-clears"><b>${num(x.clears)}</b><span>clears</span>${x.masterClears ? `<em class="pill-m">${num(x.masterClears)} Master</em>` : ""}</div>
           <div class="raid-bar"><i style="width:${most ? (x.clears / most) * 100 : 0}%"></i></div>
           <dl>
-            <dt>Fastest clear</dt><dd>${clock(x.fastestMs)}</dd>
+            <dt>Fastest completion</dt><dd>${clock(x.fastestMs)}</dd>
             <dt>Kills</dt><dd>${num(x.kills)}</dd>
             <dt>Deaths</dt><dd>${num(x.deaths)}</dd>
             <dt>K/D</dt><dd>${x.deaths ? ratio(x.kills / x.deaths) : "–"}</dd>
