@@ -1,4 +1,5 @@
-// GET /api/profile?type=3&id=4611…  →  characters and their equipped gear
+// GET /api/profile?type=3&id=4611…
+// → Guardian Rank, Triumph score, clan, and each character with stats, title and gear
 const { bungie, handler, readMember } = require("../lib/bungie");
 
 // Equipment slots we show, by Bungie's inventory bucket hash.
@@ -13,15 +14,22 @@ const SLOTS = {
   20886954: "legs",
   1585787867: "classItem"
 };
+const POWER_STAT = "1935470627"; // shown separately as the character's Power
+
+const img = (path) => (path ? "https://www.bungie.net" + path : null);
 
 module.exports = handler(async (query) => {
   const { type, id } = readMember(query);
 
-  // 200 = characters, 205 = equipped items, 300 = item instances (power levels)
-  const p = await bungie(`/Destiny2/${type}/Profile/${id}/?components=200,205,300`);
+  // 100 profile, 200 characters, 205 equipped items, 300 item power, 900 triumphs
+  const [p, clanRes] = await Promise.all([
+    bungie(`/Destiny2/${type}/Profile/${id}/?components=100,200,205,300,900`),
+    bungie(`/GroupV2/User/${type}/${id}/0/1/`).catch(() => null)
+  ]);
 
   const instances = p.itemComponents?.instances?.data || {};
   const equipment = p.characterEquipment?.data || {};
+  const group = clanRes?.results?.[0]?.group;
 
   const characters = Object.values(p.characters?.data || {})
     .sort((a, b) => new Date(b.dateLastPlayed) - new Date(a.dateLastPlayed))
@@ -32,7 +40,10 @@ module.exports = handler(async (query) => {
       light: c.light,
       minutesPlayed: Number(c.minutesPlayedTotal) || 0,
       lastPlayed: c.dateLastPlayed,
-      emblem: c.emblemBackgroundPath ? "https://www.bungie.net" + c.emblemBackgroundPath : null,
+      emblem: img(c.emblemBackgroundPath),
+      emblemIcon: img(c.emblemPath),
+      titleHash: c.titleRecordHash ?? null,
+      stats: Object.fromEntries(Object.entries(c.stats || {}).filter(([hash]) => hash !== POWER_STAT)),
       gear: (equipment[c.characterId]?.items || [])
         .filter((item) => SLOTS[item.bucketHash])
         .map((item) => ({
@@ -42,5 +53,12 @@ module.exports = handler(async (query) => {
         }))
     }));
 
-  return { characters };
+  return {
+    guardianRank: p.profile?.data?.currentGuardianRank ?? null,
+    triumphScore: p.profileRecords?.data?.activeScore ?? null,
+    clan: group
+      ? { id: group.groupId, name: group.name, tag: group.clanInfo?.clanCallsign || "", members: group.memberCount ?? null }
+      : null,
+    characters
+  };
 }, 60);

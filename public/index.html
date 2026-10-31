@@ -4,225 +4,373 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Guardian Lookup</title>
-<meta name="description" content="Look up any Destiny 2 player's characters, equipped gear and career stats.">
+<meta name="description" content="Look up any Destiny 2 player's characters, loadout, recent activity and career stats.">
+<meta name="theme-color" content="#0a0d12">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  /* Layout: one centered column. Search on top, then the player, a row of
-     emblem tabs for characters, their gear, and career stats by activity. */
+  /* Layout: sticky search bar; a profile banner built from the character's
+     emblem; emblem tabs; loadout + stats beside a recent-activity feed;
+     career stats across the bottom. Dark by design, like the in-game UI. */
   :root {
-    --bg: #eef0f3;
-    --surface: #ffffff;
-    --fg: #15181d;
-    --muted: #5d6573;
-    --line: #d5d9e0;
-    --accent: #b8871f;
-    --accent-ink: #1a1405;
-    --danger: #b3261e;
+    --bg: #0a0d12;
+    --bg-2: #0f131a;
+    --surface: #141922;
+    --surface-2: #1a202b;
+    --line: #232b38;
+    --fg: #e8ebf0;
+    --muted: #8a94a6;
+    --faint: #5c6677;
+    --accent: #e4b84c;       /* Power gold */
+    --accent-ink: #1b1404;
+    --win: #58c08a;
+    --loss: #e5705f;
     --tier-6: #ceae33;  /* Exotic */
-    --tier-5: #6d3f86;  /* Legendary */
+    --tier-5: #7a4a96;  /* Legendary */
     --tier-4: #5076a3;  /* Rare */
-    --tier-3: #366f42;  /* Uncommon */
-    --tier-2: #9a948c;  /* Common */
+    --tier-3: #3f7f4c;  /* Uncommon */
+    --tier-2: #8e8a84;  /* Common */
     --display: "Barlow Condensed", "Arial Narrow", sans-serif;
     --body: "IBM Plex Sans", system-ui, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, monospace;
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0e1116; --surface: #171b22; --fg: #e9ecf1; --muted: #98a1b0;
-      --line: #2a303b; --accent: #e3b546; --danger: #f2877f; --tier-5: #8e5bab;
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #0e1116; --surface: #171b22; --fg: #e9ecf1; --muted: #98a1b0;
-    --line: #2a303b; --accent: #e3b546; --danger: #f2877f; --tier-5: #8e5bab;
     color-scheme: dark;
   }
 
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
-  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 var(--body); }
-  img { max-width: 100%; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--fg); font: 15px/1.55 var(--body);
+    background:
+      radial-gradient(1200px 500px at 70% -10%, rgba(228,184,76,.07), transparent 60%),
+      var(--bg);
+  }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
   [hidden] { display: none !important; }
-
-  main {
-    max-width: 920px;
-    margin: 0 auto;
-    padding-block: 48px 64px;
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .wrap {
+    max-width: 1120px; margin: 0 auto;
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
-    display: grid;
-    gap: 32px;
   }
 
-  /* Header + search */
-  .top { display: grid; gap: 16px; }
-  .eyebrow {
-    font: 600 12px/1 var(--display); letter-spacing: .18em;
-    text-transform: uppercase; color: var(--accent);
+  /* ---------- Top bar ---------- */
+  body::before {
+    content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+    z-index: 21; background: rgba(10,13,18,.92);
   }
-  h1 {
-    margin: 6px 0 4px; font: 700 clamp(2.4rem, 8vw, 3.4rem)/.95 var(--display);
-    text-transform: uppercase; letter-spacing: .02em; text-wrap: balance;
+  .bar {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+    background: rgba(10,13,18,.85); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
   }
-  .top p { margin: 0; color: var(--muted); max-width: 60ch; }
-  form { display: flex; gap: 8px; flex-wrap: wrap; }
-  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-  input {
-    flex: 1 1 260px; min-width: 0; padding: 12px 14px;
-    font: 500 15px var(--mono); color: var(--fg);
+  .bar .wrap { display: flex; align-items: center; gap: 16px; padding-block: 10px; flex-wrap: wrap; }
+  .brand {
+    display: flex; align-items: center; gap: 10px; text-decoration: none;
+    font: 800 18px/1 var(--display); letter-spacing: .14em; text-transform: uppercase;
+  }
+  .brand svg { width: 22px; height: 22px; color: var(--accent); }
+  .search { flex: 1 1 280px; display: flex; gap: 8px; min-width: 0; }
+  .search input {
+    flex: 1; min-width: 0; padding: 9px 12px; font: 500 14px var(--mono); color: var(--fg);
     background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
   }
-  button { font: inherit; cursor: pointer; }
-  .go {
-    padding: 12px 24px; font: 700 16px/1 var(--display); letter-spacing: .08em;
-    text-transform: uppercase; color: var(--accent-ink); background: var(--accent);
-    border: 0; border-radius: 4px;
+  .search input::placeholder { color: var(--faint); }
+  .btn {
+    padding: 9px 18px; font: 700 15px/1 var(--display); letter-spacing: .1em; text-transform: uppercase;
+    color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 4px; cursor: pointer;
   }
-  .go:disabled { opacity: .6; cursor: progress; }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .status { margin: 0; color: var(--muted); min-height: 1.5em; }
-  .status.error { color: var(--danger); }
+  .btn:disabled { opacity: .55; cursor: progress; }
 
-  /* Section headings */
-  h2, h3 { margin: 0; font-family: var(--display); text-transform: uppercase; letter-spacing: .04em; }
-  h2 { font-size: 2rem; line-height: 1; }
-  h3 { font-size: 1.25rem; font-weight: 600; color: var(--muted); }
-  .section { display: grid; gap: 14px; }
-  .player-meta { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  main { padding-block: 32px 64px; }
+  .status { margin: 0 0 16px; color: var(--loss); min-height: 0; }
+  .status:empty { display: none; }
 
-  /* Character tabs (emblems) */
-  .tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  /* ---------- Landing ---------- */
+  .landing { display: grid; gap: 28px; padding-block: 48px 24px; max-width: 760px; }
+  .eyebrow { font: 600 12px/1 var(--display); letter-spacing: .22em; text-transform: uppercase; color: var(--accent); }
+  .landing h1 {
+    margin: 10px 0 12px; font: 800 clamp(2.8rem, 9vw, 5rem)/.9 var(--display);
+    text-transform: uppercase; letter-spacing: .01em; text-wrap: balance;
+  }
+  .landing p { margin: 0; color: var(--muted); font-size: 17px; max-width: 56ch; }
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; }
+  .feature { border-top: 2px solid var(--line); padding-top: 12px; }
+  .feature b { display: block; font: 700 17px/1.1 var(--display); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .feature span { color: var(--muted); font-size: 13px; }
+  .recent { display: grid; gap: 10px; }
+  .recent-label { font: 600 12px/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: var(--faint); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .recent-chip {
+    padding: 6px 12px; font: 500 13px var(--mono); color: var(--fg); cursor: pointer;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
+  }
+  .recent-chip:hover { border-color: var(--accent); }
+  .hint { color: var(--faint); font-size: 13px; }
+
+  /* ---------- Profile banner ---------- */
+  .hero {
+    position: relative; overflow: hidden; border-radius: 6px; border: 1px solid var(--line);
+    background: var(--surface); min-height: 190px; display: flex; align-items: flex-end;
+  }
+  .hero-bg {
+    position: absolute; inset: -30px; background: center / cover no-repeat;
+    filter: blur(18px) saturate(1.25); opacity: .55; transform: scale(1.1);
+  }
+  .hero::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(10,13,18,.1) 0%, rgba(10,13,18,.85) 100%);
+  }
+  .hero-body { position: relative; z-index: 1; display: flex; align-items: flex-end; gap: 18px; padding: 22px; width: 100%; flex-wrap: wrap; }
+  .hero-emblem { width: 84px; height: 84px; border-radius: 4px; border: 2px solid rgba(255,255,255,.25); background: #000; flex: none; }
+  .hero-text { flex: 1 1 280px; min-width: 0; display: grid; gap: 8px; }
+  .hero h2 {
+    margin: 0; font: 800 clamp(2rem, 6vw, 3rem)/.95 var(--display); text-transform: uppercase;
+    overflow-wrap: anywhere; text-shadow: 0 2px 10px rgba(0,0,0,.5);
+  }
+  .hero h2 .code { color: var(--muted); font-weight: 600; font-size: .55em; vertical-align: .35em; margin-left: 4px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; font-size: 12px; font-weight: 500;
+    background: rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.14); border-radius: 999px; text-decoration: none;
+  }
+  .badge.title { color: var(--accent); border-color: rgba(228,184,76,.45); font-family: var(--display); font-weight: 700; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; }
+  a.badge:hover { border-color: rgba(255,255,255,.4); }
+  .hero-power { text-align: right; }
+  .hero-power .num { font: 800 3.4rem/1 var(--display); color: var(--accent); font-variant-numeric: tabular-nums; text-shadow: 0 2px 12px rgba(0,0,0,.6); }
+  .hero-power .lbl { font: 600 12px/1 var(--display); letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+
+  /* ---------- Character tabs ---------- */
+  .tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin-top: 14px; }
   .tab {
     position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    min-height: 80px; padding: 12px 16px 12px 84px; text-align: left; color: #fff;
+    min-height: 76px; padding: 10px 16px 10px 82px; text-align: left; color: #fff; font: inherit; cursor: pointer;
     background: #2a2f38 center / cover no-repeat; border: 0; border-radius: 4px; overflow: hidden;
-    opacity: .62; transition: opacity .15s;
+    opacity: .55; transition: opacity .15s, transform .15s;
   }
   .tab:hover { opacity: .85; }
   .tab[aria-selected="true"] { opacity: 1; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
-  .tab::after {
-    content: ""; position: absolute; inset: 0;
-    background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.45) 55%, rgba(0,0,0,.6) 100%);
-  }
-  .tab > * { position: relative; z-index: 1; min-width: 0; text-shadow: 0 1px 3px rgba(0,0,0,.7); }
-  .tab .cls { display: block; font: 700 1.4rem/1 var(--display); text-transform: uppercase; }
-  .tab .sub { display: block; font-size: 12px; opacity: .9; margin-top: 3px; }
-  .tab .light { font: 700 1.7rem/1 var(--display); color: #f5d36b; font-variant-numeric: tabular-nums; }
-  .light::before { content: "✦ "; font-size: .65em; vertical-align: .22em; }
+  .tab::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.45) 55%, rgba(0,0,0,.65) 100%); }
+  .tab > * { position: relative; z-index: 1; min-width: 0; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
+  .tab .cls { display: block; font: 800 1.35rem/1 var(--display); text-transform: uppercase; letter-spacing: .03em; }
+  .tab .sub { display: block; font-size: 12px; opacity: .9; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tab .light { font: 700 1.6rem/1 var(--display); color: #f5d36b; font-variant-numeric: tabular-nums; }
+  .light::before { content: "✦ "; font-size: .62em; vertical-align: .24em; }
 
-  /* Gear */
-  .subclass { color: var(--muted); font-size: 14px; }
-  .subclass strong { color: var(--fg); font-weight: 600; }
-  .gear { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
-  .gear-col { display: grid; gap: 8px; align-content: start; }
+  /* ---------- Panels ---------- */
+  .layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 28px; margin-top: 32px; align-items: start; }
+  .col { display: grid; gap: 28px; min-width: 0; }
+  .panel { display: grid; gap: 12px; min-width: 0; }
+  .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+  .panel-head h3 { margin: 0; font: 700 1.3rem/1 var(--display); text-transform: uppercase; letter-spacing: .08em; }
+  .panel-head .aside { color: var(--muted); font-size: 13px; }
+  .note { color: var(--muted); font-size: 14px; margin: 0; }
+
+  /* Loadout */
+  .group-label { font: 600 12px/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: var(--faint); margin-top: 4px; }
+  .items { display: grid; gap: 6px; }
   .item {
-    display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 12px;
-    padding: 8px 12px 8px 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+    display: grid; grid-template-columns: 50px minmax(0, 1fr) auto; align-items: center; gap: 12px;
+    padding: 7px 12px 7px 7px; text-decoration: none; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 4px; transition: border-color .15s, background .15s;
   }
-  .item img, .item .noicon {
-    width: 52px; height: 52px; border: 2px solid var(--tier, var(--tier-2)); border-radius: 2px;
-    background: #222; display: block;
-  }
-  .item .name { font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+  .item:hover { border-color: #3a4456; background: var(--surface-2); }
+  .item .icon { width: 50px; height: 50px; border: 2px solid var(--tier, var(--tier-2)); border-radius: 2px; background: #000; }
+  .item .slot { font: 600 11px/1 var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+  .item .name { font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; margin-top: 2px; }
   .item .kind { font-size: 12px; color: var(--muted); }
-  .item .slot { font: 600 11px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-  .item .pwr { font: 700 1.25rem/1 var(--display); font-variant-numeric: tabular-nums; }
   .item.exotic .name { color: var(--tier-6); }
-  .col-label { font: 600 13px/1 var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .item .pwr { font: 700 1.2rem/1 var(--display); font-variant-numeric: tabular-nums; color: var(--fg); }
+  .subclass { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 4px; }
+  .subclass img { width: 40px; height: 40px; }
+  .subclass .kind { color: var(--muted); font-size: 12px; }
+  .subclass .name { font: 700 1.15rem/1.1 var(--display); text-transform: uppercase; letter-spacing: .04em; }
 
-  /* Stats */
-  .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+  /* Character stats */
+  .stats { display: grid; gap: 10px; }
+  .stat { display: grid; grid-template-columns: 22px 92px minmax(0, 1fr) 42px; align-items: center; gap: 10px; }
+  .stat img { width: 22px; height: 22px; opacity: .85; }
+  .stat .lbl { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stat .track { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+  .stat .fill { height: 100%; background: linear-gradient(90deg, #b88f2e, var(--accent)); border-radius: 3px; }
+  .stat .val { font: 500 13px var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Activity feed */
+  .feed { display: grid; gap: 6px; }
+  .act {
+    display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 12px; align-items: center;
+    padding: 6px 12px 6px 6px; text-decoration: none; background: var(--surface);
+    border: 1px solid var(--line); border-left: 3px solid var(--result, var(--line)); border-radius: 4px;
+  }
+  .act:hover { background: var(--surface-2); }
+  .act .thumb { width: 64px; height: 40px; object-fit: cover; border-radius: 2px; background: var(--surface-2); }
+  .act .title { font-weight: 600; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .act .meta { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .act .right { text-align: right; display: grid; gap: 2px; }
+  .act .res { font: 700 13px/1 var(--display); letter-spacing: .1em; text-transform: uppercase; color: var(--result, var(--muted)); }
+  .act .kda { font: 400 12px var(--mono); color: var(--muted); white-space: nowrap; }
+  .win { --result: var(--win); }
+  .loss { --result: var(--loss); }
+
+  /* Career stats */
+  .career { margin-top: 40px; }
+  .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
   .mode { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 14px 16px; }
-  .mode h4 { margin: 0 0 8px; font: 700 1.15rem/1 var(--display); text-transform: uppercase; letter-spacing: .05em; }
-  .mode dl { margin: 0; display: grid; grid-template-columns: 1fr auto; row-gap: 6px; column-gap: 12px; }
+  .mode h4 { margin: 0; font: 700 1rem/1 var(--display); text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+  .mode .big { margin: 10px 0 2px; font: 800 2.4rem/1 var(--display); color: var(--fg); font-variant-numeric: tabular-nums; }
+  .mode .big-label { color: var(--accent); font: 600 12px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; }
+  .mode dl { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr auto; row-gap: 6px; column-gap: 12px; }
   .mode dt { color: var(--muted); font-size: 13px; }
-  .mode dd { margin: 0; font: 500 13px var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
-  .mode .headline { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
-  .mode .big { font: 700 2rem/1 var(--display); font-variant-numeric: tabular-nums; color: var(--accent); }
-  .mode .big-label { color: var(--muted); font-size: 13px; }
+  .mode dd { margin: 0; font: 500 13px var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
 
-  .empty {
-    padding: 32px 20px; border: 1px dashed var(--line); border-radius: 4px;
-    color: var(--muted); text-align: center;
-  }
-  .note { color: var(--muted); font-size: 14px; }
-  footer { color: var(--muted); font-size: 12px; }
+  /* Loading placeholders */
+  .sk { background: linear-gradient(90deg, var(--surface) 0%, var(--surface-2) 50%, var(--surface) 100%); background-size: 200% 100%; animation: sk 1.2s linear infinite; border-radius: 4px; }
+  @keyframes sk { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+  .sk-hero { height: 190px; }
+  .sk-row { height: 66px; }
+  .sk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin-top: 14px; }
 
-  @media (max-width: 420px) {
+  footer { border-top: 1px solid var(--line); color: var(--faint); font-size: 12px; }
+  footer .wrap { padding-block: 20px calc(20px + env(safe-area-inset-bottom, 0px)); }
+
+  @media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 480px) {
+    .brand span { display: none; }
+    .hero-power { text-align: left; width: 100%; }
     .tab { padding-left: 70px; }
-    .item { grid-template-columns: 44px minmax(0, 1fr) auto; }
-    .item img, .item .noicon { width: 44px; height: 44px; }
+    .stat { grid-template-columns: 20px 76px minmax(0, 1fr) 36px; gap: 8px; }
+    .act { grid-template-columns: 52px minmax(0, 1fr) auto; }
+    .act .thumb { width: 52px; height: 34px; }
   }
-  @media (prefers-reduced-motion: reduce) { .tab { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .sk { animation: none; } .tab, .item { transition: none; } }
 </style>
 </head>
 <body>
-<main>
-  <section class="top">
-    <div>
-      <span class="eyebrow">Destiny 2 · Bungie.net API</span>
-      <h1>Guardian Lookup</h1>
-      <p>Look up any player's characters, equipped gear and career stats by their Bungie Name.</p>
-    </div>
-    <form id="search">
+
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Guardian Lookup home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <path d="M12 2 21 7v10l-9 5-9-5V7z"/><circle cx="12" cy="12" r="3.2"/>
+      </svg>
+      <span>Guardian Lookup</span>
+    </a>
+    <form class="search" id="search">
       <label class="sr" for="name">Bungie Name</label>
-      <input id="name" name="name" placeholder="Name#1234" autocomplete="off" spellcheck="false" required>
-      <button class="go" id="go" type="submit">Search</button>
+      <input id="name" name="name" placeholder="Search a Bungie Name, like Name#1234" autocomplete="off" spellcheck="false" required>
+      <button class="btn" id="go" type="submit">Search</button>
     </form>
-    <p id="status" class="status" role="status" aria-live="polite"></p>
+  </div>
+</header>
+
+<main class="wrap">
+  <p id="status" class="status" role="alert"></p>
+
+  <!-- Before a search -->
+  <section id="landing" class="landing">
+    <div>
+      <span class="eyebrow">Destiny 2 player lookup</span>
+      <h1>Every Guardian, at a glance</h1>
+      <p>Search any player by their Bungie Name to see their characters, current loadout, recent matches and lifetime stats.</p>
+    </div>
+    <div class="features">
+      <div class="feature"><b>Loadout</b><span>Equipped weapons, armor and subclass with Power levels</span></div>
+      <div class="feature"><b>Recent activity</b><span>The last 12 activities with results and K/D/A</span></div>
+      <div class="feature"><b>Career</b><span>Lifetime PvE, raid, dungeon, Crucible and Trials stats</span></div>
+    </div>
+    <div class="recent" id="recent" hidden>
+      <span class="recent-label">Recent searches</span>
+      <div class="chips" id="recent-chips"></div>
+    </div>
+    <p class="hint">Your Bungie Name is shown in the game's roster screen and on bungie.net. It ends with a # and 4 digits.</p>
   </section>
 
-  <div id="empty" class="empty">
-    Enter a Bungie Name, including the 4-digit code after the #.<br>
-    You'll find yours in the game's roster screen or on bungie.net.
-  </div>
+  <!-- While loading -->
+  <section id="loading" hidden aria-label="Loading">
+    <div class="sk sk-hero"></div>
+    <div class="sk-grid"><div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div></div>
+    <div class="layout">
+      <div class="col"><div class="sk" style="height:420px"></div></div>
+      <div class="col"><div class="sk" style="height:420px"></div></div>
+    </div>
+  </section>
 
-  <div id="result" hidden>
-    <div class="section">
-      <div>
-        <h2 id="player-name"></h2>
-        <div id="player-meta" class="player-meta"></div>
+  <!-- Results -->
+  <section id="result" hidden>
+    <div class="hero" id="hero">
+      <div class="hero-bg" id="hero-bg"></div>
+      <div class="hero-body">
+        <img class="hero-emblem" id="hero-emblem" alt="" width="84" height="84">
+        <div class="hero-text">
+          <h2 id="hero-name"></h2>
+          <div class="badges" id="hero-badges"></div>
+        </div>
+        <div class="hero-power">
+          <div class="num" id="hero-power"></div>
+          <div class="lbl">Power</div>
+        </div>
       </div>
-      <div id="tabs" class="tabs" role="tablist" aria-label="Characters"></div>
     </div>
 
-    <div class="section" style="margin-top:32px">
-      <h3>Equipped</h3>
-      <div id="subclass" class="subclass"></div>
-      <div id="gear" class="gear"></div>
+    <div class="tabs" id="tabs" role="tablist" aria-label="Characters"></div>
+
+    <div class="layout">
+      <div class="col">
+        <section class="panel">
+          <div class="panel-head"><h3>Loadout</h3><span class="aside">Tap an item for details on light.gg</span></div>
+          <div id="subclass"></div>
+          <div id="loadout"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><h3>Character stats</h3></div>
+          <div id="char-stats" class="stats"></div>
+        </section>
+      </div>
+      <div class="col">
+        <section class="panel">
+          <div class="panel-head"><h3>Recent activity</h3><span class="aside" id="feed-aside"></span></div>
+          <div id="feed" class="feed"></div>
+        </section>
+      </div>
     </div>
 
-    <div class="section" style="margin-top:40px">
-      <h3>Career stats</h3>
-      <div id="stats" class="modes"></div>
-    </div>
-  </div>
-
-  <footer>Not affiliated with Bungie. Destiny data from the Bungie.net API.</footer>
+    <section class="panel career">
+      <div class="panel-head"><h3>Career stats</h3><span class="aside">All characters, all time</span></div>
+      <div id="career" class="modes"></div>
+    </section>
+  </section>
 </main>
+
+<footer>
+  <div class="wrap">Guardian Lookup is a fan site and isn't affiliated with Bungie. Destiny data comes from the Bungie.net API.</div>
+</footer>
 
 <script>
 const CLASSES = ["Titan", "Hunter", "Warlock"];
 const RACES = ["Human", "Awoken", "Exo"];
-const SLOT_LABELS = {
-  kinetic: "Kinetic", energy: "Energy", power: "Power",
-  helmet: "Helmet", arms: "Gauntlets", chest: "Chest", legs: "Legs", classItem: "Class item"
-};
-const WEAPON_SLOTS = ["kinetic", "energy", "power"];
-const ARMOR_SLOTS = ["helmet", "arms", "chest", "legs", "classItem"];
+const SLOT_LABELS = { kinetic: "Kinetic", energy: "Energy", power: "Power", helmet: "Helmet", arms: "Gauntlets", chest: "Chest", legs: "Legs", classItem: "Class item" };
+const WEAPONS = ["kinetic", "energy", "power"];
+const ARMOR = ["helmet", "arms", "chest", "legs", "classItem"];
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const num = (n) => (n == null ? "–" : Math.round(n).toLocaleString());
-const ratio = (n) => (n == null ? "–" : n.toFixed(2));
-const hours = (sec) => (sec == null ? "–" : Math.round(sec / 3600).toLocaleString() + " h");
+const ratio = (n) => (n == null ? "–" : Number(n).toFixed(2));
+const hrs = (sec) => (sec == null ? "–" : Math.round(sec / 3600).toLocaleString() + " h");
+const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+function ago(iso) {
+  const diff = (new Date(iso) - Date.now()) / 1000;
+  const steps = [["year", 31536000], ["month", 2592000], ["week", 604800], ["day", 86400], ["hour", 3600], ["minute", 60]];
+  for (const [unit, s] of steps) if (Math.abs(diff) >= s) return rtf.format(Math.round(diff / s), unit);
+  return "just now";
+}
 
-let state = null; // { player, characters, items, stats, selected }
+/* ---------- Data ---------- */
+const defs = { item: {}, stat: {}, record: {}, activity: {} };
+let state = null;      // { player, profile, career, selected }
+const feeds = {};      // characterId -> activities (or { error })
 
 async function api(path) {
   const res = await fetch(path);
@@ -231,142 +379,266 @@ async function api(path) {
   return data;
 }
 
-function setStatus(msg, isError = false) {
-  $("status").textContent = msg;
-  $("status").classList.toggle("error", isError);
+async function loadDefs(type, hashes) {
+  const need = [...new Set(hashes.filter((h) => h != null).map(String))].filter((h) => !defs[type][h]);
+  for (let i = 0; i < need.length; i += 60) {
+    const got = await api(`/api/items?type=${type}&hashes=${need.slice(i, i + 60).join(",")}`).catch(() => ({}));
+    Object.assign(defs[type], got);
+  }
 }
 
+/* ---------- Recent searches (stored only in this browser) ---------- */
+function getRecent() { try { return JSON.parse(localStorage.getItem("recent") || "[]"); } catch { return []; } }
+function saveRecent(name) {
+  const list = [name, ...getRecent().filter((n) => n.toLowerCase() !== name.toLowerCase())].slice(0, 6);
+  try { localStorage.setItem("recent", JSON.stringify(list)); } catch {}
+}
+function renderRecent() {
+  const list = getRecent();
+  $("recent").hidden = !list.length;
+  $("recent-chips").innerHTML = list.map((n) => `<button type="button" class="recent-chip" data-name="${esc(n)}">${esc(n)}</button>`).join("");
+}
+
+/* ---------- Views ---------- */
+function show(view) {
+  for (const id of ["landing", "loading", "result"]) $(id).hidden = id !== view;
+}
+function setStatus(msg) { $("status").textContent = msg || ""; }
+
 async function lookup(name) {
+  name = name.trim();
+  if (!name) return;
   $("go").disabled = true;
-  setStatus("Finding player…");
+  setStatus("");
+  show("loading");
   try {
     const player = await api(`/api/search?name=${encodeURIComponent(name)}`);
     const ids = `type=${player.membershipType}&id=${player.membershipId}`;
-
-    setStatus("Loading characters and stats…");
-    const [profile, stats] = await Promise.all([
+    const [profile, career] = await Promise.all([
       api(`/api/profile?${ids}`),
       api(`/api/stats?${ids}`).catch((err) => ({ error: err.message }))
     ]);
+    const chars = profile.characters;
+    await Promise.all([
+      loadDefs("item", chars.flatMap((c) => c.gear.map((g) => g.hash))),
+      loadDefs("stat", chars.flatMap((c) => Object.keys(c.stats))),
+      loadDefs("record", chars.map((c) => c.titleHash))
+    ]);
 
-    const hashes = [...new Set(profile.characters.flatMap((c) => c.gear.map((g) => g.hash)))];
-    const items = hashes.length ? await api(`/api/items?hashes=${hashes.join(",")}`).catch(() => ({})) : {};
-
-    state = { player, characters: profile.characters, items, stats, selected: 0 };
-    render();
-    setStatus("");
-
+    for (const k in feeds) delete feeds[k];
+    state = { player, profile, career, selected: 0, ids };
+    const full = `${player.name}#${player.code}`;
+    saveRecent(full);
+    $("name").value = full;
+    document.title = `${player.name} · Guardian Lookup`;
     const url = new URL(location.href);
-    url.searchParams.set("name", `${player.name}#${player.code}`);
+    url.searchParams.set("name", full);
     history.replaceState(null, "", url);
+
+    show("result");
+    renderAll();
   } catch (err) {
-    setStatus(err.message === "Failed to fetch" ? "Couldn't reach the server. Check your connection and try again." : err.message, true);
+    show("landing");
+    renderRecent();
+    setStatus(err.message === "Failed to fetch" ? "Couldn't reach the server. Check your connection and try again." : err.message);
   } finally {
     $("go").disabled = false;
   }
 }
 
-function render() {
-  const { player, characters } = state;
-  $("empty").hidden = true;
-  $("result").hidden = false;
-
-  $("player-name").textContent = `${player.name}#${player.code}`;
-  const totalHours = Math.round(characters.reduce((sum, c) => sum + c.minutesPlayed, 0) / 60);
-  $("player-meta").textContent =
-    `${player.platform}${player.crossSave ? " · Cross Save" : ""} · ${characters.length} character${characters.length === 1 ? "" : "s"} · ${totalHours.toLocaleString()} hours played`;
-
+function renderAll() {
   renderTabs();
-  renderGear();
-  renderStats();
+  renderCharacter();
+  renderCareer();
+}
+
+function renderHero(c) {
+  const { player, profile } = state;
+  $("hero-bg").style.backgroundImage = c?.emblem ? `url("${c.emblem}")` : "none";
+  $("hero-emblem").src = c?.emblemIcon || "";
+  $("hero-emblem").hidden = !c?.emblemIcon;
+  $("hero-name").innerHTML = `${esc(player.name)}<span class="code">#${esc(player.code)}</span>`;
+  $("hero-power").textContent = c ? c.light : "–";
+
+  const title = c?.titleHash && defs.record[c.titleHash]?.name;
+  const totalHours = Math.round(profile.characters.reduce((s, x) => s + x.minutesPlayed, 0) / 60);
+  const badges = [];
+  if (title) badges.push(`<span class="badge title">${esc(title)}</span>`);
+  if (profile.clan) badges.push(`<a class="badge" href="https://www.bungie.net/en/ClanV2?groupid=${esc(profile.clan.id)}" target="_blank" rel="noopener">${profile.clan.tag ? `[${esc(profile.clan.tag)}] ` : ""}${esc(profile.clan.name)}</a>`);
+  if (profile.guardianRank != null) badges.push(`<span class="badge">Guardian Rank ${profile.guardianRank}</span>`);
+  if (profile.triumphScore != null) badges.push(`<span class="badge">${num(profile.triumphScore)} Triumph score</span>`);
+  badges.push(`<span class="badge">${esc(player.platform)}${player.crossSave ? " · Cross Save" : ""}</span>`);
+  badges.push(`<span class="badge">${totalHours.toLocaleString()} hours played</span>`);
+  $("hero-badges").innerHTML = badges.join("");
 }
 
 function renderTabs() {
-  $("tabs").innerHTML = state.characters.map((c, i) => `
+  $("tabs").innerHTML = state.profile.characters.map((c, i) => {
+    const title = c.titleHash && defs.record[c.titleHash]?.name;
+    return `
     <button class="tab" role="tab" id="tab-${i}" aria-selected="${i === state.selected}" data-i="${i}"
       style="${c.emblem ? `background-image:url('${esc(c.emblem)}')` : ""}">
       <span><span class="cls">${CLASSES[c.classType] || "Guardian"}</span>
-      <span class="sub">${RACES[c.raceType] || ""} · ${Math.round(c.minutesPlayed / 60).toLocaleString()} h</span></span>
+      <span class="sub">${esc(title || RACES[c.raceType] || "")} · ${ago(c.lastPlayed)}</span></span>
       <span class="light" aria-label="Power ${c.light}">${c.light}</span>
-    </button>`).join("");
+    </button>`;
+  }).join("");
+}
+
+function renderCharacter() {
+  const c = state.profile.characters[state.selected];
+  renderHero(c);
+  if (!c) {
+    $("subclass").innerHTML = "";
+    $("loadout").innerHTML = `<p class="note">This player doesn't have any characters yet.</p>`;
+    $("char-stats").innerHTML = "";
+    $("feed").innerHTML = "";
+    return;
+  }
+  renderLoadout(c);
+  renderStats(c);
+  renderFeed(c);
 }
 
 function itemRow(g) {
-  const def = state.items[g.hash] || { name: "Unknown item", type: "", tier: 2 };
-  const icon = def.icon
-    ? `<img src="${esc(def.icon)}" alt="" loading="lazy" width="52" height="52">`
-    : `<span class="noicon"></span>`;
+  const d = defs.item[g.hash] || { name: "Unknown item", type: "", tier: 2 };
+  const tier = d.tier >= 2 && d.tier <= 6 ? d.tier : 2;
   return `
-    <div class="item${def.tier === 6 ? " exotic" : ""}" style="--tier: var(--tier-${def.tier >= 2 && def.tier <= 6 ? def.tier : 2})">
-      ${icon}
+    <a class="item${tier === 6 ? " exotic" : ""}" style="--tier: var(--tier-${tier})"
+       href="https://www.light.gg/db/items/${g.hash}/" target="_blank" rel="noopener">
+      ${d.icon ? `<img class="icon" src="${esc(d.icon)}" alt="" loading="lazy" width="50" height="50">` : `<span class="icon"></span>`}
       <div style="min-width:0">
-        <div class="slot">${SLOT_LABELS[g.slot] || ""}</div>
-        <div class="name">${esc(def.name)}</div>
-        <div class="kind">${esc(def.type)}</div>
+        <div class="slot">${SLOT_LABELS[g.slot]}</div>
+        <div class="name">${esc(d.name)}</div>
+        <div class="kind">${esc(d.type)}</div>
       </div>
       <div class="pwr">${g.power ?? ""}</div>
-    </div>`;
+    </a>`;
 }
 
-function renderGear() {
-  const c = state.characters[state.selected];
-  if (!c) { $("gear").innerHTML = `<p class="note">This player has no characters.</p>`; $("subclass").textContent = ""; return; }
-  const bySlot = Object.fromEntries(c.gear.map((g) => [g.slot, g]));
-
-  const sub = bySlot.subclass && state.items[bySlot.subclass.hash];
-  $("subclass").innerHTML = sub ? `Subclass: <strong>${esc(sub.name)}</strong>` : "";
+function renderLoadout(c) {
+  const by = Object.fromEntries(c.gear.map((g) => [g.slot, g]));
+  const sub = by.subclass && defs.item[by.subclass.hash];
+  $("subclass").innerHTML = sub ? `
+    <div class="subclass">
+      ${sub.icon ? `<img src="${esc(sub.icon)}" alt="" width="40" height="40">` : ""}
+      <div><div class="kind">Subclass</div><div class="name">${esc(sub.name)}</div></div>
+    </div>` : "";
 
   if (!c.gear.length) {
-    $("gear").innerHTML = `<p class="note">Gear isn't available for this character. The player may have hidden their inventory.</p>`;
+    $("loadout").innerHTML = `<p class="note">Gear isn't visible for this character. The player may have hidden their inventory in their privacy settings.</p>`;
     return;
   }
-  const col = (label, slots) => `
-    <div class="gear-col">
-      <div class="col-label">${label}</div>
-      ${slots.filter((s) => bySlot[s]).map((s) => itemRow(bySlot[s])).join("")}
-    </div>`;
-  $("gear").innerHTML = col("Weapons", WEAPON_SLOTS) + col("Armor", ARMOR_SLOTS);
+  const group = (label, slots) => {
+    const rows = slots.filter((s) => by[s]).map((s) => itemRow(by[s])).join("");
+    return rows ? `<div class="group-label">${label}</div><div class="items">${rows}</div>` : "";
+  };
+  $("loadout").innerHTML = `<div class="panel" style="gap:10px">${group("Weapons", WEAPONS)}${group("Armor", ARMOR)}</div>`;
 }
 
-function renderStats() {
-  const stats = state.stats;
-  if (stats.error) { $("stats").innerHTML = `<p class="note">Couldn't load stats: ${esc(stats.error)}</p>`; return; }
-  if (!stats.length) { $("stats").innerHTML = `<p class="note">No career stats recorded yet.</p>`; return; }
+function renderStats(c) {
+  const entries = Object.entries(c.stats).filter(([h]) => defs.stat[h]?.name);
+  if (!entries.length) { $("char-stats").innerHTML = `<p class="note">No stats available for this character.</p>`; return; }
+  const max = Math.max(...entries.map(([, v]) => v)) > 100 ? 200 : 100;
+  $("char-stats").innerHTML = entries.map(([h, v]) => {
+    const d = defs.stat[h];
+    return `
+      <div class="stat" title="${esc(d.description)}">
+        ${d.icon ? `<img src="${esc(d.icon)}" alt="" width="22" height="22">` : `<span></span>`}
+        <span class="lbl">${esc(d.name)}</span>
+        <div class="track"><div class="fill" style="width:${Math.min(100, (v / max) * 100)}%"></div></div>
+        <span class="val">${v}</span>
+      </div>`;
+  }).join("");
+}
 
-  $("stats").innerHTML = stats.map((m) => {
-    const s = m.stats;
-    const pvp = m.kind === "pvp";
-    const winRate = pvp && s.activitiesEntered ? ((s.activitiesWon || 0) / s.activitiesEntered * 100).toFixed(1) + "%" : null;
+async function renderFeed(c) {
+  const id = c.id;
+  if (!feeds[id]) {
+    $("feed").innerHTML = Array(5).fill(`<div class="sk" style="height:54px"></div>`).join("");
+    $("feed-aside").textContent = "";
+    try {
+      const list = await api(`/api/activities?${state.ids}&char=${id}`);
+      await loadDefs("activity", list.flatMap((a) => [a.mapHash, a.playlistHash]));
+      feeds[id] = list;
+    } catch (err) {
+      feeds[id] = { error: err.message };
+    }
+    if (state.profile.characters[state.selected]?.id !== id) return; // user switched tabs meanwhile
+  }
+  const list = feeds[id];
+  if (list.error) { $("feed").innerHTML = `<p class="note">Couldn't load recent activity: ${esc(list.error)}</p>`; return; }
+  if (!list.length) { $("feed").innerHTML = `<p class="note">No recent activity on this character.</p>`; return; }
+
+  let wins = 0, games = 0;
+  $("feed").innerHTML = list.map((a) => {
+    const map = defs.activity[a.mapHash];
+    const playlist = defs.activity[a.playlistHash];
+    const title = playlist?.name || map?.name || "Activity";
+    const where = map?.name && map.name !== title ? map.name : "";
+    let res, cls;
+    if (a.pvp && a.standing != null) {
+      games++; if (a.standing === 0) wins++;
+      [res, cls] = a.standing === 0 ? ["Victory", "win"] : ["Defeat", "loss"];
+    } else {
+      [res, cls] = a.completed && a.completionReason === 0 ? ["Completed", "win"] : ["Incomplete", ""];
+    }
+    const mins = a.duration != null ? Math.round(a.duration / 60) + " min" : "";
+    const img = map?.image || playlist?.image;
+    return `
+      <a class="act ${cls}" href="https://destinytracker.com/destiny-2/pgcr/${esc(a.instanceId)}" target="_blank" rel="noopener">
+        ${img ? `<img class="thumb" src="${esc(img)}" alt="" loading="lazy" width="64" height="40">` : `<span class="thumb"></span>`}
+        <div style="min-width:0">
+          <div class="title">${esc(title)}</div>
+          <div class="meta">${[where, ago(a.when), mins].filter(Boolean).map(esc).join(" · ")}</div>
+        </div>
+        <div class="right">
+          <span class="res">${res}</span>
+          <span class="kda">${num(a.kills)} / ${num(a.deaths)} / ${num(a.assists)}</span>
+        </div>
+      </a>`;
+  }).join("");
+  $("feed-aside").textContent = games ? `${wins}–${games - wins} in PvP · K / D / A` : "K / D / A";
+}
+
+function renderCareer() {
+  const career = state.career;
+  if (career.error) { $("career").innerHTML = `<p class="note">Couldn't load career stats: ${esc(career.error)}</p>`; return; }
+  if (!career.length) { $("career").innerHTML = `<p class="note">No career stats recorded yet.</p>`; return; }
+  $("career").innerHTML = career.map((m) => {
+    const s = m.stats, pvp = m.kind === "pvp";
+    const winRate = pvp && s.activitiesEntered ? ((s.activitiesWon || 0) / s.activitiesEntered * 100).toFixed(1) + "%" : "–";
     const rows = pvp
-      ? [["Matches", num(s.activitiesEntered)], ["Win rate", winRate ?? "–"], ["K/D", ratio(s.killsDeathsRatio)],
-         ["KA/D", ratio(s.efficiency)], ["Kills", num(s.kills)], ["Time played", hours(s.secondsPlayed)]]
-      : [["Kills", num(s.kills)], ["Deaths", num(s.deaths)], ["K/D", ratio(s.killsDeathsRatio)],
-         ["Precision kills", num(s.precisionKills)], ["Time played", hours(s.secondsPlayed)]];
-    const big = pvp ? [num(s.activitiesWon), "wins"] : [num(s.activitiesCleared), "clears"];
+      ? [["Matches", num(s.activitiesEntered)], ["Win rate", winRate], ["K/D", ratio(s.killsDeathsRatio)], ["KA/D", ratio(s.efficiency)], ["Kills", num(s.kills)], ["Time played", hrs(s.secondsPlayed)]]
+      : [["Kills", num(s.kills)], ["Deaths", num(s.deaths)], ["K/D", ratio(s.killsDeathsRatio)], ["Precision kills", num(s.precisionKills)], ["Time played", hrs(s.secondsPlayed)]];
     return `
       <div class="mode">
         <h4>${esc(m.label)}</h4>
-        <div class="headline"><span class="big">${big[0]}</span><span class="big-label">${big[1]}</span></div>
+        <div class="big">${pvp ? num(s.activitiesWon) : num(s.activitiesCleared)}</div>
+        <div class="big-label">${pvp ? "Wins" : "Clears"}</div>
         <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
       </div>`;
   }).join("");
 }
+
+/* ---------- Events ---------- */
+$("search").addEventListener("submit", (e) => { e.preventDefault(); lookup($("name").value); });
 
 $("tabs").addEventListener("click", (e) => {
   const tab = e.target.closest(".tab");
   if (!tab) return;
   state.selected = Number(tab.dataset.i);
   renderTabs();
-  renderGear();
+  renderCharacter();
   $(`tab-${state.selected}`).focus();
 });
 
-$("search").addEventListener("submit", (e) => {
-  e.preventDefault();
-  lookup($("name").value);
+$("recent-chips").addEventListener("click", (e) => {
+  const chip = e.target.closest(".recent-chip");
+  if (chip) { $("name").value = chip.dataset.name; lookup(chip.dataset.name); }
 });
 
-// Support shareable links like ?name=Name%231234
+renderRecent();
 const fromUrl = new URLSearchParams(location.search).get("name");
 if (fromUrl) { $("name").value = fromUrl; lookup(fromUrl); }
 </script>

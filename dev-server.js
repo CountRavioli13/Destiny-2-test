@@ -18,7 +18,8 @@ const routes = {
   search: require("./api/search"),
   profile: require("./api/profile"),
   stats: require("./api/stats"),
-  items: require("./api/items")
+  items: require("./api/items"),
+  activities: require("./api/activities")
 };
 
 http
