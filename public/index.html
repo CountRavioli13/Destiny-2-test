@@ -442,6 +442,22 @@
   .sg-foot { margin-top: 4px; padding: 7px 10px 3px; border-top: 1px solid var(--line); font-size: 11px; color: var(--faint); }
   @media (hover: none) { .sg-foot { display: none; } }
 
+  /* Max Power / Farm explanations */
+  .act-tip {
+    position: fixed; z-index: 62; width: 300px; max-width: calc(100vw - 16px); padding: 12px 14px; pointer-events: none;
+    font-size: 13px; line-height: 1.45; color: var(--fg);
+    background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 8px; box-shadow: 0 16px 40px rgba(0,0,0,.6);
+  }
+  .act-tip > b { display: block; font: 800 1.1rem/1.1 var(--display); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .act-tip p { margin: 0 0 8px; color: var(--muted); }
+  .act-tip ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); display: grid; gap: 3px; }
+  .tip-preview { display: grid; grid-template-columns: auto auto 1fr; align-items: baseline; gap: 2px 8px; padding: 8px 10px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); }
+  .tip-preview span { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--faint); }
+  .tip-preview b { font: 800 1.15rem/1 var(--display); color: var(--accent); font-variant-numeric: tabular-nums; }
+  .tip-preview em { font-style: normal; font-weight: 700; color: var(--win); }
+  .tip-preview small { grid-column: 1 / -1; color: var(--muted); font-size: 12px; }
+  .tip-foot { display: block; margin-top: 8px; color: var(--faint); font-size: 12px; }
+
   /* Hover card */
   .hovercard {
     position: fixed; z-index: 60; width: 260px; pointer-events: none; overflow: hidden; font-size: 12px;
@@ -979,6 +995,7 @@
 <aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-name" hidden></aside>
 <div class="compare" id="compare" role="dialog" aria-modal="true" aria-labelledby="cmp-title" hidden><div class="compare-box" id="compare-box"></div></div>
 <div class="hovercard" id="hovercard" aria-hidden="true" hidden></div>
+<div class="act-tip" id="act-tip" role="tooltip" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <footer>
@@ -1460,8 +1477,8 @@ function cellHtml(store, slot) {
 function actsHtml(charId) {
   const farming = farm.charId === charId;
   return `<div class="store-acts">
-    <button type="button" class="mini-btn" data-act="max" data-char="${esc(charId)}" title="Equip your highest-Power gear">⚡ Max Power</button>
-    <button type="button" class="mini-btn${farming ? " on" : ""}" data-act="farm" data-char="${esc(charId)}" title="Keep this character's inventory from filling up">${farming ? "■ Stop farming" : "Farm"}</button>
+    <button type="button" class="mini-btn" data-act="max" data-char="${esc(charId)}" aria-describedby="act-tip">⚡ Max Power</button>
+    <button type="button" class="mini-btn${farming ? " on" : ""}" data-act="farm" data-char="${esc(charId)}" aria-describedby="act-tip">${farming ? "■ Stop farming" : "Farm"}</button>
   </div>`;
 }
 
@@ -2403,7 +2420,69 @@ function bestSet(slots, charId, scoreOf) {
   for (let i = 0; i < slots.length; i++) { const set = build(i); if (sum(set) > sum(best)) best = set; }
   return best.filter(Boolean);
 }
+// What Max Power would equip, and the Power it would reach
+function maxPowerPlan(charId) {
+  const set = [...bestSet(WEAPONS, charId, (it) => it.power || 0), ...bestSet(ARMOR, charId, (it) => it.power || 0)];
+  // Current Power across the same eight slots (an empty slot counts as 0, like the game)
+  const slots = [...WEAPONS, ...ARMOR];
+  const eq = (s) => vault.inv.items.find((it) => it.loc === charId && it.equipped && it.slot === s)?.power || 0;
+  const current = Math.floor(slots.reduce((sum, s) => sum + eq(s), 0) / slots.length);
+  const power = Math.floor(slots.reduce((sum, s) => sum + (set.find((it) => it.slot === s)?.power || 0), 0) / slots.length);
+  const moves = set.filter((it) => !(it.loc === charId && it.equipped));
+  return { set, power, current, changes: moves.length, fromElsewhere: moves.filter((it) => it.loc !== charId).length };
+}
+
+/* Explanations for the Max Power and Farm buttons, on hover or keyboard focus */
+function actTipHtml(btn) {
+  const c = charById(btn.dataset.char);
+  const who = className(c);
+  if (btn.dataset.act === "max") {
+    const plan = maxPowerPlan(c.id);
+    const gain = plan.power - plan.current;
+    return `<b>⚡ Max Power</b>
+      <p>Equips the highest-Power weapon and armor piece in every slot on your ${who}, pulling them from the vault or your other characters if needed.</p>
+      <div class="tip-preview">${plan.changes && gain > 0
+        ? `<span>Power</span><b>✦${plan.current} → ✦${plan.power}</b>${gain > 0 ? `<em>+${gain}</em>` : ""}<small>${plan.changes} item${plan.changes === 1 ? "" : "s"} would change${plan.fromElsewhere ? `, ${plan.fromElsewhere} moved over` : ""}</small>`
+        : `<span>Already at max</span><b>✦${plan.current}</b><small>${plan.changes ? "Swaps would only trade equal-Power items." : "Nothing would change."}</small>`}</div>
+      <ul><li>Keeps to one Exotic weapon and one Exotic armor piece.</li><li>Your current gear stays in the ${who}'s inventory.</li><li>Happens as soon as you click.</li></ul>`;
+  }
+  const on = farm.charId === c.id;
+  return `<b>${on ? "■ Farming mode is on" : "Farming mode"}</b>
+    <p>Keeps your ${who}'s inventory from filling up while you play, so new drops don't end up at the Postmaster.</p>
+    <ul><li>Every 30 seconds it checks each weapon and armor slot.</li><li>When a slot reaches 8 of 9, it sends the lowest-Power extras to the vault until 6 are left.</li>
+    <li>Never moves equipped or locked items, or anything tagged Favorite or Keep.</li><li>Runs while this page stays open.</li></ul>
+    ${on ? `<div class="tip-preview"><span>Moved so far</span><b>${farm.moved}</b><small>Click to stop.</small></div>` : `<small class="tip-foot">Click to start, and click again to stop.</small>`}`;
+}
+let actTipTimer = null;
+function showActTip(btn) {
+  if (!vault.inv || !charById(btn.dataset.char)) return;
+  const tip = $("act-tip");
+  tip.innerHTML = actTipHtml(btn);
+  tip.hidden = false;
+  const r = btn.getBoundingClientRect();
+  const w = tip.offsetWidth, ht = tip.offsetHeight;
+  let left = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), window.innerWidth - w - 8);
+  let top = r.bottom + 8;
+  if (top + ht > window.innerHeight - 8) top = Math.max(8, r.top - ht - 8);
+  tip.style.left = left + "px";
+  tip.style.top = top + "px";
+}
+function hideActTip() { clearTimeout(actTipTimer); $("act-tip").hidden = true; }
+document.addEventListener("mouseover", (e) => {
+  const btn = e.target.closest?.("[data-act]");
+  if (!btn || !canHover.matches) return;
+  clearTimeout(actTipTimer);
+  actTipTimer = setTimeout(() => showActTip(btn), 250);
+});
+document.addEventListener("mouseout", (e) => {
+  if (e.target.closest?.("[data-act]") && !e.relatedTarget?.closest?.("[data-act]")) hideActTip();
+});
+document.addEventListener("focusin", (e) => { const btn = e.target.closest?.("[data-act]"); if (btn) showActTip(btn); });
+document.addEventListener("focusout", (e) => { if (e.target.closest?.("[data-act]")) hideActTip(); });
+window.addEventListener("scroll", hideActTip, { passive: true });
+
 function maxPower(charId) {
+  hideActTip();
   const set = [...bestSet(WEAPONS, charId, (it) => it.power || 0), ...bestSet(ARMOR, charId, (it) => it.power || 0)];
   const avg = set.length ? Math.floor(set.reduce((s, it) => s + (it.power || 0), 0) / set.length) : 0;
   applyItems(set.map((it) => ({ id: it.id, hash: it.hash })), charId, `Max Power ✦${avg}`);
