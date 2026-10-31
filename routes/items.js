@@ -1,6 +1,11 @@
 // GET /api/items?type=item&hashes=123,456
 // → names, icons and details for game definitions (items, stats, titles, activities)
 const { bungie, handler, HttpError } = require("../lib/bungie");
+const { itemDefs } = require("../lib/manifest");
+
+// Item, perk and mod definitions come from Bungie's item file (one download)
+// instead of one request per item. Anything missing falls back to a lookup.
+const FROM_MANIFEST = new Set(["item", "plugname", "plug"]);
 
 const img = (path) => (path ? "https://www.bungie.net" + path : null);
 
@@ -88,10 +93,11 @@ async function resolve(type, hashList) {
   const [table, trim] = TYPES[type];
   const hashes = [...new Set(hashList.map(String))].filter((h) => /^\d{1,10}$/.test(h));
   const out = {};
+  const manifest = FROM_MANIFEST.has(type) && hashes.some((h) => !cache.has(`${type}:${h}`)) ? await itemDefs() : null;
   await pool(hashes, 12, async (hash) => {
     const key = `${type}:${hash}`;
     if (!cache.has(key)) {
-      const def = await bungie(`/Destiny2/Manifest/${table}/${hash}/`).catch(() => null);
+      const def = manifest?.[hash] || await bungie(`/Destiny2/Manifest/${table}/${hash}/`).catch(() => null);
       if (!def) return;
       cache.set(key, await trim(def));
     }
@@ -103,7 +109,7 @@ async function resolve(type, hashList) {
 module.exports = handler(async (query) => {
   const type = query.get("type") || "item";
   if (!TYPES[type]) throw new HttpError(400, "Unknown definition type.");
-  const hashes = (query.get("hashes") || "").split(",").filter(Boolean).slice(0, 100);
+  const hashes = (query.get("hashes") || "").split(",").filter(Boolean).slice(0, FROM_MANIFEST.has(type) ? 400 : 100);
   if (!hashes.length) throw new HttpError(400, "No hashes given.");
   return resolve(type, hashes);
 }, 86400);

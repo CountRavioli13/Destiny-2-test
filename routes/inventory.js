@@ -2,6 +2,7 @@
 // character inventories and equipped), with each item's stats and active
 // perks, plus whatever is waiting at each character's Postmaster.
 const { bungie, handler } = require("../lib/bungie");
+const { itemDefs } = require("../lib/manifest");
 const { requireSession } = require("../lib/session");
 
 const VAULT_BUCKET = 138197802;
@@ -16,6 +17,7 @@ const img = (path) => (path ? "https://www.bungie.net" + path : null);
 
 module.exports = handler(async (query, { req, res }) => {
   const s = await requireSession(req, res);
+  itemDefs(); // warm up the item file in the background while Bungie answers
 
   // 102 vault, 200 characters, 201 character inventories, 205 equipped,
   // 300 item details, 304 item stats, 305 item sockets (perks and mods)
