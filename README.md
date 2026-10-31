@@ -1,4 +1,4 @@
-# Guardian Lookup
+# Lightkeeper
 
 A Destiny 2 website with two parts:
 

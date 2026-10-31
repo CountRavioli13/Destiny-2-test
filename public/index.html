@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Guardian Lookup</title>
+<title>Lightkeeper</title>
 <meta name="description" content="Manage your Destiny 2 vault, move and equip gear, and look up any player.">
 <meta name="theme-color" content="#0a0d12">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Guardian">
+<meta name="apple-mobile-web-app-title" content="Lightkeeper">
 <link rel="preconnect" href="https://www.bungie.net">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -773,9 +773,9 @@
 
 <header class="bar">
   <div class="wrap">
-    <a class="brand" href="#vault" aria-label="Guardian Lookup home">
+    <a class="brand" href="#vault" aria-label="Lightkeeper home">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2 21 7v10l-9 5-9-5V7z"/><circle cx="12" cy="12" r="3.2"/></svg>
-      <span>Guardian Lookup</span>
+      <span>Lightkeeper</span>
     </a>
     <nav class="nav" aria-label="Sections">
       <a href="#vault" id="nav-vault">Vault</a>
@@ -982,7 +982,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <footer>
-  <div class="wrap">Guardian Lookup is a fan site and isn't affiliated with Bungie. Destiny data comes from the Bungie.net API.</div>
+  <div class="wrap">Lightkeeper is a fan site and isn't affiliated with Bungie. Destiny data comes from the Bungie.net API.</div>
 </footer>
 
 <script>
@@ -1165,7 +1165,7 @@ function settingsHtml() {
     <div class="sheet-section">
       <h4>App</h4>
       ${isStandalone() ? `<p class="sheet-note">You're using the installed app.</p>`
-        : installPrompt ? `<button type="button" class="btn" data-action="install">Install Guardian Lookup</button>`
+        : installPrompt ? `<button type="button" class="btn" data-action="install">Install Lightkeeper</button>`
         : `<p class="sheet-note">To install: on iPhone, tap Share then <b>Add to Home Screen</b>. On Android or desktop Chrome, use the install icon in the address bar or the browser menu's <b>Install app</b>.</p>`}
     </div>
     <div class="sheet-section">
@@ -2710,7 +2710,7 @@ function renderVendors() {
 /* ================= Install as an app ================= */
 let installPrompt = null;
 window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; if (vault.panel === "settings") renderSheet(); });
-window.addEventListener("appinstalled", () => { installPrompt = null; toast("Guardian Lookup is on your home screen.", false, { title: "Installed" }); });
+window.addEventListener("appinstalled", () => { installPrompt = null; toast("Lightkeeper is on your home screen.", false, { title: "Installed" }); });
 const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 
 /* Panels share the side sheet: item details, postmaster items, loadouts */

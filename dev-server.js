@@ -35,4 +35,4 @@ http
     res.writeHead(404);
     res.end("Not found");
   })
-  .listen(PORT, () => console.log(`Guardian Lookup running at http://localhost:${PORT}`));
+  .listen(PORT, () => console.log(`Lightkeeper running at http://localhost:${PORT}`));

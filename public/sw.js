@@ -1,7 +1,7 @@
-// Makes Guardian Lookup installable and lets the page open while offline.
+// Makes Lightkeeper installable and lets the page open while offline.
 // Pages load from the network first (so updates show right away) and fall
 // back to the last saved copy. /api/ requests are never cached.
-const CACHE = "guardian-lookup-v1";
+const CACHE = "lightkeeper-v1";
 const SHELL = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {
