@@ -14,6 +14,7 @@ const routes = {
   "wishlist": require("../routes/wishlist"),
   "store": require("../routes/store"),
   "vendors": require("../routes/vendors"),
+  "raids": require("../routes/raids"),
   "auth/login": require("../routes/auth/login"),
   "auth/callback": require("../routes/auth/callback"),
   "auth/logout": require("../routes/auth/logout")

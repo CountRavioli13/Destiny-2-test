@@ -291,6 +291,43 @@
   .switch[aria-checked="true"]::after { transform: translateX(18px); background: var(--accent-ink); }
   .set-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
+  /* Raid + PvP breakdown */
+  .panel.career + .panel.career { margin-top: 32px; }
+  .panel-head .aside a { color: var(--muted); }
+  .panel-head .aside a:hover { color: var(--fg); }
+  .raid-sum { font-size: 14px; color: var(--muted); }
+  .raid-sum b { color: var(--fg); font-family: var(--mono); }
+  .raid-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+  .raid-card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .raid-img { position: relative; height: 84px; display: flex; align-items: flex-end; padding: 10px 12px; background: var(--surface-2) center / cover no-repeat; }
+  .raid-img::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,13,18,.1), rgba(10,13,18,.85)); }
+  .raid-img h4 { position: relative; margin: 0; font: 800 1.2rem/1.05 var(--display); text-transform: uppercase; letter-spacing: .03em; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.7); }
+  .raid-body { padding: 10px 12px 12px; display: grid; gap: 8px; }
+  .raid-clears { display: flex; align-items: baseline; gap: 6px; }
+  .raid-clears b { font: 800 2rem/1 var(--display); color: var(--accent); font-variant-numeric: tabular-nums; }
+  .raid-clears span { color: var(--muted); font-size: 13px; }
+  .pill-m { margin-left: auto; font-style: normal; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; color: #f5d36b; background: rgba(228,184,76,.12); border: 1px solid rgba(228,184,76,.4); }
+  .raid-bar, .winbar { height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden; }
+  .raid-bar i { display: block; height: 100%; background: var(--accent); }
+  .raid-body dl, .pvp-card dl { margin: 0; display: grid; grid-template-columns: 1fr auto; row-gap: 5px; column-gap: 12px; }
+  .raid-body dt, .pvp-card dt { color: var(--muted); font-size: 13px; }
+  .raid-body dd, .pvp-card dd { margin: 0; font: 500 13px var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+  .pvp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+  .pvp-card { display: grid; gap: 10px; align-content: start; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+  .pvp-card.all { border-color: rgba(228,184,76,.45); }
+  .pvp-top { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 2px 8px; }
+  .pvp-top h4 { margin: 0; font: 700 1.05rem/1 var(--display); text-transform: uppercase; letter-spacing: .1em; }
+  .pvp-top .share { font-size: 11px; color: var(--faint); }
+  .pvp-heads { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .pvp-heads div + div { padding-left: 12px; border-left: 1px solid var(--line); }
+  .pvp-heads div { display: grid; gap: 2px; }
+  .pvp-heads b { font: 800 1.35rem/1 var(--display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .pvp-heads b.good { color: var(--win); }
+  .pvp-heads b.low { color: var(--loss); }
+  .pvp-heads span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+  .winbar { background: rgba(229,112,95,.35); }
+  .winbar i { display: block; height: 100%; background: var(--win); }
+
   /* Tags & notes */
   .tile .tg { position: absolute; left: 2px; bottom: 2px; z-index: 3; width: 14px; height: 14px; display: grid; place-items: center;
     border-radius: 50%; background: rgba(6,8,12,.8); color: var(--tg); box-shadow: 0 0 0 1px var(--tg); }
@@ -910,8 +947,16 @@
         </div>
       </div>
       <section class="panel career">
-        <div class="panel-head"><h3>Career stats</h3><span class="aside">All characters, all time</span></div>
+        <div class="panel-head"><h3>Career</h3><span class="aside">All characters, all time</span></div>
         <div id="career" class="modes"></div>
+      </section>
+      <section class="panel career">
+        <div class="panel-head"><h3>Raids</h3><span class="aside" id="raid-aside"></span></div>
+        <div id="raids"></div>
+      </section>
+      <section class="panel career">
+        <div class="panel-head"><h3>PvP</h3><span class="aside" id="pvp-aside"></span></div>
+        <div id="pvp"></div>
       </section>
     </div>
   </section>
@@ -3070,7 +3115,7 @@ async function lookup(name) {
       loadDefs("record", chars.map((c) => c.titleHash))
     ]);
     for (const k in feeds) delete feeds[k];
-    state = { player, profile, career, selected: 0, ids };
+    state = { player, profile, career, selected: 0, ids, raids: null };
     const full = `${player.name}#${player.code}`;
     saveRecent(full);
     $("name").value = full;
@@ -3082,6 +3127,8 @@ async function lookup(name) {
     renderTabs();
     renderCharacter();
     renderCareer();
+    renderRaids();
+    loadRaids(state);
   } catch (err) {
     showLookup("landing");
     renderRecent();
@@ -3209,18 +3256,103 @@ async function renderFeed(c) {
   $("feed-aside").textContent = games ? `${wins}–${games - wins} in PvP · K / D / A` : "K / D / A";
 }
 
+const PLATFORM_SLUG = { 1: "xb", 2: "ps", 3: "pc", 5: "stadia", 6: "pc" };
+const pct = (a, b) => (b ? ((a / b) * 100).toFixed(1) + "%" : "–");
+function clock(ms) {
+  if (!ms) return "–";
+  const s = Math.round(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, r = s % 60;
+  return h ? `${h}:${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}` : `${m}:${String(r).padStart(2, "0")}`;
+}
+
 function renderCareer() {
   const career = state.career;
-  if (career.error) { $("career").innerHTML = `<p class="note">Couldn't load career stats: ${esc(career.error)}</p>`; return; }
-  if (!career.length) { $("career").innerHTML = `<p class="note">No career stats recorded yet.</p>`; return; }
-  $("career").innerHTML = career.map((m) => {
-    const s = m.stats, pvp = m.kind === "pvp";
-    const winRate = pvp && s.activitiesEntered ? ((s.activitiesWon || 0) / s.activitiesEntered * 100).toFixed(1) + "%" : "–";
-    const rows = pvp
-      ? [["Matches", num(s.activitiesEntered)], ["Win rate", winRate], ["K/D", ratio(s.killsDeathsRatio)], ["KA/D", ratio(s.efficiency)], ["Kills", num(s.kills)], ["Time played", hrs(s.secondsPlayed)]]
-      : [["Kills", num(s.kills)], ["Deaths", num(s.deaths)], ["K/D", ratio(s.killsDeathsRatio)], ["Precision kills", num(s.precisionKills)], ["Time played", hrs(s.secondsPlayed)]];
-    return `<div class="mode"><h4>${esc(m.label)}</h4><div class="big">${pvp ? num(s.activitiesWon) : num(s.activitiesCleared)}</div><div class="big-label">${pvp ? "Wins" : "Clears"}</div><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl></div>`;
-  }).join("");
+  const { player } = state;
+  if (career.error) {
+    $("career").innerHTML = `<p class="note">Couldn't load career stats: ${esc(career.error)}</p>`;
+    $("pvp").innerHTML = "";
+    return;
+  }
+  const pve = career.filter((m) => m.kind === "pve");
+  const pvp = career.filter((m) => m.kind === "pvp");
+
+  $("career").innerHTML = pve.length ? pve.map((m) => {
+    const s = m.stats;
+    const rows = [["Kills", num(s.kills)], ["Deaths", num(s.deaths)], ["K/D", ratio(s.killsDeathsRatio)], ["Precision kills", num(s.precisionKills)], ["Time played", hrs(s.secondsPlayed)]];
+    return `<div class="mode"><h4>${esc(m.label)}</h4><div class="big">${num(s.activitiesCleared)}</div><div class="big-label">Clears</div><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl></div>`;
+  }).join("") : `<p class="note">No PvE stats recorded yet.</p>`;
+
+  $("pvp-aside").innerHTML = `<a href="https://trials.report/report/${esc(player.membershipType)}/${esc(player.membershipId)}" target="_blank" rel="noopener">Trials history on trials.report ↗</a>`;
+  if (!pvp.length) { $("pvp").innerHTML = `<p class="note">No PvP stats recorded yet.</p>`; return; }
+  const all = pvp.find((m) => m.key === "allPvP");
+  $("pvp").innerHTML = `<div class="pvp-grid">${pvp.map((m) => {
+    const s = m.stats;
+    const matches = s.activitiesEntered || 0, wins = s.activitiesWon || 0;
+    const share = all && m !== all && all.stats.activitiesEntered ? Math.round((matches / all.stats.activitiesEntered) * 100) : null;
+    const kd = s.killsDeathsRatio;
+    return `<div class="pvp-card${m === all ? " all" : ""}">
+      <div class="pvp-top"><h4>${esc(m.label)}</h4>${share != null ? `<span class="share">${share}% of matches</span>` : ""}</div>
+      <div class="pvp-heads">
+        <div><b class="${kd >= 1 ? "good" : kd ? "low" : ""}">${ratio(kd)}</b><span>K/D</span></div>
+        <div><b>${pct(wins, matches)}</b><span>Win rate</span></div>
+        <div><b>${ratio(s.efficiency)}</b><span>KA/D</span></div>
+      </div>
+      <div class="winbar" title="${num(wins)} wins of ${num(matches)} matches"><i style="width:${matches ? (wins / matches) * 100 : 0}%"></i></div>
+      <dl>
+        <dt>Matches</dt><dd>${num(matches)}</dd>
+        <dt>Wins</dt><dd>${num(wins)}</dd>
+        <dt>Kills</dt><dd>${num(s.kills)}</dd>
+        <dt>Deaths</dt><dd>${num(s.deaths)}</dd>
+        <dt>Assists</dt><dd>${num(s.assists)}</dd>
+        <dt>Best game</dt><dd>${s.bestSingleGameKills != null ? num(s.bestSingleGameKills) + " kills" : "–"}</dd>
+        <dt>Longest streak</dt><dd>${num(s.longestKillSpree)}</dd>
+        <dt>Time played</dt><dd>${hrs(s.secondsPlayed)}</dd>
+      </dl>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+async function loadRaids(forState) {
+  try {
+    const r = await api(`/api/raids?${forState.ids}`);
+    forState.raids = r;
+  } catch (err) {
+    forState.raids = { error: err.message };
+  }
+  if (state === forState) renderRaids();
+}
+
+function renderRaids() {
+  const { player } = state;
+  const slug = PLATFORM_SLUG[player.membershipType] || "pc";
+  $("raid-aside").innerHTML = `<a href="https://raid.report/${slug}/${esc(player.membershipId)}" target="_blank" rel="noopener">Full history on raid.report ↗</a>`;
+  const r = state.raids;
+  if (!r) {
+    $("raids").innerHTML = `<div class="raid-grid">${Array(4).fill('<div class="sk" style="height:210px"></div>').join("")}</div>`;
+    return;
+  }
+  if (r.error) { $("raids").innerHTML = `<p class="note">Couldn't load raid stats: ${esc(r.error)}</p>`; return; }
+  if (!r.raids.length) { $("raids").innerHTML = `<p class="note">No raid activity on record yet.</p>`; return; }
+  const most = Math.max(...r.raids.map((x) => x.clears));
+  $("raids").innerHTML = `
+    <div class="raid-sum"><b>${num(r.totalClears)}</b> total raid clears across <b>${r.raids.length}</b> raids
+      <span class="note">· Bungie counts any completion, including from a checkpoint.</span></div>
+    <div class="raid-grid">${r.raids.map((x) => `
+      <div class="raid-card">
+        <div class="raid-img" style="${x.image ? `background-image:url('${esc(x.image)}')` : ""}">
+          <h4>${esc(x.name)}</h4>
+        </div>
+        <div class="raid-body">
+          <div class="raid-clears"><b>${num(x.clears)}</b><span>clears</span>${x.masterClears ? `<em class="pill-m">${num(x.masterClears)} Master</em>` : ""}</div>
+          <div class="raid-bar"><i style="width:${most ? (x.clears / most) * 100 : 0}%"></i></div>
+          <dl>
+            <dt>Fastest clear</dt><dd>${clock(x.fastestMs)}</dd>
+            <dt>Kills</dt><dd>${num(x.kills)}</dd>
+            <dt>Deaths</dt><dd>${num(x.deaths)}</dd>
+            <dt>K/D</dt><dd>${x.deaths ? ratio(x.kills / x.deaths) : "–"}</dd>
+            <dt>Time played</dt><dd>${hrs(x.seconds)}</dd>
+          </dl>
+        </div>
+      </div>`).join("")}</div>`;
 }
 
 $("search").addEventListener("submit", (e) => { e.preventDefault(); lookup($("name").value); });

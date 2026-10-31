@@ -33,6 +33,14 @@ const TYPES = {
     name: d.displayProperties?.name || "",
     image: img(d.pgcrImage)
   })],
+  // Activity details used to find raids in someone's history
+  activityInfo: ["DestinyActivityDefinition", (d) => ({
+    name: d.displayProperties?.name || d.originalDisplayProperties?.name || "",
+    image: img(d.pgcrImage),
+    typeHash: d.activityTypeHash ?? null,
+    mode: d.directActivityModeType ?? null,
+    modes: d.activityModeTypes || []
+  })],
   // Extra details for the item panel
   detail: ["DestinyInventoryItemDefinition", (d) => ({
     flavor: d.flavorText || "",
