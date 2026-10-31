@@ -494,12 +494,32 @@
   .sheet-link { display: inline-block; margin-top: 18px; font-size: 13px; color: var(--muted); }
   .sk-line { height: 12px; margin: 6px 0; }
 
+  /* Notifications: top right, solid green for success and red for problems */
   .toast {
-    position: fixed; z-index: 50; left: 50%; translate: -50% 0; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-    max-width: min(520px, calc(100% - 32px)); padding: 12px 16px; border-radius: 4px; font-size: 14px;
-    background: var(--surface-2); border: 1px solid var(--line-2); border-left: 3px solid var(--win); box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    position: fixed; z-index: 70; top: calc(var(--bar-h, 58px) + env(safe-area-inset-top, 0px) + 12px);
+    right: max(16px, env(safe-area-inset-right, 0px)); width: min(380px, calc(100% - 32px));
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px 12px 12px; border-radius: 8px;
+    color: #fff; background: #1f8a4c; border: 1px solid #39b56d;
+    box-shadow: 0 14px 36px rgba(0,0,0,.55), 0 0 0 1px rgba(0,0,0,.3);
+    animation: toast-in .22s ease-out;
   }
-  .toast.error { border-left-color: var(--loss); }
+  .toast.error { background: #b8352a; border-color: #e0604f; }
+  .toast.info { background: var(--surface-2); border-color: var(--line-2); color: var(--fg); }
+  .toast .t-ic { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,.2); }
+  .toast .t-ic svg { width: 15px; height: 15px; }
+  .toast .t-item { width: 40px; height: 40px; flex: none; border-radius: 4px; box-shadow: 0 0 0 2px rgba(255,255,255,.55); }
+  .toast .t-text { min-width: 0; flex: 1; }
+  .toast .t-title { display: block; font: 800 1.05rem/1.1 var(--display); letter-spacing: .06em; text-transform: uppercase; }
+  .toast .t-msg { display: block; font-size: 13px; line-height: 1.35; opacity: .95; margin-top: 2px; overflow-wrap: anywhere; }
+  .toast .t-close { flex: none; align-self: flex-start; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 4px; cursor: pointer; color: inherit; background: rgba(0,0,0,.15); font-size: 15px; line-height: 1; }
+  @keyframes toast-in { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+  /* The item you just moved flashes green in its new spot */
+  .tile.flash { animation: tile-flash 1.6s ease-out; z-index: 4; }
+  @keyframes tile-flash {
+    0%, 35% { box-shadow: 0 0 0 3px #39d47a, 0 0 18px 4px rgba(57,212,122,.7); transform: scale(1.08); }
+    100% { box-shadow: 0 1px 3px rgba(0,0,0,.55); transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .toast, .tile.flash { animation: none; } .tile.flash { box-shadow: 0 0 0 3px #39d47a; } }
 
   /* ---------- Lookup ---------- */
   .lookup-search { display: flex; gap: 8px; max-width: 640px; flex-wrap: wrap; }
@@ -845,13 +865,27 @@ async function api(path, options) {
 }
 
 let toastTimer;
-function toast(msg, isError = false) {
+const CHECK_SVG = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 5"/></svg>`;
+const ALERT_SVG = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M8 4v5"/><circle cx="8" cy="12" r=".6" fill="currentColor"/></svg>`;
+// toast("text") success · toast("text", true) error · options: { title, icon (item image), info }
+function toast(msg, isError = false, opts = {}) {
   const t = $("toast");
-  t.textContent = msg;
-  t.classList.toggle("error", isError);
+  const kind = isError ? "error" : opts.info ? "info" : "ok";
+  const title = opts.title || (isError ? "Something went wrong" : "");
+  t.className = `toast${kind === "ok" ? "" : " " + kind}`;
+  t.innerHTML = `
+    ${opts.icon ? `<img class="t-item" src="${esc(opts.icon)}" alt="">` : ""}
+    <span class="t-ic">${isError ? ALERT_SVG : CHECK_SVG}</span>
+    <span class="t-text">${title ? `<span class="t-title">${esc(title)}</span>` : ""}<span class="t-msg">${esc(msg)}</span></span>
+    <button type="button" class="t-close" aria-label="Dismiss">×</button>`;
   t.hidden = false;
+  t.style.animation = "none"; void t.offsetWidth; t.style.animation = ""; // replay the slide-in
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => (t.hidden = true), isError ? 7000 : 3500);
+  toastTimer = setTimeout(() => (t.hidden = true), isError ? 8000 : 4000);
+}
+function flashTile(id) {
+  vault.flash = id;
+  setTimeout(() => { if (vault.flash === id) vault.flash = null; }, 1700);
 }
 
 /* Game definitions, cached in this browser so repeat visits load fast */
@@ -1053,7 +1087,7 @@ async function loadVault(quiet = false, silent = false) {
     try { $("v-tip").hidden = localStorage.getItem("tip-dismissed") === "1"; } catch { $("v-tip").hidden = false; }
     vaultPanel("v-app");
     renderVault();
-    if (quiet && !silent) toast("Vault refreshed.");
+    if (quiet && !silent) toast("Your vault is up to date.", false, { title: "Refreshed" });
   } catch (err) {
     if (err.status === 401) { me.signedIn = false; renderAccount(); vaultPanel("v-out"); toast(err.message, true); }
     else if (quiet) toast(err.message, true);
@@ -1099,7 +1133,7 @@ function tileHtml(it) {
   const where = placeName(it.loc) + (it.equipped ? " (equipped)" : "");
   const el = elementOf(it);
   const elHtml = el ? (el.icon ? `<img class="el" src="${esc(el.icon)}" alt="">` : `<i style="background:var(--dmg-${el.n})"></i>`) : "";
-  const cls = ["tile", `t${tier}`, it.masterwork ? "mw" : "", matches(it) ? "" : "dim", vault.busy.has(it.id) ? "busy" : ""].filter(Boolean).join(" ");
+  const cls = ["tile", `t${tier}`, it.masterwork ? "mw" : "", matches(it) ? "" : "dim", vault.busy.has(it.id) ? "busy" : "", vault.flash === it.id ? "flash" : ""].filter(Boolean).join(" ");
   return `<button type="button" class="${cls}" data-id="${esc(it.id)}" draggable="true"
       aria-label="${esc(d.name)}, ${it.power ?? ""} power, ${esc(where)}">
       <span class="ti">
@@ -1474,7 +1508,7 @@ async function runAction(id, action, to) {
     });
     if (isLock) {
       it.locked = r.locked;
-      toast(`${r.locked ? "Locked" : "Unlocked"} ${name}.`);
+      toast(name, false, { title: r.locked ? "Locked" : "Unlocked", icon: iconOf(it) });
       return;
     }
     if (r.equipped) {
@@ -1483,11 +1517,13 @@ async function runAction(id, action, to) {
       it.equipped = true;
     }
     it.loc = r.location;
-    toast(action === "equip" ? `Equipped ${name} on your ${placeName(to)}.` : `Moved ${name} to your ${placeName(to) === "Vault" ? "vault" : placeName(to)}.`);
+    flashTile(it.id);
+    toast(action === "equip" ? `${name} is now equipped on your ${placeName(to)}.` : `${name} is now in your ${placeName(to) === "Vault" ? "vault" : placeName(to)}.`,
+      false, { title: action === "equip" ? "Equipped" : "Moved", icon: iconOf(it) });
   } catch (err) {
     if (err.data?.location) it.loc = err.data.location;
     if (err.status === 401) { me.signedIn = false; renderAccount(); }
-    toast(err.message, true);
+    toast(err.message, true, { title: action === "equip" ? "Couldn't equip" : "Couldn't move", icon: iconOf(it) });
   } finally {
     vault.busy.delete(id);
     renderVault();
@@ -1660,7 +1696,7 @@ async function runPull(key) {
       body: JSON.stringify({ action: "pull", itemId: p.id || "0", itemHash: p.hash, from: p.charId, quantity: p.quantity })
     });
     vault.inv.postmaster = vault.inv.postmaster.filter((x) => x !== p);
-    toast(`Pulled ${d.name || "the item"} to your ${className(charById(p.charId))}.`);
+    toast(`${d.name || "The item"} is now on your ${className(charById(p.charId))}.`, false, { title: "Pulled from Postmaster", icon: d.icon });
     if (SLOT_BY_BUCKET[d.bucket]) loadVault(true, true); // a weapon or armor piece: reload so it shows in its column
   } catch (err) {
     if (err.status === 401) { me.signedIn = false; renderAccount(); }
@@ -1834,7 +1870,7 @@ async function applyLoadout(loId, charId) {
   if (!lo || !c || vault.applying) return;
   vault.applying = true;
   closeSheet();
-  toast(`Applying “${lo.name}” to your ${className(c)}…`);
+  toast(`Moving and equipping on your ${className(c)}…`, false, { title: `Applying ${lo.name}`, info: true });
   const problems = [];
   const toEquip = [];
   for (const ref of lo.items) {
@@ -1880,6 +1916,7 @@ async function applyLoadout(loId, charId) {
   }
   vault.applying = false;
   renderVault();
+  if (!problems.length) toEquip.forEach((x) => flashTile(x.id));
   toast(problems.length
     ? `Applied “${lo.name}” with ${problems.length} problem${problems.length > 1 ? "s" : ""}: ${problems.slice(0, 2).join("; ")}`
     : `Applied “${lo.name}” to your ${className(c)}.`, problems.length > 0);
