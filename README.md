@@ -4,6 +4,9 @@ A Destiny 2 website with two parts:
 
 - **Vault** (the home page): sign in with Bungie to see every weapon and piece of
   armor in your vault and on your characters, and move or equip them.
+  Also: Postmaster (see and pull items), loadouts (saved in your browser),
+  compare copies side by side, smart search filters, and community god-roll
+  highlights from the DIM "voltron" wish list.
 - **Player lookup**: search any player by Bungie Name to see their characters,
   loadout, recent activity and career stats.
 
@@ -18,7 +21,9 @@ api/auth/callback.js   Bungie sends you back here after sign-in
 api/auth/logout.js     Signs you out
 api/me.js              Who's signed in
 api/inventory.js       Your vault and character inventories
-api/transfer.js        Moves and equips items
+api/transfer.js        Moves, equips, locks, pulls from Postmaster, equips loadouts
+api/item.js            One item's stats, perks and mods
+api/wishlist.js        Community god rolls for your weapons
 api/search.js          Finds a player by Bungie Name
 api/profile.js         Characters, gear, clan, title, Guardian Rank
 api/activities.js      Recent activity for a character
@@ -69,6 +74,25 @@ $env:BUNGIE_API_KEY="your_key"; node dev-server.js
 ```
 Open http://localhost:3000
 
+## Search filters (Vault)
+
+Combine any of these, and put `-` in front to exclude:
+
+- `is:exotic` `is:legendary` `is:weapon` `is:armor` `is:arc` `is:solar` `is:void`
+  `is:stasis` `is:strand` `is:kinetic` `is:masterwork` `is:crafted` `is:locked`
+  `is:equipped` `is:vault` `is:dupe` `is:godroll` `is:helmet` `is:gauntlets`
+  `is:chest` `is:legs` `is:classitem` `is:titan` `is:hunter` `is:warlock`
+- `perk:outlaw` (any perk or mod; use `_` for spaces, like `perk:kill_clip`)
+- `stat:health>=25`, `stat:total>=60`, `stat:range>70`
+- `power>2000`
+- plain words match names and types, like `hand cannon`
+
+## God rolls
+
+The server downloads the community wish list once (about 28 MB) and keeps it in
+memory. To use a different list, set `WISHLIST_URL` in Vercel to its raw URL.
+A weapon gets a thumbs-up when its active perks match a recommended roll.
+
 ## Good to know
 
 - Equipped items can't be moved. Equip something else in that slot first.
@@ -77,6 +101,8 @@ Open http://localhost:3000
 - Bungie may refuse an equip while you're in certain activities, or if it would
   mean two Exotics. The site shows Bungie's reason.
 - Each character can hold 9 items per slot, so make room before moving more in.
+- Loadouts are saved in your browser, so they don't follow you to another device.
+- Applying a loadout moves each item to the character, then equips them all at once.
 
 ## Troubleshooting
 

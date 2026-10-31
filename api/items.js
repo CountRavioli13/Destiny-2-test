@@ -48,7 +48,13 @@ const TYPES = {
       type: d.itemTypeDisplayName || ""
     };
   }],
-  socketCategory: ["DestinySocketCategoryDefinition", (d) => ({ name: d.displayProperties?.name || "" })]
+  socketCategory: ["DestinySocketCategoryDefinition", (d) => ({ name: d.displayProperties?.name || "" })],
+  // Just names and icons, for searching perks across the whole inventory
+  plugname: ["DestinyInventoryItemDefinition", (d) => ({
+    name: d.displayProperties?.name || "",
+    icon: img(d.displayProperties?.icon),
+    type: d.itemTypeDisplayName || ""
+  })]
 };
 
 // Definitions rarely change, so keep them in memory between requests.

@@ -1,29 +1,65 @@
-// POST /api/transfer  →  move or equip one of the signed-in player's items
-// Body: { action: "move" | "equip" | "lock" | "unlock", itemId, itemHash, from, to }
-//   For lock/unlock, `to` is any of the player's character ids (Bungie requires one).
-//   from / to are a character id or "vault".
-// Bungie only moves items between a character and the vault, so moving
-// character → character goes through the vault in two steps.
+// POST /api/transfer  →  act on the signed-in player's items.
+// Body (JSON):
+//   { action: "move" | "equip", itemId, itemHash, from, to }
+//       from / to are a character id or "vault". Bungie only moves items
+//       between a character and the vault, so character → character goes
+//       through the vault in two steps.
+//   { action: "lock" | "unlock", itemId, itemHash, from, to }
+//       `to` is any of the player's character ids (Bungie requires one).
+//   { action: "pull", itemId, itemHash, from, quantity }
+//       pulls an item from `from`'s Postmaster (itemId "0" for stackables).
+//   { action: "equipMany", itemIds: [...], to }
+//       equips several items already on character `to` at once (loadouts).
 const { bungie, handler, readBody, HttpError } = require("../lib/bungie");
 const { requireSession } = require("../lib/session");
 
 const isId = (v) => /^\d{1,20}$/.test(String(v ?? ""));
 const isPlace = (v) => v === "vault" || isId(v);
+const bad = () => new HttpError(400, "That request was missing details. Refresh the page and try again.");
 
 module.exports = handler(async (query, { req, res }) => {
   if (!String(req.headers["content-type"] || "").includes("application/json")) {
     throw new HttpError(415, "Send this request as JSON.");
   }
   const s = await requireSession(req, res);
-  const { action, itemId, itemHash, from, to } = await readBody(req);
+  const body = await readBody(req);
+  const { action, itemId, itemHash, from, to } = body;
+
+  /* ---- Equip a whole loadout at once ---- */
+  if (action === "equipMany") {
+    const ids = Array.isArray(body.itemIds) ? body.itemIds.map(String) : [];
+    if (!isId(to) || !ids.length || ids.length > 20 || !ids.every(isId)) throw bad();
+    const r = await bungie("/Destiny2/Actions/Items/EquipItems/", {
+      method: "POST",
+      token: s.at,
+      body: { itemIds: ids, characterId: String(to), membershipType: s.mt }
+    });
+    const results = r?.equipResults || [];
+    return {
+      equipped: results.filter((x) => x.equipStatus === 1).map((x) => String(x.itemInstanceId)),
+      failed: results.filter((x) => x.equipStatus !== 1).map((x) => String(x.itemInstanceId))
+    };
+  }
+
+  /* ---- Pull from the Postmaster ---- */
+  if (action === "pull") {
+    const quantity = Math.max(1, Math.min(9999, Number(body.quantity) || 1));
+    if (!isId(itemId) || !isId(itemHash) || !isId(from)) throw bad();
+    await bungie("/Destiny2/Actions/Items/PullFromPostmaster/", {
+      method: "POST",
+      token: s.at,
+      body: { itemReferenceHash: Number(itemHash), stackSize: quantity, itemId: String(itemId), characterId: String(from), membershipType: s.mt }
+    });
+    return { pulled: true };
+  }
 
   if (!["move", "equip", "lock", "unlock"].includes(action) || !isId(itemId) || !isId(itemHash) || !isPlace(from) || !isPlace(to)) {
-    throw new HttpError(400, "That request was missing details. Refresh the page and try again.");
+    throw bad();
   }
-  if (action === "equip" && to === "vault") throw new HttpError(400, "Items can't be equipped in the vault.");
 
+  /* ---- Lock / unlock ---- */
   if (action === "lock" || action === "unlock") {
-    if (!isId(to)) throw new HttpError(400, "That request was missing details. Refresh the page and try again.");
+    if (!isId(to)) throw bad();
     await bungie("/Destiny2/Actions/Items/SetLockState/", {
       method: "POST",
       token: s.at,
@@ -31,6 +67,9 @@ module.exports = handler(async (query, { req, res }) => {
     });
     return { location: from, locked: action === "lock" };
   }
+
+  /* ---- Move / equip ---- */
+  if (action === "equip" && to === "vault") throw new HttpError(400, "Items can't be equipped in the vault.");
 
   const transfer = (characterId, toVault) =>
     bungie("/Destiny2/Actions/Items/TransferItem/", {

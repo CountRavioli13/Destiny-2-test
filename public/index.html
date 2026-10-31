@@ -197,6 +197,80 @@
     #vsort { flex: 1; }
   }
 
+  /* Postmaster row */
+  .cell.pm { display: grid; gap: 6px; align-content: start; }
+  .pm-count { font: 500 11px var(--mono); color: var(--faint); }
+  .pm-count.warn { color: var(--loss); }
+  .pm-grid { display: grid; grid-template-columns: repeat(auto-fill, 40px); gap: 4px; }
+  .cell.pm .tile { width: 40px; height: 40px; }
+  .cell.pm .tile .pw { padding-top: 6px; font-size: 9px; }
+
+  /* God roll marks */
+  .tile .pw .gr { margin-right: auto; display: inline-flex; width: 11px; height: 11px; color: #6ee59a; filter: drop-shadow(0 1px 1px #000); }
+  .tile .pw .gr svg { width: 100%; height: 100%; }
+  .perk.wish { box-shadow: 0 0 0 2px #4cc77f; }
+  .perk.on.wish { box-shadow: 0 0 0 2px var(--bg-2), 0 0 0 4px #4cc77f; }
+  .wish-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 2px #4cc77f; margin-right: 4px; vertical-align: -1px; }
+  .gr-banner { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 4px; background: rgba(76,199,127,.1); border: 1px solid rgba(76,199,127,.4); color: #9fe8bb; }
+  .gr-banner svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
+  .gr-banner b { display: block; font: 700 15px/1.2 var(--display); letter-spacing: .06em; text-transform: uppercase; color: #c6f3d6; }
+  .gr-banner p { margin: 3px 0 0; font-size: 12px; line-height: 1.45; color: #a9cdb6; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+
+  /* Search help */
+  .search-help { margin: -6px 0 14px; color: var(--muted); font-size: 13px; }
+  .search-help summary { cursor: pointer; color: var(--faint); width: fit-content; }
+  .search-help summary:hover { color: var(--fg); }
+  .help-body { margin-top: 8px; display: grid; gap: 8px; max-width: 900px; }
+  .help-body .chip { font-family: var(--mono); font-size: 12px; }
+  .help-body p { margin: 0; line-height: 1.6; }
+  .help-body b { color: var(--fg); font-weight: 600; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 4px 10px; font-size: 13px; cursor: pointer; color: var(--muted); background: transparent; border: 1px solid var(--line-2); border-radius: 999px; }
+  .chip:hover { color: var(--fg); border-color: var(--accent); }
+
+  /* Compare */
+  .compare { position: fixed; inset: 0; z-index: 45; background: rgba(0,0,0,.6); display: flex; align-items: flex-start; justify-content: center;
+    padding: calc(24px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); overflow-y: auto; }
+  .compare-box { width: min(1400px, 100%); background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 8px; padding: 18px 20px 22px; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+  .cmp-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+  .cmp-top h2 { margin: 6px 0 4px; font: 800 1.8rem/1.05 var(--display); text-transform: uppercase; }
+  .cmp-top .sheet-close { margin-left: 0; }
+  .cmp-cols { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; }
+  .cmp-col { flex: 0 0 210px; display: grid; gap: 10px; align-content: start; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+  .cmp-col.base { border-color: rgba(228,184,76,.5); }
+  .cmp-head { display: flex; gap: 10px; align-items: center; min-width: 0; }
+  .cmp-head img { width: 48px; height: 48px; border-radius: 3px; flex: none; }
+  .cmp-head b { display: block; font: 700 1.05rem/1.1 var(--display); text-transform: uppercase; overflow-wrap: anywhere; }
+  .cmp-head span { font-size: 12px; color: var(--muted); }
+  .cmp-power { display: flex; align-items: center; gap: 8px; font: 800 1.7rem/1 var(--display); color: var(--accent); }
+  .gr-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; font: 600 11px/1 var(--body); color: #9fe8bb; background: rgba(76,199,127,.12); border: 1px solid rgba(76,199,127,.4); }
+  .gr-pill svg { width: 11px; height: 11px; }
+  .cmp-stats { display: grid; gap: 4px; }
+  .cmp-stat { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; font-size: 12px; padding: 3px 6px; border-radius: 3px; }
+  .cmp-stat .l { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cmp-stat .v { font: 500 12px var(--mono); text-align: right; }
+  .cmp-stat .b { grid-column: 1 / -1; height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden; }
+  .cmp-stat .b i { display: block; height: 100%; background: #c9d0db; }
+  .cmp-stat.best { background: rgba(228,184,76,.1); }
+  .cmp-stat.best .v { color: var(--accent); font-weight: 600; }
+  .cmp-stat.best .b i { background: var(--accent); }
+  .cmp-perks { display: grid; gap: 4px; }
+  .cmp-perk { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 3px 6px 3px 3px; border-radius: 14px; min-width: 0; }
+  .cmp-perk img { width: 22px; height: 22px; flex: none; border-radius: 50%; background: var(--surface-2); }
+  .cmp-perk span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cmp-perk.wish { background: rgba(76,199,127,.12); color: #c6f3d6; box-shadow: inset 0 0 0 1px rgba(76,199,127,.45); }
+
+  /* Loadouts */
+  .lo-form { display: flex; flex-wrap: wrap; gap: 6px; }
+  .lo-form input { flex: 1 1 160px; }
+  .lo-card { display: grid; gap: 8px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+  .lo-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .lo-top b { font: 700 1.1rem/1.1 var(--display); text-transform: uppercase; letter-spacing: .04em; overflow-wrap: anywhere; }
+  .lo-top span { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .lo-icons { display: flex; flex-wrap: wrap; gap: 4px; }
+  .lo-icons img { width: 34px; height: 34px; border-radius: 2px; }
+  .lo-icons img.gone { opacity: .25; filter: grayscale(1); }
+
   /* Item panel */
   .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.55); }
   .sheet {
@@ -475,10 +549,30 @@
             <option value="rarity">Sort: Rarity</option>
             <option value="name">Sort: Name</option>
           </select>
+          <button class="btn ghost" type="button" id="v-loadouts">Loadouts</button>
           <button class="btn ghost" type="button" id="v-refresh">Refresh</button>
         </div>
       </div>
       <p class="hint"><b id="vcount"></b> · Drag an item to another column to move it, or onto an equipped slot to equip it. Tap any item for options.</p>
+      <details class="search-help" id="search-help">
+        <summary>Search filters</summary>
+        <div class="help-body">
+          <div class="chips">
+            <button type="button" class="chip" data-q="is:dupe">is:dupe</button>
+            <button type="button" class="chip" data-q="is:godroll">is:godroll</button>
+            <button type="button" class="chip" data-q="is:exotic">is:exotic</button>
+            <button type="button" class="chip" data-q="is:crafted">is:crafted</button>
+            <button type="button" class="chip" data-q="-is:locked">-is:locked</button>
+            <button type="button" class="chip" data-q="perk:outlaw">perk:outlaw</button>
+            <button type="button" class="chip" data-q="stat:health>=25">stat:health&gt;=25</button>
+            <button type="button" class="chip" data-q="stat:total>=60">stat:total&gt;=60</button>
+            <button type="button" class="chip" data-q="power>2000">power&gt;2000</button>
+          </div>
+          <p><b>is:</b> exotic, legendary, weapon, armor, arc, solar, void, stasis, strand, kinetic, masterwork, crafted, locked, equipped, vault, dupe, godroll, helmet, gauntlets, chest, legs, classitem, titan, hunter, warlock.
+          <b>perk:</b> any perk or mod name (use _ for spaces). <b>stat:</b> any stat name, or total, with &gt; &gt;= &lt; &lt;= or =.
+          Put <b>-</b> in front of any filter to exclude it. Combine as many as you like.</p>
+        </div>
+      </details>
       <div class="store-tabs" id="store-tabs" hidden></div>
       <div class="stores" id="stores"></div>
     </div>
@@ -553,6 +647,7 @@
 
 <div class="scrim" id="scrim" hidden></div>
 <aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-name" hidden></aside>
+<div class="compare" id="compare" role="dialog" aria-modal="true" aria-labelledby="cmp-title" hidden><div class="compare-box" id="compare-box"></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <footer>
@@ -617,8 +712,9 @@ function toast(msg, isError = false) {
 
 /* Game definitions, cached in this browser so repeat visits load fast */
 const DEFS_VERSION = 2;
-const defs = { item: {}, stat: {}, record: {}, activity: {}, detail: {}, plug: {}, socketCategory: {} };
+const defs = { item: {}, stat: {}, record: {}, activity: {}, detail: {}, plug: {}, socketCategory: {}, plugname: {} };
 try { Object.assign(defs.item, JSON.parse(localStorage.getItem(`defs-item-v${DEFS_VERSION}`) || "{}")); } catch {}
+try { Object.assign(defs.plugname, JSON.parse(localStorage.getItem(`defs-plugname-v${DEFS_VERSION}`) || "{}")); } catch {}
 function persistItemDefs() { try { localStorage.setItem(`defs-item-v${DEFS_VERSION}`, JSON.stringify(defs.item)); } catch {} }
 
 async function loadDefs(type, hashes) {
@@ -635,6 +731,7 @@ async function loadDefs(type, hashes) {
     }
   }));
   if (type === "item") persistItemDefs();
+  if (type === "plugname") { try { localStorage.setItem(`defs-plugname-v${DEFS_VERSION}`, JSON.stringify(defs.plugname)); } catch {} }
 }
 
 /* ================= Account + routing ================= */
@@ -661,12 +758,14 @@ function route() {
   if (view === "vault") { $("nav-vault").setAttribute("aria-current", "page"); showVault(); }
   else { $("nav-lookup").setAttribute("aria-current", "page"); renderRecent(); }
   closeSheet();
+  if (vault.compare) closeCompare();
 }
 
 /* ================= Vault ================= */
 const vault = {
   inv: null, type: "weapons", slot: "all", loc: "all", q: "", sort: "power",
-  busy: new Set(), openId: null, loading: false
+  busy: new Set(), openId: null, loading: false,
+  panel: null, dupes: {}, wish: null, perkNames: false, perkNamesLoading: false, compare: null
 };
 
 function vaultPanel(name) {
@@ -686,14 +785,19 @@ function showVault() {
   loadVault();
 }
 
-async function loadVault(quiet = false) {
+async function loadVault(quiet = false, silent = false) {
   if (vault.loading) return;
   vault.loading = true;
   if (!quiet) vaultPanel("v-loading");
   $("v-refresh").disabled = true;
   try {
     const inv = await api("/api/inventory");
-    await Promise.all([loadDefs("item", inv.items.map((i) => i.hash)), loadDefs("record", inv.characters.map((c) => c.titleHash))]);
+    await Promise.all([
+      loadDefs("item", [...inv.items.map((i) => i.hash), ...inv.postmaster.map((x) => x.hash)]),
+      loadDefs("record", inv.characters.map((c) => c.titleHash)),
+      loadDefs("stat", inv.items.flatMap((i) => Object.keys(i.stats)))
+    ]);
+    inv.postmaster.forEach((x, i) => { x.key = `pm${i}-${x.hash}`; });
     inv.items = inv.items
       .map((it) => {
         const d = defs.item[it.hash];
@@ -702,11 +806,15 @@ async function loadVault(quiet = false) {
       })
       .filter(Boolean);
     vault.inv = inv;
+    vault.dupes = {};
+    for (const it of inv.items) vault.dupes[it.hash] = (vault.dupes[it.hash] || 0) + 1;
+    vault.perkNames = vault.perkNames && inv.items.every((it) => it.plugs.every((p) => defs.plugname[p]));
     for (const k in details) delete details[k];
+    if (vault.wish) { /* reuse the list we already have; matches are recomputed per item */ } else loadWishlist();
     $("v-me").textContent = `${me.name}#${me.code}`;
     vaultPanel("v-app");
     renderVault();
-    if (quiet) toast("Vault refreshed.");
+    if (quiet && !silent) toast("Vault refreshed.");
   } catch (err) {
     if (err.status === 401) { me.signedIn = false; renderAccount(); vaultPanel("v-out"); toast(err.message, true); }
     else if (quiet) toast(err.message, true);
@@ -722,14 +830,7 @@ const className = (c) => CLASSES[c?.classType] || "Guardian";
 const placeName = (loc) => (loc === "vault" ? "Vault" : className(charById(loc)));
 const narrow = window.matchMedia("(max-width: 900px)");
 vault.store = null;                                   // which column to show on phones
-vault.collapsed = { weapons: false, armor: false };
-
-function matches(it) {
-  const q = vault.q.trim().toLowerCase();
-  if (!q) return true;
-  const d = defs.item[it.hash] || {};
-  return (d.name || "").toLowerCase().includes(q) || (d.type || "").toLowerCase().includes(q);
-}
+vault.collapsed = { postmaster: false, weapons: false, armor: false };
 
 function sortItems(list) {
   const d = (it) => defs.item[it.hash] || {};
@@ -757,7 +858,7 @@ function tileHtml(it) {
       title="${esc(d.name)} · ${esc(d.type)} · ${esc(where)}" aria-label="${esc(d.name)}, ${it.power ?? ""} power, ${esc(where)}">
       ${d.icon ? `<img src="${esc(d.icon)}" alt="" loading="lazy" width="50" height="50" draggable="false">` : `<img alt="" draggable="false">`}
       ${it.locked ? LOCK_SVG : ""}${it.crafted ? `<span class="craft" aria-hidden="true"></span>` : ""}
-      <span class="pw">${dmg}${it.power ?? ""}</span>
+      <span class="pw">${wishMatch(it) ? `<span class="gr" title="Community god roll">${THUMB_SVG}</span>` : ""}${dmg}${it.power ?? ""}</span>
     </button>`;
 }
 
@@ -805,6 +906,17 @@ function renderVault() {
   grid.style.setProperty("--chars", chars.length);
 
   let html = single ? "" : stores.map((s) => `<div class="store-head">${headHtml(s)}</div>`).join("");
+  const pm = vault.inv.postmaster.filter((x) => shown.includes(x.charId));
+  if (pm.length) {
+    const open = !vault.collapsed.postmaster;
+    html += `<button type="button" class="sec-head" data-sec="postmaster" aria-expanded="${open}">${CHEV_SVG}Postmaster<span class="count">${pm.length}</span></button>`;
+    if (open) html += shown.map((s) => {
+      if (s === "vault") return `<div class="cell"></div>`;
+      const here = pm.filter((x) => x.charId === s);
+      return `<div class="cell pm"><div class="pm-count${here.length >= 18 ? " warn" : ""}">${here.length} / 21</div>
+        <div class="pm-grid">${here.map(pmTileHtml).join("")}</div></div>`;
+    }).join("");
+  }
   for (const [sec, label, slots] of [["weapons", "Weapons", WEAPONS], ["armor", "Armor", ARMOR]]) {
     const count = vault.inv.items.filter((it) => it.kind === sec && shown.includes(it.loc)).length;
     const open = !vault.collapsed[sec];
@@ -818,9 +930,16 @@ function renderVault() {
   grid.innerHTML = html;
 
   const total = vault.inv.items.length;
-  $("vcount").textContent = vault.q.trim()
-    ? `${vault.inv.items.filter(matches).length} of ${total} items match`
-    : `${total} weapons and armor`;
+  const q = vault.q.trim();
+  const cq = q ? compileQuery(q) : null;
+  if (cq && cq.preds.some((f) => f.needsPerks) && !vault.perkNames) {
+    $("vcount").textContent = "Loading perk names (first time only)…";
+    ensurePerkNames();
+  } else {
+    $("vcount").textContent = q
+      ? `${vault.inv.items.filter(matches).length} of ${total} items match${cq.unknown.length ? ` · unknown filter ${cq.unknown.join(", ")}` : ""}`
+      : `${total} weapons and armor`;
+  }
 }
 
 /* Which moves are allowed for an item, with a reason when not */
@@ -873,7 +992,9 @@ function actionButtons(it) {
     ...(it.loc !== "vault" ? [btn("", "vault", "Vault", "move", "vault", canGoTo(it, "vault"))] : [])
   ].join("");
   return `${equip ? `<div class="act-group"><span class="act-label">Equip on</span><div class="act-row">${equip}</div></div>` : ""}
-    ${move ? `<div class="act-group"><span class="act-label">Move to</span><div class="act-row">${move}</div></div>` : ""}`;
+    ${move ? `<div class="act-group"><span class="act-label">Move to</span><div class="act-row">${move}</div></div>` : ""}
+    <div class="act-group"><span class="act-label">More</span><div class="act-row">
+      <button type="button" class="act-btn" data-action="compare"><span class="ico">⇆</span><b>Compare</b></button></div></div>`;
 }
 
 function lockButton(it) {
@@ -908,6 +1029,7 @@ function socketsHtml(it, det) {
   if (!dd) return "";
   const out = [];
   const plugInfo = (h) => defs.plug[h] || {};
+  const wished = wishPerks(it.hash);
   for (const cat of dd.categories) {
     const name = defs.socketCategory[cat.hash]?.name || "";
     if (!name || /cosmetic|ghost|tracker|shader|ornament/i.test(name)) continue;
@@ -925,13 +1047,14 @@ function socketsHtml(it, det) {
         if (!options.includes(s.plug)) options.unshift(s.plug);
         return `<div class="perk-col">${options.map((h) => {
           const p = plugInfo(h);
-          return `<button type="button" class="perk${h === s.plug ? " on" : ""}${String(h) === String(pickedPlug) ? " picked" : ""}" data-plug="${h}"
+          return `<button type="button" class="perk${h === s.plug ? " on" : ""}${wished.has(h) ? " wish" : ""}${String(h) === String(pickedPlug) ? " picked" : ""}" data-plug="${h}"
             title="${esc(p.name)}" aria-label="${esc(p.name)}${h === s.plug ? " (active)" : ""}">${p.icon ? `<img src="${esc(p.icon)}" alt="">` : ""}</button>`;
         }).join("")}</div>`;
       }).join("");
       const shown = pickedPlug && socks.some(({ i, s }) => s.plug == pickedPlug || det.options[i]?.includes(Number(pickedPlug)))
         ? plugInfo(pickedPlug) : plugInfo(socks[socks.length - 1].s.plug);
       out.push(`<div class="sheet-section"><h4>${esc(name)}</h4><div class="perk-cols">${cols}</div>
+        ${wished.size ? `<p class="sheet-note"><span class="wish-dot"></span> Green ring: recommended in the community wish list</p>` : ""}
         <div class="perk-info"><span class="t">${esc(shown.type || "Perk")}</span><b>${esc(shown.name)}</b><p>${esc(shown.description || "No description.")}</p></div></div>`);
     } else {
       out.push(`<div class="sheet-section"><h4>${esc(name)}</h4><div class="mods">${socks.map(({ s }) => {
@@ -983,15 +1106,21 @@ function sheetHtml(it) {
       ${actionButtons(it)}
       ${it.equipped ? `<p class="sheet-note">Equipped items can't be moved. Equip something else in the ${esc(SLOT_LABELS[it.slot])} slot first.</p>` : ""}
     </div>
-    ${body}
+    ${godrollBanner(it)}${body}
     <a class="sheet-link" href="https://www.light.gg/db/items/${esc(it.hash)}/" target="_blank" rel="noopener">See god rolls and reviews on light.gg ↗</a>`;
 }
 
 function renderSheet() {
-  const it = vault.inv?.items.find((x) => x.id === vault.openId);
-  if (!it) return;
+  let html;
+  if (vault.panel === "loadouts") html = loadoutsHtml();
+  else if (vault.panel === "postmaster") html = pmSheetHtml();
+  else {
+    const it = vault.inv?.items.find((x) => x.id === vault.openId);
+    if (!it) return;
+    html = sheetHtml(it);
+  }
   const scroll = $("sheet").scrollTop;
-  $("sheet").innerHTML = sheetHtml(it);
+  $("sheet").innerHTML = html;
   $("sheet").scrollTop = scroll;
 }
 
@@ -1018,7 +1147,8 @@ async function loadDetail(it) {
 function openSheet(id) {
   const it = vault.inv.items.find((x) => x.id === id);
   if (!it) return;
-  const wasOpen = vault.openId === id && !$("sheet").hidden;
+  const wasOpen = vault.panel === "item" && vault.openId === id && !$("sheet").hidden;
+  vault.panel = "item";
   vault.openId = id;
   if (!wasOpen) pickedPlug = null;
   renderSheet();
@@ -1030,6 +1160,7 @@ function openSheet(id) {
 
 function closeSheet() {
   vault.openId = null;
+  vault.panel = null;
   $("sheet").hidden = true;
   $("scrim").hidden = true;
 }
@@ -1071,12 +1202,418 @@ async function runAction(id, action, to) {
   }
 }
 
+/* ================= Smart search ================= */
+// Supports plain text, is:…, perk:…, stat:name>=N, power>N, and "-" to negate.
+const IS_FILTERS = {
+  exotic: (it) => tierOf(it) === 6, legendary: (it) => tierOf(it) === 5, rare: (it) => tierOf(it) === 4,
+  uncommon: (it) => tierOf(it) === 3, common: (it) => tierOf(it) === 2,
+  weapon: (it) => it.kind === "weapons", weapons: (it) => it.kind === "weapons", armor: (it) => it.kind === "armor",
+  kinetic: (it) => it.damage === 1, arc: (it) => it.damage === 2, solar: (it) => it.damage === 3,
+  void: (it) => it.damage === 4, stasis: (it) => it.damage === 6, strand: (it) => it.damage === 7,
+  masterwork: (it) => it.masterwork, mw: (it) => it.masterwork, crafted: (it) => it.crafted,
+  locked: (it) => it.locked, unlocked: (it) => !it.locked, equipped: (it) => it.equipped, vault: (it) => it.loc === "vault",
+  dupe: (it) => (vault.dupes[it.hash] || 0) > 1, dupes: (it) => (vault.dupes[it.hash] || 0) > 1,
+  godroll: (it) => Boolean(wishMatch(it)), wishlist: (it) => Boolean(wishMatch(it)),
+  helmet: (it) => it.slot === "helmet", gauntlets: (it) => it.slot === "arms", arms: (it) => it.slot === "arms",
+  chest: (it) => it.slot === "chest", legs: (it) => it.slot === "legs", classitem: (it) => it.slot === "classItem",
+  titan: (it) => it.kind === "armor" && defs.item[it.hash]?.classType === 0,
+  hunter: (it) => it.kind === "armor" && defs.item[it.hash]?.classType === 1,
+  warlock: (it) => it.kind === "armor" && defs.item[it.hash]?.classType === 2
+};
+const STAT_ALIASES = { rpm: "roundsperminute", reload: "reloadspeed", mag: "magazine", aa: "aimassistance", res: "health", resilience: "health" };
+const tierOf = (it) => defs.item[it.hash]?.tier || 0;
+const compareOp = (a, op, b) => op === ">" ? a > b : op === "<" ? a < b : op === ">=" ? a >= b : op === "<=" ? a <= b : a === b;
+
+function statValue(it, key) {
+  if (key === "total") return it.kind === "armor" ? Object.values(it.stats).reduce((a, b) => a + b, 0) : null;
+  const want = STAT_ALIASES[key] || key;
+  for (const [h, v] of Object.entries(it.stats)) {
+    if ((defs.stat[h]?.name || "").toLowerCase().replace(/\s+/g, "") === want) return v;
+  }
+  return null;
+}
+const perkNames = (it) => it.plugs.map((h) => (defs.plugname[h]?.name || "").toLowerCase()).filter(Boolean);
+
+let compiled = { q: null, preds: [], unknown: [] };
+function compileQuery(q) {
+  if (compiled.q === q) return compiled;
+  const unknown = [];
+  const tokens = q.match(/-?[a-z]+:"[^"]*"|-?"[^"]*"|-?[a-z]+(?:>=|<=|>|<|=)\d+|\S+/gi) || [];
+  const preds = tokens.map((raw) => {
+    let t = raw, neg = false;
+    if (t.length > 1 && t.startsWith("-")) { neg = true; t = t.slice(1); }
+    const clean = (s) => s.replace(/^"|"$/g, "").replace(/_/g, " ").toLowerCase();
+    let m, fn, needsPerks = false;
+    if ((m = t.match(/^is:(\w+)$/i))) {
+      fn = IS_FILTERS[m[1].toLowerCase()];
+      if (!fn) { unknown.push(raw); fn = () => true; }
+    } else if ((m = t.match(/^perk:(.+)$/i))) {
+      const v = clean(m[1]); needsPerks = true;
+      fn = (it) => perkNames(it).some((n) => n.includes(v));
+    } else if ((m = t.match(/^stat:(\w+)(>=|<=|>|<|=|:)(\d+)$/i))) {
+      const key = m[1].toLowerCase(), op = m[2] === ":" ? "=" : m[2], val = Number(m[3]);
+      fn = (it) => { const v = statValue(it, key); return v != null && compareOp(v, op, val); };
+    } else if ((m = t.match(/^power(>=|<=|>|<|=|:)(\d+)$/i))) {
+      const op = m[1] === ":" ? "=" : m[1], val = Number(m[2]);
+      fn = (it) => compareOp(it.power ?? 0, op, val);
+    } else {
+      const v = clean(t.replace(/^name:/i, ""));
+      fn = (it) => { const d = defs.item[it.hash] || {}; return (d.name || "").toLowerCase().includes(v) || (d.type || "").toLowerCase().includes(v); };
+    }
+    const pred = neg ? (it) => !fn(it) : fn;
+    pred.needsPerks = needsPerks;
+    return pred;
+  });
+  compiled = { q, preds, unknown };
+  return compiled;
+}
+
+function matches(it) {
+  const q = vault.q.trim();
+  return !q || compileQuery(q).preds.every((f) => f(it));
+}
+
+async function ensurePerkNames() {
+  if (vault.perkNames || vault.perkNamesLoading) return;
+  vault.perkNamesLoading = true;
+  await loadDefs("plugname", vault.inv.items.flatMap((it) => it.plugs));
+  vault.perkNames = true;
+  vault.perkNamesLoading = false;
+  renderVault();
+}
+
+/* ================= God rolls (community wish list) ================= */
+const THUMB_SVG = `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M6.4 1.2c.4-.5 1.3-.3 1.4.4l.2 1.5c.1 1-.1 2-.6 2.9h4.9c1.1 0 1.9 1 1.6 2l-1.3 5c-.2.8-.9 1.3-1.7 1.3H5.5V6.2l.9-5zM1.5 6.5h2.5v8.3H1.5a.5.5 0 0 1-.5-.5V7c0-.3.2-.5.5-.5z"/></svg>`;
+
+async function loadWishlist() {
+  const hashes = [...new Set(vault.inv.items.filter((it) => it.kind === "weapons").map((it) => it.hash))];
+  if (!hashes.length) return;
+  try {
+    vault.wish = await api("/api/wishlist", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ hashes })
+    });
+  } catch (err) {
+    vault.wish = { rolls: {}, notes: {}, error: err.message };
+  }
+  for (const it of vault.inv.items) delete it._wish;
+  renderVault();
+  if (vault.panel === "item") renderSheet();
+}
+
+function wishMatch(it) {
+  if (it._wish !== undefined) return it._wish;
+  if (!vault.wish) return null;
+  let res = null;
+  const have = new Set(it.plugs);
+  for (const [perks, n] of vault.wish.rolls[it.hash] || []) {
+    if (perks.every((p) => have.has(p))) { res = { note: n >= 0 ? vault.wish.notes[n] || "" : "", perks }; break; }
+  }
+  it._wish = res;
+  return res;
+}
+
+function wishPerks(hash) {
+  const set = new Set();
+  for (const [perks] of vault.wish?.rolls?.[hash] || []) perks.forEach((p) => set.add(p));
+  return set;
+}
+
+/* ================= Postmaster ================= */
+function pmTileHtml(p) {
+  const d = defs.item[p.hash] || {};
+  const label = p.quantity > 1 ? `×${p.quantity}` : p.power ?? "";
+  return `<button type="button" class="tile${vault.busy.has(p.key) ? " busy" : ""}" data-pm="${esc(p.key)}"
+      title="${esc(d.name || "Item")}${p.quantity > 1 ? ` ×${p.quantity}` : ""}" aria-label="${esc(d.name || "Item")} at the Postmaster">
+      ${d.icon ? `<img src="${esc(d.icon)}" alt="" loading="lazy" width="50" height="50" draggable="false">` : `<img alt="">`}
+      ${label !== "" ? `<span class="pw">${label}</span>` : ""}
+    </button>`;
+}
+
+function pmSheetHtml() {
+  const p = vault.inv.postmaster.find((x) => x.key === vault.openId);
+  if (!p) return `<div class="sheet-section"><p class="note">That item is no longer at the Postmaster.</p><button type="button" class="btn ghost" data-close>Close</button></div>`;
+  const d = defs.item[p.hash] || {};
+  const c = charById(p.charId);
+  return `
+    <div class="sheet-hero">
+      <div class="sheet-top">
+        ${d.icon ? `<img src="${esc(d.icon)}" alt="" width="64" height="64">` : ""}
+        <div style="min-width:0"><div class="name" id="sheet-name">${esc(d.name || "Item")}</div><div class="kind">${esc(d.type || "")}</div></div>
+        <div class="sheet-btns"><button type="button" class="sheet-close" data-close aria-label="Close">×</button></div>
+      </div>
+      <div class="sheet-facts">${p.power ? `<span class="big">${p.power}</span>` : ""}${p.quantity > 1 ? `<span>Quantity ${p.quantity}</span>` : ""}<span>At your ${className(c)}'s Postmaster</span></div>
+    </div>
+    <div class="sheet-section">
+      <button type="button" class="btn" data-action="pull">Pull to ${className(c)}</button>
+      <p class="sheet-note">It goes into your ${className(c)}'s inventory. If that inventory is full, Bungie will refuse and the item stays here.</p>
+    </div>`;
+}
+
+async function runPull(key) {
+  const p = vault.inv.postmaster.find((x) => x.key === key);
+  if (!p || vault.busy.has(key)) return;
+  const d = defs.item[p.hash] || {};
+  closeSheet();
+  vault.busy.add(key);
+  renderVault();
+  try {
+    await api("/api/transfer", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "pull", itemId: p.id || "0", itemHash: p.hash, from: p.charId, quantity: p.quantity })
+    });
+    vault.inv.postmaster = vault.inv.postmaster.filter((x) => x !== p);
+    toast(`Pulled ${d.name || "the item"} to your ${className(charById(p.charId))}.`);
+    if (SLOT_BY_BUCKET[d.bucket]) loadVault(true, true); // a weapon or armor piece: reload so it shows in its column
+  } catch (err) {
+    if (err.status === 401) { me.signedIn = false; renderAccount(); }
+    toast(err.message, true);
+  } finally {
+    vault.busy.delete(key);
+    renderVault();
+  }
+}
+
+/* ================= Compare ================= */
+const SKIP_PLUG = /shader|ornament|tracker|memento|emote|transmat|default|empty|deprecated|catalyst|masterwork|kill tracker/i;
+
+function compareSet(it) {
+  const d = defs.item[it.hash] || {};
+  let list = vault.inv.items.filter((x) => x.hash === it.hash);
+  let title = `${d.name} (${list.length} copies)`;
+  if (list.length < 2) {
+    list = vault.inv.items.filter((x) => {
+      const xd = defs.item[x.hash] || {};
+      return x.slot === it.slot && xd.type === d.type && (it.kind === "weapons" || xd.classType === d.classType);
+    });
+    title = `${d.type || "Items"}: ${d.name} vs. others`;
+  }
+  list = [it, ...list.filter((x) => x !== it).sort((a, b) => (b.power || 0) - (a.power || 0))].slice(0, 8);
+  return { list, title, baseId: it.id };
+}
+
+async function openCompare(id) {
+  const it = vault.inv.items.find((x) => x.id === id);
+  if (!it) return;
+  closeSheet();
+  vault.compare = compareSet(it);
+  renderCompare();
+  $("compare").hidden = false;
+  $("compare").querySelector("[data-cmp-close]")?.focus();
+  await Promise.all([
+    loadDefs("plugname", vault.compare.list.flatMap((x) => x.plugs)),
+    loadDefs("stat", vault.compare.list.flatMap((x) => Object.keys(x.stats)))
+  ]);
+  if (!$("compare").hidden) renderCompare();
+}
+
+function renderCompare() {
+  const { list, title } = vault.compare;
+  const rank = (h) => { const i = STAT_ORDER.indexOf(h); return i < 0 ? 999 : i; };
+  const statHashes = [...new Set(list.flatMap((x) => Object.keys(x.stats)))]
+    .filter((h) => !HIDDEN_STATS.has(h) && defs.stat[h]?.name)
+    .sort((a, b) => rank(a) - rank(b));
+  const armor = list[0].kind === "armor";
+  const rows = armor ? [...statHashes, "total"] : statHashes;
+  const val = (x, h) => h === "total" ? Object.values(x.stats).reduce((a, b) => a + b, 0) : x.stats[h];
+  const best = Object.fromEntries(rows.map((h) => {
+    const vals = list.map((x) => val(x, h)).filter((v) => v != null);
+    const top = Math.max(...vals);
+    return [h, vals.every((v) => v === top) ? null : top]; // no highlight when every copy is equal
+  }));
+  const max = armor ? 45 : 100;
+
+  const col = (x) => {
+    const d = defs.item[x.hash] || {};
+    const gr = wishMatch(x);
+    const wished = new Set(gr?.perks || []);
+    const perks = x.plugs.map((h) => ({ h, p: defs.plugname[h] })).filter(({ p }) => p?.name && !SKIP_PLUG.test(`${p.name} ${p.type}`));
+    return `
+      <div class="cmp-col${x.id === vault.compare.baseId ? " base" : ""}">
+        <div class="cmp-head">
+          ${d.icon ? `<img src="${esc(d.icon)}" alt="" width="48" height="48">` : ""}
+          <div style="min-width:0"><b>${esc(d.name)}</b><span>${esc(placeName(x.loc))}${x.equipped ? " · equipped" : ""}</span></div>
+        </div>
+        <div class="cmp-power">${x.power ?? "–"}${gr ? `<span class="gr-pill">${THUMB_SVG} God roll</span>` : ""}</div>
+        <div class="cmp-stats">${rows.map((h) => {
+          const v = val(x, h);
+          const isNum = !armor && NUMERIC_STATS.has(h);
+          return `<div class="cmp-stat${v != null && v === best[h] && list.length > 1 ? " best" : ""}">
+            <span class="l">${h === "total" ? "Total" : esc(defs.stat[h].name)}</span><span class="v">${v ?? "–"}</span>
+            ${isNum || h === "total" || v == null ? "" : `<span class="b"><i style="width:${Math.min(100, (v / max) * 100)}%"></i></span>`}
+          </div>`;
+        }).join("")}</div>
+        <div class="cmp-perks">${perks.map(({ h, p }) => `
+          <div class="cmp-perk${wished.has(h) ? " wish" : ""}" title="${esc(p.type)}">${p.icon ? `<img src="${esc(p.icon)}" alt="">` : ""}<span>${esc(p.name)}</span></div>`).join("") || `<span class="note">Loading perks…</span>`}</div>
+        <button type="button" class="btn ghost" data-cmp-open="${esc(x.id)}">Open</button>
+      </div>`;
+  };
+
+  $("compare-box").innerHTML = `
+    <div class="cmp-top">
+      <div><span class="eyebrow">Compare</span><h2 id="cmp-title">${esc(title)}</h2></div>
+      <button type="button" class="sheet-close" data-cmp-close aria-label="Close">×</button>
+    </div>
+    <p class="hint">Best value in each stat is highlighted. Perks matching a community god roll are green.</p>
+    <div class="cmp-cols">${list.map(col).join("")}</div>`;
+}
+
+function closeCompare() { $("compare").hidden = true; vault.compare = null; }
+
+/* ================= Loadouts (saved in this browser) ================= */
+const loKey = () => `loadouts-${vault.inv?.membershipId || me.membershipId || "me"}`;
+function getLoadouts() { try { return JSON.parse(localStorage.getItem(loKey()) || "[]"); } catch { return []; } }
+function setLoadouts(list) {
+  try { localStorage.setItem(loKey(), JSON.stringify(list)); return true; }
+  catch { toast("Your browser blocked saving. Loadouts need site storage to be allowed.", true); return false; }
+}
+
+function loadoutsHtml() {
+  const chars = vault.inv.characters;
+  const list = getLoadouts();
+  const card = (lo) => {
+    const targets = chars.filter((c) => c.classType === lo.classType);
+    const icons = lo.items.map((ref) => {
+      const d = defs.item[ref.hash] || {};
+      const have = vault.inv.items.some((x) => x.id === ref.id);
+      return d.icon ? `<img src="${esc(d.icon)}" alt="" title="${esc(d.name)}${have ? "" : " (no longer in your inventory)"}"${have ? "" : ' class="gone"'}>` : "";
+    }).join("");
+    return `
+      <div class="lo-card">
+        <div class="lo-top"><b>${esc(lo.name)}</b><span>${CLASSES[lo.classType] || ""} · ${lo.items.length} items</span></div>
+        <div class="lo-icons">${icons}</div>
+        <div class="act-row">
+          ${targets.map((c) => `<button type="button" class="act-btn primary" data-action="lo-apply" data-lo="${esc(lo.id)}" data-to="${esc(c.id)}">
+            ${c.emblemIcon ? `<img src="${esc(c.emblemIcon)}" alt="">` : ""}<b>Apply to ${className(c)}</b></button>`).join("")
+            || `<span class="note">No ${CLASSES[lo.classType] || ""} on this account.</span>`}
+          <button type="button" class="act-btn" data-action="lo-delete" data-lo="${esc(lo.id)}"><b>${vault.confirmDelete === lo.id ? "Confirm delete" : "Delete"}</b></button>
+        </div>
+      </div>`;
+  };
+  return `
+    <div class="sheet-hero">
+      <div class="sheet-top">
+        <div style="min-width:0"><div class="name" id="sheet-name">Loadouts</div><div class="kind">Saved in this browser on this device</div></div>
+        <div class="sheet-btns"><button type="button" class="sheet-close" data-close aria-label="Close">×</button></div>
+      </div>
+    </div>
+    <div class="sheet-section">
+      <h4>Save current gear</h4>
+      <div class="lo-form">
+        <label class="sr" for="lo-name">Loadout name</label>
+        <input class="field" id="lo-name" placeholder="Name, like Raid DPS" maxlength="40" autocomplete="off">
+        <label class="sr" for="lo-char">Character</label>
+        <select class="field" id="lo-char">${chars.map((c) => `<option value="${esc(c.id)}">${className(c)}</option>`).join("")}</select>
+        <button type="button" class="btn" data-action="lo-save">Save</button>
+      </div>
+      <p class="sheet-note">Saves the weapons and armor that character has equipped right now. Applying moves each item over and equips it.</p>
+    </div>
+    <div class="sheet-section">
+      <h4>Your loadouts</h4>
+      ${list.length ? list.map(card).join("") : `<p class="note">No loadouts yet. Save one above.</p>`}
+    </div>`;
+}
+
+function saveCurrentLoadout(name, charId) {
+  const c = charById(charId);
+  if (!c) return;
+  const items = vault.inv.items.filter((x) => x.loc === charId && x.equipped).map((x) => ({ id: x.id, hash: x.hash, slot: x.slot }));
+  if (!items.length) return toast("That character has nothing equipped to save.", true);
+  const list = getLoadouts();
+  list.unshift({ id: Date.now().toString(36), name: name || `${className(c)} loadout`, classType: c.classType, items, created: Date.now() });
+  if (setLoadouts(list)) { toast(`Saved “${list[0].name}”.`); renderSheet(); }
+}
+
+function deleteLoadout(id) {
+  if (vault.confirmDelete !== id) { vault.confirmDelete = id; return renderSheet(); }
+  vault.confirmDelete = null;
+  setLoadouts(getLoadouts().filter((lo) => lo.id !== id));
+  renderSheet();
+}
+
+async function applyLoadout(loId, charId) {
+  const lo = getLoadouts().find((x) => x.id === loId);
+  const c = charById(charId);
+  if (!lo || !c || vault.applying) return;
+  vault.applying = true;
+  closeSheet();
+  toast(`Applying “${lo.name}” to your ${className(c)}…`);
+  const problems = [];
+  const toEquip = [];
+  for (const ref of lo.items) {
+    const it = vault.inv.items.find((x) => x.id === ref.id);
+    const name = defs.item[ref.hash]?.name || "An item";
+    if (!it) { problems.push(`${name} isn't in your inventory anymore`); continue; }
+    if (it.loc !== charId) {
+      const check = canGoTo(it, charId);
+      if (!check.ok) { problems.push(`${name}: ${check.why || "can't be moved"}`); continue; }
+      vault.busy.add(it.id);
+      renderVault();
+      try {
+        const r = await api("/api/transfer", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "move", itemId: it.id, itemHash: it.hash, from: it.loc, to: charId })
+        });
+        it.loc = r.location;
+      } catch (err) {
+        if (err.data?.location) it.loc = err.data.location;
+        problems.push(`${name}: ${err.message}`);
+        continue;
+      } finally {
+        vault.busy.delete(it.id);
+      }
+    }
+    if (!it.equipped) toEquip.push(it);
+  }
+  if (toEquip.length) {
+    try {
+      const r = await api("/api/transfer", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "equipMany", itemIds: toEquip.map((x) => x.id), to: charId })
+      });
+      for (const it of toEquip) {
+        if (!r.equipped.includes(it.id)) continue;
+        for (const other of vault.inv.items) if (other.loc === charId && other.slot === it.slot) other.equipped = false;
+        it.equipped = true;
+      }
+      if (r.failed.length) problems.push(`${r.failed.length} item(s) couldn't be equipped (two Exotics, or you're in an activity)`);
+    } catch (err) {
+      problems.push(err.message);
+    }
+  }
+  vault.applying = false;
+  renderVault();
+  toast(problems.length
+    ? `Applied “${lo.name}” with ${problems.length} problem${problems.length > 1 ? "s" : ""}: ${problems.slice(0, 2).join("; ")}`
+    : `Applied “${lo.name}” to your ${className(c)}.`, problems.length > 0);
+}
+
+/* Panels share the side sheet: item details, postmaster items, loadouts */
+function openPanel(kind, key = null) {
+  vault.panel = kind;
+  vault.openId = key;
+  vault.confirmDelete = null;
+  pickedPlug = null;
+  renderSheet();
+  $("sheet").hidden = false;
+  $("scrim").hidden = false;
+  $("sheet").scrollTop = 0;
+  $("sheet").querySelector("[data-close]")?.focus();
+}
+
+function godrollBanner(it) {
+  const gr = wishMatch(it);
+  if (!gr) return "";
+  return `<div class="sheet-section"><div class="gr-banner">${THUMB_SVG}<div><b>Community god roll</b>${gr.note ? `<p>${esc(gr.note)}</p>` : ""}</div></div></div>`;
+}
+
 /* Vault events */
 $("stores").addEventListener("click", (e) => {
   const sec = e.target.closest(".sec-head");
   if (sec) { vault.collapsed[sec.dataset.sec] = !vault.collapsed[sec.dataset.sec]; return renderVault(); }
   const tile = e.target.closest(".tile[data-id]");
-  if (tile) openSheet(tile.dataset.id);
+  if (tile) return openSheet(tile.dataset.id);
+  const pmTile = e.target.closest(".tile[data-pm]");
+  if (pmTile) openPanel("postmaster", pmTile.dataset.pm);
 });
 $("store-tabs").addEventListener("click", (e) => {
   const tab = e.target.closest(".store-tab");
@@ -1091,11 +1628,40 @@ $("sheet").addEventListener("click", (e) => {
   if (e.target.closest("[data-close]")) return closeSheet();
   const plug = e.target.closest("[data-plug]");
   if (plug) { pickedPlug = plug.dataset.plug; return renderSheet(); }
-  const b = e.target.closest(".act-btn, .icon-btn");
-  if (b && !b.disabled) runAction(vault.openId, b.dataset.action, b.dataset.to);
+  const b = e.target.closest("[data-action]");
+  if (!b || b.disabled) return;
+  const a = b.dataset.action;
+  if (a === "compare") return openCompare(vault.openId);
+  if (a === "pull") return runPull(vault.openId);
+  if (a === "lo-save") return saveCurrentLoadout($("lo-name").value.trim(), $("lo-char").value);
+  if (a === "lo-apply") return applyLoadout(b.dataset.lo, b.dataset.to);
+  if (a === "lo-delete") return deleteLoadout(b.dataset.lo);
+  runAction(vault.openId, a, b.dataset.to);
+});
+$("sheet").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.id === "lo-name") saveCurrentLoadout(e.target.value.trim(), $("lo-char").value);
+});
+$("v-loadouts").addEventListener("click", () => openPanel("loadouts"));
+$("compare").addEventListener("click", (e) => {
+  if (e.target === $("compare") || e.target.closest("[data-cmp-close]")) return closeCompare();
+  const open = e.target.closest("[data-cmp-open]");
+  if (open) { closeCompare(); openSheet(open.dataset.cmpOpen); }
+});
+$("search-help").addEventListener("click", (e) => {
+  const chip = e.target.closest("[data-q]");
+  if (!chip) return;
+  const box = $("vfilter");
+  box.value = (box.value.trim() + " " + chip.dataset.q).trim();
+  vault.q = box.value;
+  renderVault();
+  box.focus();
 });
 $("scrim").addEventListener("click", closeSheet);
-document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("sheet").hidden) closeSheet(); });
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (!$("compare").hidden) closeCompare();
+  else if (!$("sheet").hidden) closeSheet();
+});
 
 /* Drag and drop: onto another column to move, onto an equipped slot to equip */
 let dragId = null, dropEl = null;
