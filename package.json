@@ -1,0 +1,9 @@
+{
+  "name": "guardian-lookup",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Destiny 2 player lookup using the Bungie.net API",
+  "scripts": {
+    "dev": "node dev-server.js"
+  }
+}

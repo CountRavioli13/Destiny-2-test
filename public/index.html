@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Guardian Lookup</title>
+<meta name="description" content="Look up any Destiny 2 player's characters, equipped gear and career stats.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* Layout: one centered column. Search on top, then the player, a row of
+     emblem tabs for characters, their gear, and career stats by activity. */
+  :root {
+    --bg: #eef0f3;
+    --surface: #ffffff;
+    --fg: #15181d;
+    --muted: #5d6573;
+    --line: #d5d9e0;
+    --accent: #b8871f;
+    --accent-ink: #1a1405;
+    --danger: #b3261e;
+    --tier-6: #ceae33;  /* Exotic */
+    --tier-5: #6d3f86;  /* Legendary */
+    --tier-4: #5076a3;  /* Rare */
+    --tier-3: #366f42;  /* Uncommon */
+    --tier-2: #9a948c;  /* Common */
+    --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+    --body: "IBM Plex Sans", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1116; --surface: #171b22; --fg: #e9ecf1; --muted: #98a1b0;
+      --line: #2a303b; --accent: #e3b546; --danger: #f2877f; --tier-5: #8e5bab;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1116; --surface: #171b22; --fg: #e9ecf1; --muted: #98a1b0;
+    --line: #2a303b; --accent: #e3b546; --danger: #f2877f; --tier-5: #8e5bab;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 var(--body); }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+
+  main {
+    max-width: 920px;
+    margin: 0 auto;
+    padding-block: 48px 64px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    display: grid;
+    gap: 32px;
+  }
+
+  /* Header + search */
+  .top { display: grid; gap: 16px; }
+  .eyebrow {
+    font: 600 12px/1 var(--display); letter-spacing: .18em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  h1 {
+    margin: 6px 0 4px; font: 700 clamp(2.4rem, 8vw, 3.4rem)/.95 var(--display);
+    text-transform: uppercase; letter-spacing: .02em; text-wrap: balance;
+  }
+  .top p { margin: 0; color: var(--muted); max-width: 60ch; }
+  form { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  input {
+    flex: 1 1 260px; min-width: 0; padding: 12px 14px;
+    font: 500 15px var(--mono); color: var(--fg);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+  }
+  button { font: inherit; cursor: pointer; }
+  .go {
+    padding: 12px 24px; font: 700 16px/1 var(--display); letter-spacing: .08em;
+    text-transform: uppercase; color: var(--accent-ink); background: var(--accent);
+    border: 0; border-radius: 4px;
+  }
+  .go:disabled { opacity: .6; cursor: progress; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .status { margin: 0; color: var(--muted); min-height: 1.5em; }
+  .status.error { color: var(--danger); }
+
+  /* Section headings */
+  h2, h3 { margin: 0; font-family: var(--display); text-transform: uppercase; letter-spacing: .04em; }
+  h2 { font-size: 2rem; line-height: 1; }
+  h3 { font-size: 1.25rem; font-weight: 600; color: var(--muted); }
+  .section { display: grid; gap: 14px; }
+  .player-meta { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+  /* Character tabs (emblems) */
+  .tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  .tab {
+    position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    min-height: 80px; padding: 12px 16px 12px 84px; text-align: left; color: #fff;
+    background: #2a2f38 center / cover no-repeat; border: 0; border-radius: 4px; overflow: hidden;
+    opacity: .62; transition: opacity .15s;
+  }
+  .tab:hover { opacity: .85; }
+  .tab[aria-selected="true"] { opacity: 1; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+  .tab::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.45) 55%, rgba(0,0,0,.6) 100%);
+  }
+  .tab > * { position: relative; z-index: 1; min-width: 0; text-shadow: 0 1px 3px rgba(0,0,0,.7); }
+  .tab .cls { display: block; font: 700 1.4rem/1 var(--display); text-transform: uppercase; }
+  .tab .sub { display: block; font-size: 12px; opacity: .9; margin-top: 3px; }
+  .tab .light { font: 700 1.7rem/1 var(--display); color: #f5d36b; font-variant-numeric: tabular-nums; }
+  .light::before { content: "✦ "; font-size: .65em; vertical-align: .22em; }
+
+  /* Gear */
+  .subclass { color: var(--muted); font-size: 14px; }
+  .subclass strong { color: var(--fg); font-weight: 600; }
+  .gear { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+  .gear-col { display: grid; gap: 8px; align-content: start; }
+  .item {
+    display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 12px;
+    padding: 8px 12px 8px 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+  }
+  .item img, .item .noicon {
+    width: 52px; height: 52px; border: 2px solid var(--tier, var(--tier-2)); border-radius: 2px;
+    background: #222; display: block;
+  }
+  .item .name { font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+  .item .kind { font-size: 12px; color: var(--muted); }
+  .item .slot { font: 600 11px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .item .pwr { font: 700 1.25rem/1 var(--display); font-variant-numeric: tabular-nums; }
+  .item.exotic .name { color: var(--tier-6); }
+  .col-label { font: 600 13px/1 var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+
+  /* Stats */
+  .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+  .mode { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 14px 16px; }
+  .mode h4 { margin: 0 0 8px; font: 700 1.15rem/1 var(--display); text-transform: uppercase; letter-spacing: .05em; }
+  .mode dl { margin: 0; display: grid; grid-template-columns: 1fr auto; row-gap: 6px; column-gap: 12px; }
+  .mode dt { color: var(--muted); font-size: 13px; }
+  .mode dd { margin: 0; font: 500 13px var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+  .mode .headline { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .mode .big { font: 700 2rem/1 var(--display); font-variant-numeric: tabular-nums; color: var(--accent); }
+  .mode .big-label { color: var(--muted); font-size: 13px; }
+
+  .empty {
+    padding: 32px 20px; border: 1px dashed var(--line); border-radius: 4px;
+    color: var(--muted); text-align: center;
+  }
+  .note { color: var(--muted); font-size: 14px; }
+  footer { color: var(--muted); font-size: 12px; }
+
+  @media (max-width: 420px) {
+    .tab { padding-left: 70px; }
+    .item { grid-template-columns: 44px minmax(0, 1fr) auto; }
+    .item img, .item .noicon { width: 44px; height: 44px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .tab { transition: none; } }
+</style>
+</head>
+<body>
+<main>
+  <section class="top">
+    <div>
+      <span class="eyebrow">Destiny 2 · Bungie.net API</span>
+      <h1>Guardian Lookup</h1>
+      <p>Look up any player's characters, equipped gear and career stats by their Bungie Name.</p>
+    </div>
+    <form id="search">
+      <label class="sr" for="name">Bungie Name</label>
+      <input id="name" name="name" placeholder="Name#1234" autocomplete="off" spellcheck="false" required>
+      <button class="go" id="go" type="submit">Search</button>
+    </form>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+  </section>
+
+  <div id="empty" class="empty">
+    Enter a Bungie Name, including the 4-digit code after the #.<br>
+    You'll find yours in the game's roster screen or on bungie.net.
+  </div>
+
+  <div id="result" hidden>
+    <div class="section">
+      <div>
+        <h2 id="player-name"></h2>
+        <div id="player-meta" class="player-meta"></div>
+      </div>
+      <div id="tabs" class="tabs" role="tablist" aria-label="Characters"></div>
+    </div>
+
+    <div class="section" style="margin-top:32px">
+      <h3>Equipped</h3>
+      <div id="subclass" class="subclass"></div>
+      <div id="gear" class="gear"></div>
+    </div>
+
+    <div class="section" style="margin-top:40px">
+      <h3>Career stats</h3>
+      <div id="stats" class="modes"></div>
+    </div>
+  </div>
+
+  <footer>Not affiliated with Bungie. Destiny data from the Bungie.net API.</footer>
+</main>
+
+<script>
+const CLASSES = ["Titan", "Hunter", "Warlock"];
+const RACES = ["Human", "Awoken", "Exo"];
+const SLOT_LABELS = {
+  kinetic: "Kinetic", energy: "Energy", power: "Power",
+  helmet: "Helmet", arms: "Gauntlets", chest: "Chest", legs: "Legs", classItem: "Class item"
+};
+const WEAPON_SLOTS = ["kinetic", "energy", "power"];
+const ARMOR_SLOTS = ["helmet", "arms", "chest", "legs", "classItem"];
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const num = (n) => (n == null ? "–" : Math.round(n).toLocaleString());
+const ratio = (n) => (n == null ? "–" : n.toFixed(2));
+const hours = (sec) => (sec == null ? "–" : Math.round(sec / 3600).toLocaleString() + " h");
+
+let state = null; // { player, characters, items, stats, selected }
+
+async function api(path) {
+  const res = await fetch(path);
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || `Request failed (HTTP ${res.status}).`);
+  return data;
+}
+
+function setStatus(msg, isError = false) {
+  $("status").textContent = msg;
+  $("status").classList.toggle("error", isError);
+}
+
+async function lookup(name) {
+  $("go").disabled = true;
+  setStatus("Finding player…");
+  try {
+    const player = await api(`/api/search?name=${encodeURIComponent(name)}`);
+    const ids = `type=${player.membershipType}&id=${player.membershipId}`;
+
+    setStatus("Loading characters and stats…");
+    const [profile, stats] = await Promise.all([
+      api(`/api/profile?${ids}`),
+      api(`/api/stats?${ids}`).catch((err) => ({ error: err.message }))
+    ]);
+
+    const hashes = [...new Set(profile.characters.flatMap((c) => c.gear.map((g) => g.hash)))];
+    const items = hashes.length ? await api(`/api/items?hashes=${hashes.join(",")}`).catch(() => ({})) : {};
+
+    state = { player, characters: profile.characters, items, stats, selected: 0 };
+    render();
+    setStatus("");
+
+    const url = new URL(location.href);
+    url.searchParams.set("name", `${player.name}#${player.code}`);
+    history.replaceState(null, "", url);
+  } catch (err) {
+    setStatus(err.message === "Failed to fetch" ? "Couldn't reach the server. Check your connection and try again." : err.message, true);
+  } finally {
+    $("go").disabled = false;
+  }
+}
+
+function render() {
+  const { player, characters } = state;
+  $("empty").hidden = true;
+  $("result").hidden = false;
+
+  $("player-name").textContent = `${player.name}#${player.code}`;
+  const totalHours = Math.round(characters.reduce((sum, c) => sum + c.minutesPlayed, 0) / 60);
+  $("player-meta").textContent =
+    `${player.platform}${player.crossSave ? " · Cross Save" : ""} · ${characters.length} character${characters.length === 1 ? "" : "s"} · ${totalHours.toLocaleString()} hours played`;
+
+  renderTabs();
+  renderGear();
+  renderStats();
+}
+
+function renderTabs() {
+  $("tabs").innerHTML = state.characters.map((c, i) => `
+    <button class="tab" role="tab" id="tab-${i}" aria-selected="${i === state.selected}" data-i="${i}"
+      style="${c.emblem ? `background-image:url('${esc(c.emblem)}')` : ""}">
+      <span><span class="cls">${CLASSES[c.classType] || "Guardian"}</span>
+      <span class="sub">${RACES[c.raceType] || ""} · ${Math.round(c.minutesPlayed / 60).toLocaleString()} h</span></span>
+      <span class="light" aria-label="Power ${c.light}">${c.light}</span>
+    </button>`).join("");
+}
+
+function itemRow(g) {
+  const def = state.items[g.hash] || { name: "Unknown item", type: "", tier: 2 };
+  const icon = def.icon
+    ? `<img src="${esc(def.icon)}" alt="" loading="lazy" width="52" height="52">`
+    : `<span class="noicon"></span>`;
+  return `
+    <div class="item${def.tier === 6 ? " exotic" : ""}" style="--tier: var(--tier-${def.tier >= 2 && def.tier <= 6 ? def.tier : 2})">
+      ${icon}
+      <div style="min-width:0">
+        <div class="slot">${SLOT_LABELS[g.slot] || ""}</div>
+        <div class="name">${esc(def.name)}</div>
+        <div class="kind">${esc(def.type)}</div>
+      </div>
+      <div class="pwr">${g.power ?? ""}</div>
+    </div>`;
+}
+
+function renderGear() {
+  const c = state.characters[state.selected];
+  if (!c) { $("gear").innerHTML = `<p class="note">This player has no characters.</p>`; $("subclass").textContent = ""; return; }
+  const bySlot = Object.fromEntries(c.gear.map((g) => [g.slot, g]));
+
+  const sub = bySlot.subclass && state.items[bySlot.subclass.hash];
+  $("subclass").innerHTML = sub ? `Subclass: <strong>${esc(sub.name)}</strong>` : "";
+
+  if (!c.gear.length) {
+    $("gear").innerHTML = `<p class="note">Gear isn't available for this character. The player may have hidden their inventory.</p>`;
+    return;
+  }
+  const col = (label, slots) => `
+    <div class="gear-col">
+      <div class="col-label">${label}</div>
+      ${slots.filter((s) => bySlot[s]).map((s) => itemRow(bySlot[s])).join("")}
+    </div>`;
+  $("gear").innerHTML = col("Weapons", WEAPON_SLOTS) + col("Armor", ARMOR_SLOTS);
+}
+
+function renderStats() {
+  const stats = state.stats;
+  if (stats.error) { $("stats").innerHTML = `<p class="note">Couldn't load stats: ${esc(stats.error)}</p>`; return; }
+  if (!stats.length) { $("stats").innerHTML = `<p class="note">No career stats recorded yet.</p>`; return; }
+
+  $("stats").innerHTML = stats.map((m) => {
+    const s = m.stats;
+    const pvp = m.kind === "pvp";
+    const winRate = pvp && s.activitiesEntered ? ((s.activitiesWon || 0) / s.activitiesEntered * 100).toFixed(1) + "%" : null;
+    const rows = pvp
+      ? [["Matches", num(s.activitiesEntered)], ["Win rate", winRate ?? "–"], ["K/D", ratio(s.killsDeathsRatio)],
+         ["KA/D", ratio(s.efficiency)], ["Kills", num(s.kills)], ["Time played", hours(s.secondsPlayed)]]
+      : [["Kills", num(s.kills)], ["Deaths", num(s.deaths)], ["K/D", ratio(s.killsDeathsRatio)],
+         ["Precision kills", num(s.precisionKills)], ["Time played", hours(s.secondsPlayed)]];
+    const big = pvp ? [num(s.activitiesWon), "wins"] : [num(s.activitiesCleared), "clears"];
+    return `
+      <div class="mode">
+        <h4>${esc(m.label)}</h4>
+        <div class="headline"><span class="big">${big[0]}</span><span class="big-label">${big[1]}</span></div>
+        <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
+      </div>`;
+  }).join("");
+}
+
+$("tabs").addEventListener("click", (e) => {
+  const tab = e.target.closest(".tab");
+  if (!tab) return;
+  state.selected = Number(tab.dataset.i);
+  renderTabs();
+  renderGear();
+  $(`tab-${state.selected}`).focus();
+});
+
+$("search").addEventListener("submit", (e) => {
+  e.preventDefault();
+  lookup($("name").value);
+});
+
+// Support shareable links like ?name=Name%231234
+const fromUrl = new URLSearchParams(location.search).get("name");
+if (fromUrl) { $("name").value = fromUrl; lookup(fromUrl); }
+</script>
+</body>
+</html>
